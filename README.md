@@ -68,6 +68,31 @@ inkletter md2mjml newsletter.md -o newsletter.mjml
 
 Without `-o`, the MJML is printed to stdout, ready to be piped anywhere.
 
+## Image layout
+
+Layout is driven by plain CommonMark structure — no custom syntax, the same
+file stays clean in any Markdown editor (and reusable for other channels):
+
+- A paragraph made **only of images** becomes a row of side-by-side columns
+  (up to 4 on one row, more wrap into rows of 3):
+
+  ```markdown
+  ![Left view](left.png) ![Right view](right.png)
+  ```
+
+- A paragraph **starting (or ending) with a single image** beside text becomes
+  a media object — image next to its text, 30/70 by default. Put the image
+  last to place it on the right:
+
+  ```markdown
+  ![Portrait](jean.png) Jean joined the team this week.
+  He will own the rendering platform.
+  ```
+
+On mobile both patterns stack, image on top. Ratios, spacing and behaviour
+are tuned in the `[images]` theme section below — including
+`text_layout = "stacked"` to disable media-object columns entirely.
+
 ## Theming
 
 Every command accepts `--theme` with a preset name or a theme file,
@@ -121,6 +146,7 @@ underline = false
 | `[quote]` | `color`, `border_color`, `font_style` |
 | `[divider]` | `color`, `width` |
 | `[table]` | `border_color`, `cell_padding`, `header_color`, `header_background_color` |
+| `[images]` | `align`, `row_gap`, `border_radius`, `text_layout`, `media_ratio` |
 
 Any unknown section or key fails loudly, with the list of valid ones.
 

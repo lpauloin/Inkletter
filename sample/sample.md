@@ -21,8 +21,11 @@ Tu es ce **point fixe**, ce `const char *etoile = "toi"` dans mon ciel en dériv
 
 Et parfois, comme un navigateur perdu, je me **raccroche à des images** :
 
-![Ton regard dans mes songes](https://picsum.photos/600/300)  
-![Ta silhouette dans la lumière](https://picsum.photos/400/150)
+![Ton regard dans mes songes](https://picsum.photos/600/300) ![Ta silhouette dans la lumière](https://picsum.photos/400/150)
+
+![Ma rose](https://picsum.photos/200/200) Et comme le Petit Prince veille sur sa rose,
+je garde chacun de tes mots sous un globe de verre,
+à l'abri du vent et des moutons.
 
 ---
 
