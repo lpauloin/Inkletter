@@ -237,7 +237,7 @@ THEMES = {
         quote=Quote(color=Slate.BASE, border_color=Slate.BASE),
         divider=Divider(color=Slate.BASE),
         table=Table(
-            border_color=Slate.BASE,
+            border_color=Slate.LIGHT,
             header_color=WHITE,
             header_background_color=Slate.DARKEST,
         ),

@@ -81,3 +81,12 @@ def test_table_theme_reaches_cells():
     assert "border-bottom: 2px solid #123456" in actual  # header cell
     assert "background-color: #eeeeee" in actual
     assert "border-bottom: 1px solid #123456" in actual  # body cell
+
+def test_table_typography_follows_the_theme():
+    from inkletter.theme import Text
+
+    theme = Theme(text=Text(color="#e2e8f0", font_family="Georgia, serif"))
+    actual = parse_markdown_to_mjml("| A |\n|---|\n| b |", theme=theme)
+    print(actual)
+    # mj-table must not keep MJML's black/Ubuntu defaults
+    assert '<mj-table color="#e2e8f0" font-family="Georgia, serif"' in actual

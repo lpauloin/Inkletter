@@ -115,6 +115,19 @@ class Codegen(NodeVisitor):
                     self_closing=True,
                 ):
                     pass
+                # mj-table has its own MJML defaults (black Ubuntu 13px)
+                # that would ignore the theme typography
+                with self.block_tag(
+                    "mj-table",
+                    attrs={
+                        "color": theme.text.color,
+                        "font-family": theme.text.font_family,
+                        "font-size": theme.text.font_size,
+                        "line-height": theme.text.line_height,
+                    },
+                    self_closing=True,
+                ):
+                    pass
                 with self.block_tag(
                     "mj-divider",
                     attrs={
