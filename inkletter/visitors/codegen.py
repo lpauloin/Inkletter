@@ -244,7 +244,7 @@ class Codegen(NodeVisitor):
 
     def visit_LiteralText(self, node, scope):
         with self.ensure_open_text(node):
-            self.current.add_text(node.value)
+            self.current.add_text(html.escape(node.value, quote=False))
 
     def visit_Emphasis(self, node, scope):
         with self.ensure_open_text(node):
