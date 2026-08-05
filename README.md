@@ -70,21 +70,34 @@ Without `-o`, the MJML is printed to stdout, ready to be piped anywhere.
 
 ## Theming
 
-Every command accepts `--theme` with a built-in preset or a TOML file:
+Every command accepts `--theme` with a preset name or a theme file,
+and `--no-theme` for bare, unstyled MJML:
 
 ```bash
-inkletter preview newsletter.md --theme dark
-inkletter md2html newsletter.md --theme mytheme.toml -o out.html
-inkletter md2mjml newsletter.md --no-theme   # bare MJML, no styling
+inkletter md2html newsletter.md --theme dark
+inkletter md2html newsletter.md --theme mytheme.toml
 ```
 
-The built-in presets, rendered on desktop and mobile:
+### Built-in presets
 
-![The built-in themes](sample/themes.png)
+| Preset | Mood |
+|--------|------|
+| `default` | Clean and neutral — Helvetica, gray text, blue links |
+| `dark` | Slate night mode — light text, Trebuchet MS headings |
+| `crystal` | Airy and elegant — Palatino headings, cold blue accents |
+| `blue` | Corporate and trustworthy — Tahoma text, Trebuchet MS headings |
+| `green` | Organic and editorial — Georgia throughout |
+| `red` | Bold and editorial — Georgia headings over Helvetica text |
+| `yellow` | Warm and friendly — Verdana text, Trebuchet MS headings |
 
-### Theme files
+Here is each preset rendered on desktop and on a 375px mobile screen:
 
-A theme file is partial — set only what you want to change:
+![The built-in themes on desktop and mobile](sample/themes.png)
+
+### Write your own
+
+A theme file is partial — set only what you want to change,
+everything else keeps the default look:
 
 ```toml
 [layout]
