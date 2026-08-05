@@ -102,7 +102,9 @@ inkletter md2html newsletter.md --theme mytheme.toml -o out.html
 inkletter md2mjml newsletter.md --no-theme   # bare MJML, no styling
 ```
 
-Built-in presets: `default`, `dark`, `crystal`, `blue`, `green`, `red`, `yellow`.
+Built-in presets: `default`, `dark`, `crystal`, `blue`, `green`, `red`, `yellow` — see them applied to [sample.md](sample/sample.md) in [sample/themes/](sample/themes/):
+
+![The built-in themes](sample/themes.png)
 
 A theme file is partial — set only what you want to change:
 
