@@ -73,3 +73,83 @@ def test_md2html_conversion_error_sets_exit_code(tmp_path, monkeypatch):
 
     assert result.exit_code != 0
     assert "boom" in result.output
+
+
+# --- Themes ---
+
+
+def test_md2mjml_is_themed_by_default(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("Hello", encoding="utf-8")
+
+    result = CliRunner().invoke(cli, ["md2mjml", str(md)])
+
+    assert result.exit_code == 0
+    assert "<mj-head>" in result.output
+
+
+def test_md2mjml_no_theme(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("Hello", encoding="utf-8")
+
+    result = CliRunner().invoke(cli, ["md2mjml", str(md), "--no-theme"])
+
+    assert result.exit_code == 0
+    assert "<mj-head>" not in result.output
+
+
+def test_md2mjml_theme_preset(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("Hello", encoding="utf-8")
+
+    result = CliRunner().invoke(cli, ["md2mjml", str(md), "--theme", "night"])
+
+    assert result.exit_code == 0
+    assert 'background-color="#0f172a"' in result.output
+
+
+def test_md2mjml_theme_file(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("Hello", encoding="utf-8")
+    toml = tmp_path / "theme.toml"
+    toml.write_text('[layout]\nwidth = "640px"\n', encoding="utf-8")
+
+    result = CliRunner().invoke(cli, ["md2mjml", str(md), "--theme", str(toml)])
+
+    assert result.exit_code == 0
+    assert '<mj-body width="640px"' in result.output
+
+
+def test_md2mjml_unknown_theme_fails_and_lists_presets(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("Hello", encoding="utf-8")
+
+    result = CliRunner().invoke(cli, ["md2mjml", str(md), "--theme", "nope"])
+
+    assert result.exit_code != 0
+    assert "night" in result.output  # the error lists the available presets
+
+
+def test_md2mjml_invalid_theme_file_fails(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("Hello", encoding="utf-8")
+    toml = tmp_path / "theme.toml"
+    toml.write_text('[links]\ncolour = "#fff"\n', encoding="utf-8")
+
+    result = CliRunner().invoke(cli, ["md2mjml", str(md), "--theme", str(toml)])
+
+    assert result.exit_code != 0
+    assert "unknown key" in result.output
+
+
+def test_md2html_theme_preset(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("A [link](https://x.com)", encoding="utf-8")
+    out = tmp_path / "out.html"
+
+    result = CliRunner().invoke(
+        cli, ["md2html", str(md), "-o", str(out), "--theme", "red"]
+    )
+
+    assert result.exit_code == 0
+    assert "#b91c1c" in out.read_text(encoding="utf-8")  # Red.DARK link color

@@ -92,6 +92,45 @@ Without `-o`, the MJML is printed to stdout, ready to be piped anywhere.
 
 No fuss. No noise. Just results.
 
+## Theming
+
+Every command accepts `--theme` with a **built-in preset** or a **TOML file**:
+
+```bash
+inkletter preview newsletter.md --theme night
+inkletter md2html newsletter.md --theme mytheme.toml -o out.html
+inkletter md2mjml newsletter.md --no-theme   # bare MJML, no styling
+```
+
+Built-in presets: `default`, `night` (alias `dark`), `crystal`, `blue`, `green`, `red`, `yellow`.
+
+A theme file is partial — set only what you want to change:
+
+```toml
+[layout]
+width = "640px"
+
+[text]
+font_family = "Georgia, serif"
+
+[links]
+color = "#c0392b"
+underline = false
+```
+
+Or from Python, with the same defaults and optional named palettes:
+
+```python
+from inkletter.colors import Blue
+from inkletter.md_to_html import parse_markdown_to_html
+from inkletter.theme import Links, Text, Theme
+
+theme = Theme(text=Text(font_family="Georgia, serif"), links=Links(color=Blue.DARK))
+html = parse_markdown_to_html(markdown, theme=theme)
+```
+
+Sections and keys: `[layout]` (width, background_color, content_background_color, section_padding), `[text]` (font_family, font_size, line_height, color), `[headings]` (font_family, color, font_weight, h1_size, h2_size, h3_size), `[links]` (color, underline), `[code]` (font_family, background_color, color), `[quote]` (color, border_color, font_style), `[divider]` (color, width). Any unknown key fails loudly with the list of valid ones.
+
 
 ## Contributing
 
