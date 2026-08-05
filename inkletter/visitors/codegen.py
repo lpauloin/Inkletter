@@ -11,12 +11,12 @@ from inkletter.visitors.generic import NodeVisitor
 
 
 class Codegen(NodeVisitor):
-    def __init__(self, use_style=False):
+    def __init__(self, theme=None):
         super().__init__()
         self.root = CodeBlock()
         self.resolver = CodeBlockResolver()
         self.current = self.root
-        self.use_style = use_style
+        self.theme = theme
 
     def get_code(self):
         return self.resolver.resolve(self.root)
@@ -87,17 +87,50 @@ class Codegen(NodeVisitor):
 
     def visit_Document(self, node, scope):
         with self.block_tag("mjml"):
-            if self.use_style:
-                with self.block_tag("mj-head"):
-                    with self.block_tag("mj-attributes"):
-                        with self.block_tag(
-                            "mj-section",
-                            attrs={"padding": "0"},
-                            self_closing=True,
-                        ):
-                            pass
-            with self.block_tag("mj-body"):
+            body_attrs = {}
+            if self.theme is not None:
+                self.emit_head(self.theme)
+                body_attrs = {
+                    "width": self.theme.layout.width,
+                    "background-color": self.theme.layout.background_color,
+                }
+            with self.block_tag("mj-body", attrs=body_attrs):
                 self.generic_visit(node, scope)
+
+    def emit_head(self, theme):
+        with self.block_tag("mj-head"):
+            with self.block_tag("mj-attributes"):
+                with self.block_tag(
+                    "mj-section",
+                    attrs={
+                        "padding": theme.layout.section_padding,
+                        "background-color": theme.layout.content_background_color,
+                    },
+                    self_closing=True,
+                ):
+                    pass
+                with self.block_tag(
+                    "mj-text",
+                    attrs={
+                        "font-family": theme.text.font_family,
+                        "font-size": theme.text.font_size,
+                        "line-height": theme.text.line_height,
+                        "color": theme.text.color,
+                    },
+                    self_closing=True,
+                ):
+                    pass
+                with self.block_tag(
+                    "mj-divider",
+                    attrs={
+                        "border-color": theme.divider.color,
+                        "border-width": theme.divider.width,
+                    },
+                    self_closing=True,
+                ):
+                    pass
+            with self.block_tag("mj-style", attrs={"inline": "inline"}):
+                self.add_raw_lines(theme.to_css())
 
     def visit_Paragraph(self, node, scope):
         with self.ensure_open_column(node):
@@ -116,10 +149,9 @@ class Codegen(NodeVisitor):
 
     def visit_BlockQuote(self, node, scope):
         with self.ensure_open_column(node):
-            with self.block_tag(
-                "mj-text", attrs={"font-style": "italic", "color": "#555555"}
-            ):
-                self.generic_visit(node, scope)
+            with self.ensure_open_text(node):
+                with self.block_tag("blockquote"):
+                    self.generic_visit(node, scope)
 
     def visit_BlockCode(self, node, scope):
         with self.ensure_open_column(node):
@@ -129,11 +161,12 @@ class Codegen(NodeVisitor):
 
     def visit_ThematicBreak(self, node, scope):
         with self.ensure_open_column(node):
-            with self.block_tag(
-                "mj-divider",
-                attrs={"border-color": "#cccccc", "border-width": "1px"},
-                self_closing=True,
-            ):
+            # With a theme the styling comes from mj-attributes in the head.
+            if self.theme is not None:
+                attrs = {}
+            else:
+                attrs = {"border-color": "#cccccc", "border-width": "1px"}
+            with self.block_tag("mj-divider", attrs=attrs, self_closing=True):
                 pass
 
     def visit_LineBreak(self, node, scope):

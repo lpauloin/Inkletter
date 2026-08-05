@@ -86,10 +86,12 @@ def test_image_in_blockquote():
 > Du grand citateur"""
 
     expected_content = """\
-<mj-text font-style="italic" color="#555555">
-  <img src="https://picsum.photos/600/300" alt="Quote Icon" style="max-width: 100%; height: auto;"/>
-  Citation<br/>
-  Du grand citateur
+<mj-text>
+  <blockquote>
+    <img src="https://picsum.photos/600/300" alt="Quote Icon" style="max-width: 100%; height: auto;"/>
+    Citation<br/>
+    Du grand citateur
+  </blockquote>
 </mj-text>"""
 
     actual = parse_markdown_to_mjml(markdown_input)

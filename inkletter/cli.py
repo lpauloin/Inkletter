@@ -7,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from inkletter.md_to_html import parse_markdown_to_html, parse_mjml_to_html
 from inkletter.md_to_mjml import parse_markdown_to_mjml
+from inkletter.theme import Theme
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
@@ -41,7 +42,7 @@ def preview(filepath: Path, output: Path | None):
         markdown_text = filepath.read_text(encoding="utf-8")
 
         # Markdown → MJML
-        mjml_code = parse_markdown_to_mjml(markdown_text, use_style=True)
+        mjml_code = parse_markdown_to_mjml(markdown_text, theme=Theme())
 
         # MJML → HTML
         html_output = parse_mjml_to_html(mjml_code)

@@ -268,8 +268,10 @@ Let's make this launch unforgettable!
     </mj-section>
     <mj-section>
       <mj-column>
-        <mj-text font-style="italic" color="#555555">
-          "<strong>Revolutionize your workflow</strong> — Meet the MegaWidget 5000."<em>"Faster, smarter, better. The tool you didn't know you needed."</em>
+        <mj-text>
+          <blockquote>
+            "<strong>Revolutionize your workflow</strong> — Meet the MegaWidget 5000."<em>"Faster, smarter, better. The tool you didn't know you needed."</em>
+          </blockquote>
         </mj-text>
       </mj-column>
     </mj-section>

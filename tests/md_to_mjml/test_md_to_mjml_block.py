@@ -99,8 +99,10 @@ def test_headings_with_inlines(markdown_input, expected_content):
 def test_blockquote():
     markdown_input = """> This is a quote."""
     expected_content = """\
-<mj-text font-style="italic" color="#555555">
-  This is a quote.
+<mj-text>
+  <blockquote>
+    This is a quote.
+  </blockquote>
 </mj-text>"""
 
     actual = parse_markdown_to_mjml(markdown_input)

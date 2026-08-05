@@ -124,6 +124,44 @@ class Theme:
     def to_dict(self):
         return asdict(self)
 
+    def to_css(self):
+        """CSS rules for the raw HTML living inside mj-text blocks.
+
+        Emitted in an <mj-style inline="inline"> so mjml2html inlines
+        them into the tags, as required by most email clients.
+        """
+        heading_font = self.headings.font_family or self.text.font_family
+        heading_color = self.headings.color or self.text.color
+        decoration = "underline" if self.links.underline else "none"
+        return "\n".join(
+            [
+                f"h1, h2, h3, h4, h5, h6 {{ font-family: {heading_font};"
+                f" color: {heading_color};"
+                f" font-weight: {self.headings.font_weight};"
+                f" margin: 16px 0 8px 0; }}",
+                f"h1 {{ font-size: {self.headings.h1_size}; }}",
+                f"h2 {{ font-size: {self.headings.h2_size}; }}",
+                f"h3 {{ font-size: {self.headings.h3_size}; }}",
+                f"a {{ color: {self.links.color};"
+                f" text-decoration: {decoration}; }}",
+                f"blockquote {{ color: {self.quote.color};"
+                f" font-style: {self.quote.font_style};"
+                f" border-left: 3px solid {self.quote.border_color};"
+                f" margin: 8px 0; padding: 4px 0 4px 12px; }}",
+                f"code {{ font-family: {self.code.font_family};"
+                f" background-color: {self.code.background_color};"
+                f" color: {self.code.color};"
+                f" padding: 2px 4px; border-radius: 3px; }}",
+                f"pre {{ font-family: {self.code.font_family};"
+                f" background-color: {self.code.background_color};"
+                f" color: {self.code.color};"
+                f" padding: 12px; border-radius: 4px; }}",
+                "table { border-collapse: collapse; }",
+                f"th, td {{ border: 1px solid {self.divider.color};"
+                f" padding: 6px 10px; }}",
+            ]
+        )
+
 
 def _build_group(group_cls, group_name, group_data):
     if not isinstance(group_data, dict):
