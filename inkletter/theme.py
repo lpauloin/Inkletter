@@ -197,11 +197,20 @@ def _build_group(group_cls, group_name, group_data):
 
 # --- Presets ---
 
+# Standard, email-safe font stacks used by the presets
+SANS = "Helvetica, Arial, sans-serif"
+HUMANIST = "'Trebuchet MS', Helvetica, Arial, sans-serif"
+WIDE_SANS = "Verdana, Geneva, sans-serif"
+COMPACT_SANS = "Tahoma, Verdana, sans-serif"
+SERIF = "Georgia, 'Times New Roman', serif"
+ELEGANT_SERIF = "'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif"
 
-def _hue_theme(hue):
+
+def _hue_theme(hue, text_font=SANS, heading_font=None):
     return Theme(
         layout=Layout(background_color=hue.LIGHTEST),
-        headings=Headings(color=hue.DARKEST),
+        text=Text(font_family=text_font),
+        headings=Headings(color=hue.DARKEST, font_family=heading_font),
         links=Links(color=hue.DARK),
         quote=Quote(color=Gray.BASE, border_color=hue.LIGHT),
         divider=Divider(color=hue.LIGHT),
@@ -222,7 +231,7 @@ THEMES = {
             content_background_color=Slate.DARK,
         ),
         text=Text(color=Slate.LIGHT),
-        headings=Headings(color=WHITE),
+        headings=Headings(color=WHITE, font_family=HUMANIST),
         links=Links(color=Blue.LIGHT),
         code=Code(background_color=Slate.DARKEST, color=Slate.LIGHT),
         quote=Quote(color=Slate.BASE, border_color=Slate.BASE),
@@ -236,15 +245,15 @@ THEMES = {
     "crystal": Theme(
         layout=Layout(background_color=Slate.LIGHTEST),
         text=Text(color=Slate.DARK),
-        headings=Headings(color=Slate.DARKEST),
+        headings=Headings(color=Slate.DARKEST, font_family=ELEGANT_SERIF),
         links=Links(color=Blue.BASE),
         quote=Quote(color=Slate.BASE, border_color=Blue.LIGHT),
         divider=Divider(color=Slate.LIGHT),
         code=Code(background_color=Slate.LIGHTEST, color=Slate.DARKEST),
         table=Table(border_color=Slate.LIGHT, header_background_color=Slate.LIGHTEST),
     ),
-    "blue": _hue_theme(Blue),
-    "green": _hue_theme(Green),
-    "red": _hue_theme(Red),
-    "yellow": _hue_theme(Yellow),
+    "blue": _hue_theme(Blue, text_font=COMPACT_SANS, heading_font=HUMANIST),
+    "green": _hue_theme(Green, text_font=SERIF, heading_font=SERIF),
+    "red": _hue_theme(Red, text_font=SANS, heading_font=SERIF),
+    "yellow": _hue_theme(Yellow, text_font=WIDE_SANS, heading_font=HUMANIST),
 }
