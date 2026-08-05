@@ -1,6 +1,6 @@
 # Inkletter
 
-[![GitHub Repo](https://img.shields.io/badge/GitHub-Inkletter-blue?logo=github)](https://github.com/CrocoCode-co/Inkletter)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Inkletter-blue?logo=github)](https://github.com/lpauloin/Inkletter)
 [![CI](https://github.com/lpauloin/Inkletter/actions/workflows/ci.yml/badge.svg)](https://github.com/lpauloin/Inkletter/actions/workflows/ci.yml)
 [![PyPI version](https://badge.fury.io/py/inkletter.svg)](https://badge.fury.io/py/inkletter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -49,7 +49,7 @@ pip install inkletter
 Or for development:
 
 ```bash
-git clone https://github.com/CrocoCode-co/Inkletter.git
+git clone https://github.com/lpauloin/Inkletter.git
 cd Inkletter
 pip install -e .
 ```

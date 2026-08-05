@@ -22,9 +22,9 @@ dependencies = [
 inkletter = "inkletter.cli:cli"
 
 [project.urls]
-Homepage = "https://github.com/CrocoCode-co/Inkletter"
-Repository = "https://github.com/CrocoCode-co/Inkletter"
-Issues = "https://github.com/CrocoCode-co/Inkletter/issues"
+Homepage = "https://github.com/lpauloin/Inkletter"
+Repository = "https://github.com/lpauloin/Inkletter"
+Issues = "https://github.com/lpauloin/Inkletter/issues"
 
 [tool.setuptools]
 package-dir = { "" = "." }
