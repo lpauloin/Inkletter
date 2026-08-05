@@ -1,5 +1,3 @@
-import pytest
-
 from inkletter.md_to_html import parse_markdown_to_html
 from inkletter.md_to_mjml import parse_markdown_to_mjml
 from inkletter.theme import Layout, Links, Theme
@@ -48,12 +46,6 @@ def test_themed_divider_relies_on_attributes():
 def test_unthemed_divider_keeps_legacy_attributes():
     actual = parse_markdown_to_mjml("---")
     assert '<mj-divider border-color="#cccccc" border-width="1px"/>' in actual
-
-
-def test_use_style_is_a_deprecated_alias_of_default_theme():
-    with pytest.deprecated_call():
-        legacy = parse_markdown_to_mjml("Hello", use_style=True)
-    assert legacy == parse_markdown_to_mjml("Hello", theme=Theme())
 
 
 def test_theme_css_is_inlined_in_final_html():
