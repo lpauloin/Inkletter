@@ -64,6 +64,53 @@ class BlockTextMerger(NodeVisitor):
 
     def visit_Document(self, node, scope):
         self.process_blocknode(node, scope)
+        node.children = [self.promote_paragraph(c) for c in node.children]
+
+    def promote_paragraph(self, node):
+        """Turn image-only paragraphs into ImageRow and image-beside-text
+        paragraphs into MediaObject (top-level layout conventions)."""
+        if not isinstance(node, Paragraph):
+            return node
+        images = [c for c in node.children if isinstance(c, (Image, ImageLink))]
+        others = [c for c in node.children if not isinstance(c, (Image, ImageLink))]
+        if not images:
+            return node
+
+        if all(self.is_blank(c) for c in others):
+            if len(images) == 1:
+                # drop the blank filler around a lone image
+                node.children = images
+                return node
+            return ImageRow(images)
+
+        if len(images) == 1:
+            if node.children[0] is images[0]:
+                self.strip_edge(others, leading=True)
+                return MediaObject(images[0], others, side="left")
+            if node.children[-1] is images[0]:
+                self.strip_edge(others, leading=False)
+                return MediaObject(images[0], others, side="right")
+        return node
+
+    def is_blank(self, node):
+        if not isinstance(node, BlockText):
+            return False
+        return all(
+            isinstance(c, TextTerminal)
+            or (isinstance(c, LiteralText) and not c.value.strip())
+            for c in node.children
+        )
+
+    def strip_edge(self, blocks, leading):
+        """Trim the whitespace left over next to the extracted image."""
+        if not blocks:
+            return
+        block = blocks[0] if leading else blocks[-1]
+        if not isinstance(block, BlockText) or not block.children:
+            return
+        text = block.children[0] if leading else block.children[-1]
+        if isinstance(text, LiteralText):
+            text.value = text.value.lstrip() if leading else text.value.rstrip()
 
     def visit_Paragraph(self, node, scope):
         self.process_blocknode(node, scope)

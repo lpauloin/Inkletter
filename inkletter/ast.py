@@ -171,6 +171,31 @@ class ImageLink(Node):
         return f"ImageLink(href='{self.href}', img='{self.img}', title='{self.title}')"
 
 
+class ImageRow(BlockNode):
+    """A paragraph made only of images: rendered as side-by-side columns."""
+
+    def __repr__(self):
+        return "ImageRow()"
+
+
+class MediaObject(BlockNode):
+    """A paragraph opening (or closing) with a single image beside its text.
+
+    `side` records where the image sits in the source paragraph.
+    """
+
+    def __init__(self, image, children, side="left"):
+        super().__init__(children)
+        self.image = image
+        self.side = side
+
+    def get_children(self):
+        return [self.image] + self.children
+
+    def __repr__(self):
+        return f"MediaObject(side='{self.side}')"
+
+
 # --- Terminal elements ---
 
 
