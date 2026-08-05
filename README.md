@@ -1,6 +1,7 @@
 # Inkletter
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Inkletter-blue?logo=github)](https://github.com/CrocoCode-co/Inkletter)
+[![CI](https://github.com/lpauloin/Inkletter/actions/workflows/ci.yml/badge.svg)](https://github.com/lpauloin/Inkletter/actions/workflows/ci.yml)
 [![PyPI version](https://badge.fury.io/py/inkletter.svg)](https://badge.fury.io/py/inkletter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -37,7 +38,7 @@ Explore the included examples to see Inkletter in action:
 
 ## Installation
 
-Make sure you have Python 3.8+ installed on your system.
+Make sure you have Python 3.10+ installed on your system.
 
 Then in your terminal:
 
@@ -49,7 +50,7 @@ Or for development:
 
 ```bash
 git clone https://github.com/CrocoCode-co/Inkletter.git
-cd inkletter
+cd Inkletter
 pip install -e .
 ```
 
@@ -96,6 +97,15 @@ No fuss. No noise. Just results.
 
 French or not, you are welcome to contribute.
 Fork it, branch it, test it, PR it — with love.
+
+To run the test suite locally:
+
+```bash
+pip install -r requirements-test.txt
+pytest
+```
+
+Every push and pull request is checked by the GitHub Actions CI on Python 3.10 to 3.13.
 
 ## License
 
