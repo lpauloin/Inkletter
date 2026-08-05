@@ -64,33 +64,39 @@ class BlockTextMerger(NodeVisitor):
 
     def visit_Document(self, node, scope):
         self.process_blocknode(node, scope)
-        node.children = [self.promote_paragraph(c) for c in node.children]
+        promoted = []
+        for child in node.children:
+            promoted.extend(self.promote_paragraph(child))
+        node.children = promoted
 
     def promote_paragraph(self, node):
-        """Turn image-only paragraphs into ImageRow and image-beside-text
+        """Turn image-only paragraphs into ImageRow(s) and image-beside-text
         paragraphs into MediaObject (top-level layout conventions)."""
         if not isinstance(node, Paragraph):
-            return node
+            return [node]
         images = [c for c in node.children if isinstance(c, (Image, ImageLink))]
         others = [c for c in node.children if not isinstance(c, (Image, ImageLink))]
         if not images:
-            return node
+            return [node]
 
         if all(self.is_blank(c) for c in others):
             if len(images) == 1:
                 # drop the blank filler around a lone image
                 node.children = images
-                return node
-            return ImageRow(images)
+                return [node]
+            # up to 4 images stay on one row, more wrap into rows of 3
+            if len(images) <= 4:
+                return [ImageRow(images)]
+            return [ImageRow(images[i : i + 3]) for i in range(0, len(images), 3)]
 
         if len(images) == 1:
             if node.children[0] is images[0]:
                 self.strip_edge(others, leading=True)
-                return MediaObject(images[0], others, side="left")
+                return [MediaObject(images[0], others, side="left")]
             if node.children[-1] is images[0]:
                 self.strip_edge(others, leading=False)
-                return MediaObject(images[0], others, side="right")
-        return node
+                return [MediaObject(images[0], others, side="right")]
+        return [node]
 
     def is_blank(self, node):
         if not isinstance(node, BlockText):

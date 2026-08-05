@@ -93,6 +93,22 @@ class Annotation(NodeVisitor):
         self.generic_visit(node, scope)
         scope.pop(node)
 
+    def visit_ImageRow(self, node, scope):
+        scope.push(node)
+        # Tell the codegen this node renders as its own multi-column
+        # section, and each image that it sits in a row (row spacing).
+        node.annotations["own_section"] = True
+        for image in node.children:
+            image.annotations["in_image_row"] = True
+        self.generic_visit(node, scope)
+        scope.pop(node)
+
+    def visit_MediaObject(self, node, scope):
+        scope.push(node)
+        node.annotations["own_section"] = True
+        self.generic_visit(node, scope)
+        scope.pop(node)
+
     def visit_Image(self, node, scope):
         scope.push(node)
         self.mark_manual_image_if_needed(node, scope)

@@ -75,6 +75,15 @@ class Divider:
 
 
 @dataclass(frozen=True)
+class Images:
+    align: str = "center"  # lone image narrower than the column
+    row_gap: str = "8px"  # horizontal padding inside image-row columns
+    border_radius: str = "0"
+    text_layout: str = "columns"  # media object: "columns" or "stacked"
+    media_ratio: str = "30%"  # image column width of a media object
+
+
+@dataclass(frozen=True)
 class Table:
     border_color: str = Gray.LIGHT  # horizontal row rules
     cell_padding: str = "8px 12px"
@@ -92,6 +101,7 @@ class Theme:
     quote: Quote = field(default_factory=Quote)
     divider: Divider = field(default_factory=Divider)
     table: Table = field(default_factory=Table)
+    images: Images = field(default_factory=Images)
 
     @classmethod
     def from_dict(cls, data):
@@ -193,6 +203,20 @@ def _build_group(group_cls, group_name, group_data):
         elif not isinstance(value, str) and not (default is None and value is None):
             raise ThemeError(f"key '{key}' in [{group_name}] must be a str")
     return group_cls(**group_data)
+
+
+def split_media_ratio(ratio):
+    """Split a media-object image ratio like "30%" into (image, text) widths."""
+    try:
+        value = float(ratio.strip().rstrip("%"))
+    except (AttributeError, ValueError):
+        value = -1.0
+    if not 0 < value < 100:
+        raise ThemeError(
+            f"invalid media_ratio {ratio!r} in [images]; "
+            "expected a percentage between 0 and 100, e.g. '30%'"
+        )
+    return f"{value:g}%", f"{100 - value:g}%"
 
 
 # --- Presets ---

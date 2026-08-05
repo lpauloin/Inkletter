@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from itertools import groupby
 import html
 
 from inkletter.ast import *
@@ -7,6 +8,7 @@ from inkletter.codeblock import (
     CodeBlockResolver,
     TextElement,
 )
+from inkletter.theme import split_media_ratio
 from inkletter.visitors.generic import NodeVisitor
 
 
@@ -77,8 +79,9 @@ class Codegen(NodeVisitor):
             yield
 
     def visit_Document(self, node, scope):
-        # The whole document lives in a single section and column: blocks
-        # flow inside it as components, instead of one section per block.
+        # The document is a sequence of bands: consecutive ordinary blocks
+        # share one section/column, while nodes annotated own_section
+        # (image rows, media objects) generate their own section.
         with self.block_tag("mjml"):
             body_attrs = {}
             if self.theme is not None:
@@ -88,9 +91,47 @@ class Codegen(NodeVisitor):
                     "background-color": self.theme.layout.background_color,
                 }
             with self.block_tag("mj-body", attrs=body_attrs):
-                with self.block_tag("mj-section"):
-                    with self.block_tag("mj-column"):
-                        self.generic_visit(node, scope)
+                own_section = lambda c: bool(c.annotations.get("own_section"))
+                for standalone, band in groupby(node.children, key=own_section):
+                    if standalone:
+                        for child in band:
+                            self.visit(child, scope)
+                    else:
+                        with self.block_tag("mj-section"):
+                            with self.block_tag("mj-column"):
+                                for child in band:
+                                    self.visit(child, scope)
+
+    def visit_ImageRow(self, node, scope):
+        with self.block_tag("mj-section"):
+            for image in node.children:
+                with self.block_tag("mj-column"):
+                    self.visit(image, scope)
+
+    def visit_MediaObject(self, node, scope):
+        if self.theme is not None and self.theme.images.text_layout == "stacked":
+            with self.block_tag("mj-section"):
+                with self.block_tag("mj-column"):
+                    self.visit(node.image, scope)
+                    for child in node.children:
+                        self.visit(child, scope)
+            return
+
+        ratio = self.theme.images.media_ratio if self.theme is not None else "30%"
+        image_width, text_width = split_media_ratio(ratio)
+        # DOM order keeps the image first so it stacks on top on mobile;
+        # side=right is a desktop-only visual flip through direction=rtl.
+        attrs = {"direction": "rtl"} if node.side == "right" else {}
+        with self.block_tag("mj-section", attrs=attrs):
+            with self.block_tag("mj-column", attrs={"width": image_width}):
+                self.visit(node.image, scope)
+            with self.block_tag("mj-column", attrs={"width": text_width}):
+                for child in node.children:
+                    self.visit(child, scope)
+
+    def row_image_padding(self):
+        gap = self.theme.images.row_gap if self.theme is not None else "8px"
+        return f"10px {gap}"
 
     def emit_head(self, theme):
         with self.block_tag("mj-head"):
@@ -137,9 +178,15 @@ class Codegen(NodeVisitor):
                     self_closing=True,
                 ):
                     pass
+                image_attrs = {
+                    "fluid-on-mobile": "true",
+                    "align": theme.images.align,
+                }
+                if theme.images.border_radius not in ("0", "0px"):
+                    image_attrs["border-radius"] = theme.images.border_radius
                 with self.block_tag(
                     "mj-image",
-                    attrs={"fluid-on-mobile": "true"},
+                    attrs=image_attrs,
                     self_closing=True,
                 ):
                     pass
@@ -188,6 +235,14 @@ class Codegen(NodeVisitor):
     def visit_BlankLine(self, node, scope):
         pass
 
+    def image_style(self):
+        style = "max-width: 100%; height: auto;"
+        if self.theme is not None:
+            radius = self.theme.images.border_radius
+            if radius not in ("0", "0px"):
+                style += f" border-radius: {radius};"
+        return style
+
     def visit_Image(self, node, scope):
         attrs = {"src": node.url}
         if node.alt_text:
@@ -197,9 +252,11 @@ class Codegen(NodeVisitor):
 
         if node.annotations.get("requires_manual_image"):
             tag = "img"
-            attrs["style"] = "max-width: 100%; height: auto;"
+            attrs["style"] = self.image_style()
         else:
             tag = "mj-image"
+            if node.annotations.get("in_image_row"):
+                attrs["padding"] = self.row_image_padding()
 
         with self.block_tag(tag, attrs=attrs, self_closing=True):
             pass
@@ -213,9 +270,11 @@ class Codegen(NodeVisitor):
 
         if node.img.annotations.get("requires_manual_image"):
             tag = "img"
-            attrs["style"] = "max-width: 100%; height: auto;"
+            attrs["style"] = self.image_style()
         else:
             tag = "mj-image"
+            if node.annotations.get("in_image_row"):
+                attrs["padding"] = self.row_image_padding()
 
         with self.block_tag(tag, attrs=attrs, self_closing=True, inline=True):
             pass
