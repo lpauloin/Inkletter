@@ -24,7 +24,9 @@ class Codegen(NodeVisitor):
     @contextmanager
     def block_tag(self, name, attrs=None, self_closing=False, inline=False):
         attrs = attrs or {}
-        attrs_str = "".join(f' {k}="{v}"' for k, v in attrs.items())
+        attrs_str = "".join(
+            f' {k}="{html.escape(str(v), quote=True)}"' for k, v in attrs.items()
+        )
         if self_closing:
             self.current.add_text(f"<{name}{attrs_str}/>")
             if not inline:

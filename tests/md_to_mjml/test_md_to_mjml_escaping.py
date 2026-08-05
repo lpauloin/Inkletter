@@ -61,3 +61,47 @@ def test_special_characters_in_table_cell():
     print(actual)
     assert "A&amp;B" in actual
     assert "a&lt;b" in actual
+
+
+# --- Attribute value escaping ---
+
+
+def test_ampersand_in_link_href():
+    markdown_input = "[link](https://example.com/?a=1&b=2)"
+    expected_content = """<mj-text>
+  <a href="https://example.com/?a=1&amp;b=2">link</a>
+</mj-text>"""
+    actual = parse_markdown_to_mjml(markdown_input)
+    expected = wrap_mjml_body(expected_content)
+    print("actual:")
+    print(actual)
+    print("expected:")
+    print(expected)
+    assert actual == expected
+
+
+def test_quotes_in_link_title():
+    markdown_input = '[x](https://example.com "It\'s \\"quoted\\"")'
+    expected_content = """<mj-text>
+  <a href="https://example.com" title="It&#x27;s &quot;quoted&quot;">x</a>
+</mj-text>"""
+    actual = parse_markdown_to_mjml(markdown_input)
+    expected = wrap_mjml_body(expected_content)
+    print("actual:")
+    print(actual)
+    print("expected:")
+    print(expected)
+    assert actual == expected
+
+
+def test_special_characters_in_image_alt():
+    markdown_input = '![Tom & "Jerry"](https://picsum.photos/600/300)'
+    expected_content = """\
+<mj-image src="https://picsum.photos/600/300" alt="Tom &amp; &quot;Jerry&quot;"/>"""
+    actual = parse_markdown_to_mjml(markdown_input)
+    expected = wrap_mjml_body(expected_content)
+    print("actual:")
+    print(actual)
+    print("expected:")
+    print(expected)
+    assert actual == expected
