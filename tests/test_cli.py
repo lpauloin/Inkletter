@@ -102,7 +102,7 @@ def test_md2mjml_theme_preset(tmp_path):
     md = tmp_path / "in.md"
     md.write_text("Hello", encoding="utf-8")
 
-    result = CliRunner().invoke(cli, ["md2mjml", str(md), "--theme", "night"])
+    result = CliRunner().invoke(cli, ["md2mjml", str(md), "--theme", "dark"])
 
     assert result.exit_code == 0
     assert 'background-color="#0f172a"' in result.output
@@ -127,7 +127,7 @@ def test_md2mjml_unknown_theme_fails_and_lists_presets(tmp_path):
     result = CliRunner().invoke(cli, ["md2mjml", str(md), "--theme", "nope"])
 
     assert result.exit_code != 0
-    assert "night" in result.output  # the error lists the available presets
+    assert "dark" in result.output  # the error lists the available presets
 
 
 def test_md2mjml_invalid_theme_file_fails(tmp_path):

@@ -97,12 +97,12 @@ No fuss. No noise. Just results.
 Every command accepts `--theme` with a **built-in preset** or a **TOML file**:
 
 ```bash
-inkletter preview newsletter.md --theme night
+inkletter preview newsletter.md --theme dark
 inkletter md2html newsletter.md --theme mytheme.toml -o out.html
 inkletter md2mjml newsletter.md --no-theme   # bare MJML, no styling
 ```
 
-Built-in presets: `default`, `night` (alias `dark`), `crystal`, `blue`, `green`, `red`, `yellow`.
+Built-in presets: `default`, `dark`, `crystal`, `blue`, `green`, `red`, `yellow`.
 
 A theme file is partial — set only what you want to change:
 

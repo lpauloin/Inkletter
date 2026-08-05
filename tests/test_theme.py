@@ -92,15 +92,13 @@ def test_from_toml_invalid_toml(tmp_path):
 
 def test_named_presets():
     assert Theme.named("default") == Theme()
-    night = Theme.named("night")
-    assert night.layout.background_color == Slate.DARKEST
-    assert night.headings.color == WHITE
-    # dark is an alias of night
-    assert Theme.named("dark") == night
+    dark = Theme.named("dark")
+    assert dark.layout.background_color == Slate.DARKEST
+    assert dark.headings.color == WHITE
 
 
 def test_named_unknown_lists_presets():
-    with pytest.raises(ThemeError, match="available themes: .*night"):
+    with pytest.raises(ThemeError, match="available themes: .*dark"):
         Theme.named("nope")
 
 

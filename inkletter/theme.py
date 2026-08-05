@@ -3,7 +3,7 @@
 A theme is a value: frozen dataclasses grouped by concern, every field
 with a sensible default. Build one directly (`Theme(text=Text(...))`),
 from a dict (`Theme.from_dict`), from a partial TOML file
-(`Theme.from_toml`) or pick a preset (`Theme.named("night")`) — all
+(`Theme.from_toml`) or pick a preset (`Theme.named("dark")`) — all
 paths produce the same kind of object.
 """
 
@@ -196,23 +196,20 @@ def _hue_theme(hue):
     )
 
 
-_NIGHT = Theme(
-    layout=Layout(
-        background_color=Slate.DARKEST,
-        content_background_color=Slate.DARK,
-    ),
-    text=Text(color=Slate.LIGHT),
-    headings=Headings(color=WHITE),
-    links=Links(color=Blue.LIGHT),
-    code=Code(background_color=Slate.DARKEST, color=Slate.LIGHT),
-    quote=Quote(color=Slate.BASE, border_color=Slate.BASE),
-    divider=Divider(color=Slate.BASE),
-)
-
 THEMES = {
     "default": Theme(),
-    "night": _NIGHT,
-    "dark": _NIGHT,
+    "dark": Theme(
+        layout=Layout(
+            background_color=Slate.DARKEST,
+            content_background_color=Slate.DARK,
+        ),
+        text=Text(color=Slate.LIGHT),
+        headings=Headings(color=WHITE),
+        links=Links(color=Blue.LIGHT),
+        code=Code(background_color=Slate.DARKEST, color=Slate.LIGHT),
+        quote=Quote(color=Slate.BASE, border_color=Slate.BASE),
+        divider=Divider(color=Slate.BASE),
+    ),
     "crystal": Theme(
         layout=Layout(background_color=Slate.LIGHTEST),
         text=Text(color=Slate.DARK),

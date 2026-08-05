@@ -31,8 +31,8 @@ def test_custom_theme_values_reach_the_output():
     assert "a { color: #c0392b; text-decoration: none; }" in actual
 
 
-def test_night_preset():
-    actual = parse_markdown_to_mjml("# Hello", theme=Theme.named("night"))
+def test_dark_preset():
+    actual = parse_markdown_to_mjml("# Hello", theme=Theme.named("dark"))
     print(actual)
     # dark page, light text (values from the Slate palette)
     assert 'background-color="#0f172a"' in actual
