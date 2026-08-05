@@ -131,7 +131,7 @@ theme = Theme(text=Text(font_family="Georgia, serif"), links=Links(color=Blue.DA
 html = parse_markdown_to_html(markdown, theme=theme)
 ```
 
-Sections and keys: `[layout]` (width, background_color, content_background_color, section_padding), `[text]` (font_family, font_size, line_height, color), `[headings]` (font_family, color, font_weight, h1_size, h2_size, h3_size), `[links]` (color, underline), `[code]` (font_family, background_color, color), `[quote]` (color, border_color, font_style), `[divider]` (color, width). Any unknown key fails loudly with the list of valid ones.
+Sections and keys: `[layout]` (width, background_color, content_background_color, section_padding), `[text]` (font_family, font_size, line_height, color), `[headings]` (font_family, color, font_weight, h1_size, h2_size, h3_size), `[links]` (color, underline), `[code]` (font_family, background_color, color), `[quote]` (color, border_color, font_style), `[divider]` (color, width), `[table]` (border_color, cell_padding, header_color, header_background_color). Any unknown key fails loudly with the list of valid ones.
 
 
 ## Contributing

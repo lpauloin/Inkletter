@@ -25,33 +25,18 @@ Before.
 <div>raw</div>
 
 After."""
-    expected = """\
-<mjml>
-  <mj-body>
-    <mj-section>
-      <mj-column>
-        <mj-text>
-          Before.
-        </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
-        <mj-raw>
-          <div>raw</div>
-        </mj-raw>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
-        <mj-text>
-          After.
-        </mj-text>
-      </mj-column>
-    </mj-section>
-  </mj-body>
-</mjml>"""
+    expected_content = """\
+<mj-text>
+  Before.
+</mj-text>
+<mj-raw>
+  <div>raw</div>
+</mj-raw>
+<mj-text>
+  After.
+</mj-text>"""
     actual = parse_markdown_to_mjml(markdown_input)
+    expected = wrap_mjml_body(expected_content)
     print("actual:")
     print(actual)
     print("expected:")

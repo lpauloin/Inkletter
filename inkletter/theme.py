@@ -27,7 +27,7 @@ class Layout:
     width: str = "600px"
     background_color: str = Gray.LIGHTEST
     content_background_color: str = WHITE
-    section_padding: str = "0"
+    section_padding: str = "16px 0"
 
 
 @dataclass(frozen=True)
@@ -75,6 +75,14 @@ class Divider:
 
 
 @dataclass(frozen=True)
+class Table:
+    border_color: str = Gray.LIGHT  # horizontal row rules
+    cell_padding: str = "8px 12px"
+    header_color: str | None = None  # None inherits the text color
+    header_background_color: str | None = None  # None means transparent
+
+
+@dataclass(frozen=True)
 class Theme:
     layout: Layout = field(default_factory=Layout)
     text: Text = field(default_factory=Text)
@@ -83,6 +91,7 @@ class Theme:
     code: Code = field(default_factory=Code)
     quote: Quote = field(default_factory=Quote)
     divider: Divider = field(default_factory=Divider)
+    table: Table = field(default_factory=Table)
 
     @classmethod
     def from_dict(cls, data):
@@ -135,10 +144,12 @@ class Theme:
         decoration = "underline" if self.links.underline else "none"
         return "\n".join(
             [
+                # blocks each live in their own mj-text (10px padding), so
+                # margins stay at 0 and the rhythm comes from that padding
                 f"h1, h2, h3, h4, h5, h6 {{ font-family: {heading_font};"
                 f" color: {heading_color};"
                 f" font-weight: {self.headings.font_weight};"
-                f" margin: 16px 0 8px 0; }}",
+                f" line-height: 1.3; margin: 0; }}",
                 f"h1 {{ font-size: {self.headings.h1_size}; }}",
                 f"h2 {{ font-size: {self.headings.h2_size}; }}",
                 f"h3 {{ font-size: {self.headings.h3_size}; }}",
@@ -147,7 +158,7 @@ class Theme:
                 f"blockquote {{ color: {self.quote.color};"
                 f" font-style: {self.quote.font_style};"
                 f" border-left: 3px solid {self.quote.border_color};"
-                f" margin: 8px 0; padding: 4px 0 4px 12px; }}",
+                f" margin: 0; padding: 2px 0 2px 14px; }}",
                 f"code {{ font-family: {self.code.font_family};"
                 f" background-color: {self.code.background_color};"
                 f" color: {self.code.color};"
@@ -155,10 +166,12 @@ class Theme:
                 f"pre {{ font-family: {self.code.font_family};"
                 f" background-color: {self.code.background_color};"
                 f" color: {self.code.color};"
-                f" padding: 12px; border-radius: 4px; }}",
-                "table { border-collapse: collapse; }",
-                f"th, td {{ border: 1px solid {self.divider.color};"
-                f" padding: 6px 10px; }}",
+                f" margin: 0; padding: 12px; border-radius: 6px;"
+                f" overflow-x: auto; }}",
+                "ul, ol { margin: 0; padding-left: 24px; }",
+                # note: no bare `table`/`td` selectors here — they would leak
+                # onto the layout tables MJML generates for the email itself;
+                # table cells are styled inline by the codegen instead
             ]
         )
 
@@ -193,6 +206,11 @@ def _hue_theme(hue):
         quote=Quote(color=Gray.BASE, border_color=hue.LIGHT),
         divider=Divider(color=hue.LIGHT),
         code=Code(background_color=hue.LIGHTEST, color=hue.DARKEST),
+        table=Table(
+            border_color=hue.LIGHT,
+            header_color=hue.DARKEST,
+            header_background_color=hue.LIGHTEST,
+        ),
     )
 
 
@@ -209,6 +227,11 @@ THEMES = {
         code=Code(background_color=Slate.DARKEST, color=Slate.LIGHT),
         quote=Quote(color=Slate.BASE, border_color=Slate.BASE),
         divider=Divider(color=Slate.BASE),
+        table=Table(
+            border_color=Slate.BASE,
+            header_color=WHITE,
+            header_background_color=Slate.DARKEST,
+        ),
     ),
     "crystal": Theme(
         layout=Layout(background_color=Slate.LIGHTEST),
@@ -218,6 +241,7 @@ THEMES = {
         quote=Quote(color=Slate.BASE, border_color=Blue.LIGHT),
         divider=Divider(color=Slate.LIGHT),
         code=Code(background_color=Slate.LIGHTEST, color=Slate.DARKEST),
+        table=Table(border_color=Slate.LIGHT, header_background_color=Slate.LIGHTEST),
     ),
     "blue": _hue_theme(Blue),
     "green": _hue_theme(Green),

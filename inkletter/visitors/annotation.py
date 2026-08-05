@@ -4,11 +4,6 @@ from inkletter.visitors.generic import NodeVisitor
 
 class Annotation(NodeVisitor):
 
-    def mark_column_if_needed(self, node, scope):
-        if not scope.get("in_column", False):
-            node.annotations["requires_column"] = True
-            scope.set("in_column", True)
-
     def mark_text_if_needed(self, node, scope):
         if (
             not scope.get("in_text", False)
@@ -31,14 +26,10 @@ class Annotation(NodeVisitor):
         if is_in_table or is_in_heading or is_in_blockquote or is_in_list:
             node.annotations["requires_manual_image"] = True
 
-    def mark_column_and_text_if_needed(self, node, scope):
-        self.mark_column_if_needed(node, scope)
-        self.mark_text_if_needed(node, scope)
-
     def visit_List(self, node, scope):
         scope.push(node)
         scope.set("is_in_list", True)
-        self.mark_column_and_text_if_needed(node, scope)
+        self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         node.annotations["is_task_list"] = scope.get("has_task_item", False)
         scope.pop(node)
@@ -61,33 +52,31 @@ class Annotation(NodeVisitor):
 
     def visit_Paragraph(self, node, scope):
         scope.push(node)
-        self.mark_column_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_BlockText(self, node, scope):
         scope.push(node)
-        self.mark_column_and_text_if_needed(node, scope)
+        self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_BlockQuote(self, node, scope):
         scope.push(node)
         scope.set("is_in_blockquote", True)
-        self.mark_column_and_text_if_needed(node, scope)
+        self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_BlockCode(self, node, scope):
         scope.push(node)
-        self.mark_column_and_text_if_needed(node, scope)
+        self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_Table(self, node, scope):
         scope.push(node)
         scope.set("is_in_table", True)
-        self.mark_column_if_needed(node, scope)
         self.mark_manual_table_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
@@ -106,14 +95,12 @@ class Annotation(NodeVisitor):
 
     def visit_Image(self, node, scope):
         scope.push(node)
-        self.mark_column_if_needed(node, scope)
         self.mark_manual_image_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_ImageLink(self, node, scope):
         scope.push(node)
-        self.mark_column_if_needed(node, scope)
         self.mark_manual_image_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
@@ -121,7 +108,7 @@ class Annotation(NodeVisitor):
     def visit_Heading(self, node, scope):
         scope.push(node)
         scope.set("is_in_heading", True)
-        self.mark_column_and_text_if_needed(node, scope)
+        self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
 
@@ -155,6 +142,12 @@ class Annotation(NodeVisitor):
         self.generic_visit(node, scope)
         scope.pop(node)
 
+    def visit_CodeSpan(self, node, scope):
+        scope.push(node)
+        self.mark_text_if_needed(node, scope)
+        self.generic_visit(node, scope)
+        scope.pop(node)
+
     def visit_InlineHtml(self, node, scope):
         scope.push(node)
         self.mark_text_if_needed(node, scope)
@@ -162,7 +155,6 @@ class Annotation(NodeVisitor):
 
     def visit_BlockHtml(self, node, scope):
         scope.push(node)
-        self.mark_column_if_needed(node, scope)
         # Outside of any raw-HTML context (mj-text content, table, list item),
         # raw HTML must be wrapped in mj-raw to be valid MJML.
         node.annotations["requires_raw"] = not (
@@ -172,23 +164,16 @@ class Annotation(NodeVisitor):
         )
         scope.pop(node)
 
-    def visit_CodeSpan(self, node, scope):
-        scope.push(node)
-        self.mark_text_if_needed(node, scope)
-        self.generic_visit(node, scope)
-        scope.pop(node)
-
     def visit_ThematicBreak(self, node, scope):
         scope.push(node)
-        self.mark_column_if_needed(node, scope)
         scope.pop(node)
 
     def visit_LineBreak(self, node, scope):
         scope.push(node)
-        self.mark_column_and_text_if_needed(node, scope)
+        self.mark_text_if_needed(node, scope)
         scope.pop(node)
 
     def visit_SoftBreak(self, node, scope):
         scope.push(node)
-        self.mark_column_and_text_if_needed(node, scope)
+        self.mark_text_if_needed(node, scope)
         scope.pop(node)

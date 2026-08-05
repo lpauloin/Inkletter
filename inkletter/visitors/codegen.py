@@ -69,15 +69,6 @@ class Codegen(NodeVisitor):
             self.current.add_newline()
 
     @contextmanager
-    def ensure_open_column(self, node):
-        if node.annotations.get("requires_column"):
-            with self.block_tag("mj-section"):
-                with self.block_tag("mj-column"):
-                    yield
-        else:
-            yield
-
-    @contextmanager
     def ensure_open_text(self, node, inline=False):
         if node.annotations.get("requires_text"):
             with self.block_tag("mj-text", inline=inline):
@@ -86,6 +77,8 @@ class Codegen(NodeVisitor):
             yield
 
     def visit_Document(self, node, scope):
+        # The whole document lives in a single section and column: blocks
+        # flow inside it as components, instead of one section per block.
         with self.block_tag("mjml"):
             body_attrs = {}
             if self.theme is not None:
@@ -95,7 +88,9 @@ class Codegen(NodeVisitor):
                     "background-color": self.theme.layout.background_color,
                 }
             with self.block_tag("mj-body", attrs=body_attrs):
-                self.generic_visit(node, scope)
+                with self.block_tag("mj-section"):
+                    with self.block_tag("mj-column"):
+                        self.generic_visit(node, scope)
 
     def emit_head(self, theme):
         with self.block_tag("mj-head"):
@@ -129,45 +124,45 @@ class Codegen(NodeVisitor):
                     self_closing=True,
                 ):
                     pass
+                with self.block_tag(
+                    "mj-image",
+                    attrs={"fluid-on-mobile": "true"},
+                    self_closing=True,
+                ):
+                    pass
             with self.block_tag("mj-style", attrs={"inline": "inline"}):
                 self.add_raw_lines(theme.to_css())
 
     def visit_Paragraph(self, node, scope):
-        with self.ensure_open_column(node):
-            self.generic_visit(node, scope)
+        self.generic_visit(node, scope)
 
     def visit_Heading(self, node, scope):
-        with self.ensure_open_column(node):
-            with self.ensure_open_text(node):
-                with self.block_tag(f"h{node.level}", inline=True):
-                    self.generic_visit(node, scope)
-
-    def visit_BlockText(self, node, scope):
-        with self.ensure_open_column(node):
-            with self.ensure_open_text(node):
+        with self.ensure_open_text(node):
+            with self.block_tag(f"h{node.level}", inline=True):
                 self.generic_visit(node, scope)
 
+    def visit_BlockText(self, node, scope):
+        with self.ensure_open_text(node):
+            self.generic_visit(node, scope)
+
     def visit_BlockQuote(self, node, scope):
-        with self.ensure_open_column(node):
-            with self.ensure_open_text(node):
-                with self.block_tag("blockquote"):
-                    self.generic_visit(node, scope)
+        with self.ensure_open_text(node):
+            with self.block_tag("blockquote"):
+                self.generic_visit(node, scope)
 
     def visit_BlockCode(self, node, scope):
-        with self.ensure_open_column(node):
-            with self.ensure_open_text(node):
-                with self.block_tag("pre"):
-                    self.current.add_text(html.escape(node.code), indented=False)
+        with self.ensure_open_text(node):
+            with self.block_tag("pre"):
+                self.current.add_text(html.escape(node.code), indented=False)
 
     def visit_ThematicBreak(self, node, scope):
-        with self.ensure_open_column(node):
-            # With a theme the styling comes from mj-attributes in the head.
-            if self.theme is not None:
-                attrs = {}
-            else:
-                attrs = {"border-color": "#cccccc", "border-width": "1px"}
-            with self.block_tag("mj-divider", attrs=attrs, self_closing=True):
-                pass
+        # With a theme the styling comes from mj-attributes in the head.
+        if self.theme is not None:
+            attrs = {}
+        else:
+            attrs = {"border-color": "#cccccc", "border-width": "1px"}
+        with self.block_tag("mj-divider", attrs=attrs, self_closing=True):
+            pass
 
     def visit_LineBreak(self, node, scope):
         self.current.add_text("<br/>")
@@ -181,50 +176,47 @@ class Codegen(NodeVisitor):
         pass
 
     def visit_Image(self, node, scope):
-        with self.ensure_open_column(node):
-            attrs = {"src": node.url}
-            if node.alt_text:
-                attrs["alt"] = node.alt_text.value
-            if node.title:
-                attrs["title"] = node.title
+        attrs = {"src": node.url}
+        if node.alt_text:
+            attrs["alt"] = node.alt_text.value
+        if node.title:
+            attrs["title"] = node.title
 
-            if node.annotations.get("requires_manual_image"):
-                tag = "img"
-                attrs["style"] = "max-width: 100%; height: auto;"
-            else:
-                tag = "mj-image"
+        if node.annotations.get("requires_manual_image"):
+            tag = "img"
+            attrs["style"] = "max-width: 100%; height: auto;"
+        else:
+            tag = "mj-image"
 
-            with self.block_tag(tag, attrs=attrs, self_closing=True):
-                pass
+        with self.block_tag(tag, attrs=attrs, self_closing=True):
+            pass
 
     def visit_ImageLink(self, node, scope):
-        with self.ensure_open_column(node):
-            attrs = {"src": node.img.url, "href": node.href}
-            if node.img.alt_text:
-                attrs["alt"] = node.img.alt_text.value
-            if node.img.title:
-                attrs["title"] = node.img.title
+        attrs = {"src": node.img.url, "href": node.href}
+        if node.img.alt_text:
+            attrs["alt"] = node.img.alt_text.value
+        if node.img.title:
+            attrs["title"] = node.img.title
 
-            if node.img.annotations.get("requires_manual_image"):
-                tag = "img"
-                attrs["style"] = "max-width: 100%; height: auto;"
-            else:
-                tag = "mj-image"
+        if node.img.annotations.get("requires_manual_image"):
+            tag = "img"
+            attrs["style"] = "max-width: 100%; height: auto;"
+        else:
+            tag = "mj-image"
 
-            with self.block_tag(tag, attrs=attrs, self_closing=True, inline=True):
-                pass
+        with self.block_tag(tag, attrs=attrs, self_closing=True, inline=True):
+            pass
 
     def visit_List(self, node, scope):
-        with self.ensure_open_column(node):
-            with self.ensure_open_text(node):
-                tag = "ol" if node.ordered else "ul"
-                attrs = (
-                    {"style": "list-style-type: none;"}
-                    if node.annotations.get("is_task_list")
-                    else {}
-                )
-                with self.block_tag(tag, attrs=attrs):
-                    self.generic_visit(node, scope)
+        with self.ensure_open_text(node):
+            tag = "ol" if node.ordered else "ul"
+            attrs = (
+                {"style": "list-style-type: none;"}
+                if node.annotations.get("is_task_list")
+                else {}
+            )
+            with self.block_tag(tag, attrs=attrs):
+                self.generic_visit(node, scope)
 
     def visit_ListItem(self, node, scope):
         with self.block_tag("li"):
@@ -243,17 +235,16 @@ class Codegen(NodeVisitor):
                 self.visit(extra_child, scope)
 
     def visit_Table(self, node, scope):
-        with self.ensure_open_column(node):
-            tag = (
-                "table"
-                if node.annotations.get("requires_manual_table", False)
-                else "mj-table"
-            )
-            with self.block_tag(tag):
-                if node.header:
-                    self.visit(node.header, scope)
-                for row in node.rows:
-                    self.visit(row, scope)
+        tag = (
+            "table"
+            if node.annotations.get("requires_manual_table", False)
+            else "mj-table"
+        )
+        with self.block_tag(tag):
+            if node.header:
+                self.visit(node.header, scope)
+            for row in node.rows:
+                self.visit(row, scope)
 
     def visit_TableHeader(self, node, scope):
         with self.block_tag("tr"):
@@ -267,12 +258,31 @@ class Codegen(NodeVisitor):
 
     def visit_TableHeaderCell(self, node, scope):
         attrs = {"align": node.align} if node.align else {}
+        if self.theme is not None:
+            table = self.theme.table
+            style = (
+                f"border-bottom: 2px solid {table.border_color};"
+                f" padding: {table.cell_padding};"
+            )
+            if table.header_color:
+                style += f" color: {table.header_color};"
+            if table.header_background_color:
+                style += f" background-color: {table.header_background_color};"
+            if not node.align:
+                style += " text-align: left;"
+            attrs["style"] = style
         with self.block_tag("th", attrs=attrs, inline=True):
             self.generic_visit(node, scope)
         self.current.add_newline()
 
     def visit_TableCell(self, node, scope):
         attrs = {"align": node.align} if node.align else {}
+        if self.theme is not None:
+            table = self.theme.table
+            attrs["style"] = (
+                f"border-bottom: 1px solid {table.border_color};"
+                f" padding: {table.cell_padding};"
+            )
         with self.block_tag("td", attrs=attrs, inline=True):
             self.generic_visit(node, scope)
         self.current.add_newline()
@@ -309,12 +319,11 @@ class Codegen(NodeVisitor):
             self.current.add_text(node.value)
 
     def visit_BlockHtml(self, node, scope):
-        with self.ensure_open_column(node):
-            if node.annotations.get("requires_raw"):
-                with self.block_tag("mj-raw"):
-                    self.add_raw_lines(node.value)
-            else:
+        if node.annotations.get("requires_raw"):
+            with self.block_tag("mj-raw"):
                 self.add_raw_lines(node.value)
+        else:
+            self.add_raw_lines(node.value)
 
     def add_raw_lines(self, value):
         for line in value.splitlines():

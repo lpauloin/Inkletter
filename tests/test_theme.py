@@ -108,3 +108,17 @@ def test_all_presets_are_valid_themes(name):
     assert isinstance(theme, Theme)
     # every preset survives a to_dict/from_dict round-trip
     assert Theme.from_dict(theme.to_dict()) == theme
+
+
+def test_table_section():
+    theme = Theme.from_dict(
+        {"table": {"border_color": "#123456", "header_background_color": "#eeeeee"}}
+    )
+    assert theme.table.border_color == "#123456"
+    assert theme.table.header_background_color == "#eeeeee"
+    assert theme.table.cell_padding == "8px 12px"
+
+
+def test_table_unknown_key():
+    with pytest.raises(ThemeError, match=r"unknown key 'borders' in \[table\]"):
+        Theme.from_dict({"table": {"borders": "#fff"}})

@@ -82,30 +82,14 @@ Let's make this launch unforgettable!
         <mj-text>
           <h1>📣 <strong>New Product Launch Campaign</strong> — <em>Spring 2025</em></h1>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           Welcome to our official campaign brief for the <strong>MegaWidget 5000</strong>.<br/>
           Let's make this launch unforgettable!
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-divider border-color="#cccccc" border-width="1px"/>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <h2>🚀 Campaign Goals</h2>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <ul>
             <li>
@@ -119,22 +103,10 @@ Let's make this launch unforgettable!
             </li>
           </ul>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-divider border-color="#cccccc" border-width="1px"/>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <h2>📅 Timeline</h2>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-table>
           <tr>
             <th>Phase</th>
@@ -162,29 +134,13 @@ Let's make this launch unforgettable!
             <td>2025-06-15</td>
           </tr>
         </mj-table>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-divider border-color="#cccccc" border-width="1px"/>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <h2>📌 Key Actions</h2>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <h3>Pre-Launch</h3>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <ul style="list-style-type: none;">
             <li>
@@ -201,17 +157,9 @@ Let's make this launch unforgettable!
             </li>
           </ul>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <h3>Launch Week</h3>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <ul style="list-style-type: none;">
             <li>
@@ -228,17 +176,9 @@ Let's make this launch unforgettable!
             </li>
           </ul>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <h3>Post-Launch</h3>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <ul style="list-style-type: none;">
             <li>
@@ -252,43 +192,19 @@ Let's make this launch unforgettable!
             </li>
           </ul>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-divider border-color="#cccccc" border-width="1px"/>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <h2>💬 Messaging Examples</h2>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <blockquote>
             "<strong>Revolutionize your workflow</strong> — Meet the MegaWidget 5000."<em>"Faster, smarter, better. The tool you didn't know you needed."</em>
           </blockquote>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-divider border-color="#cccccc" border-width="1px"/>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <h2>📧 Email Snippet</h2>
         </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
         <mj-text>
           <pre>
 &lt;!DOCTYPE html&gt;

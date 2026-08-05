@@ -69,3 +69,15 @@ def test_blockquote_is_semantic_html():
     actual = parse_markdown_to_mjml("> quoted", theme=Theme())
     assert "<blockquote>" in actual
     assert "font-style=" not in actual  # styling moved to mj-style
+
+
+def test_table_theme_reaches_cells():
+    from inkletter.theme import Table
+
+    markdown = "| A |\n|---|\n| b |"
+    theme = Theme(table=Table(border_color="#123456", header_background_color="#eeeeee"))
+    actual = parse_markdown_to_mjml(markdown, theme=theme)
+    print(actual)
+    assert "border-bottom: 2px solid #123456" in actual  # header cell
+    assert "background-color: #eeeeee" in actual
+    assert "border-bottom: 1px solid #123456" in actual  # body cell
