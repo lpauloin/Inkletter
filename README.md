@@ -72,14 +72,22 @@ Yes, even iPhone 14. You’re welcome.
 ### 2. Convert and export to HTML
 
 ```bash
-inkletter md2mjml input.md -o output.html –view
+inkletter md2html input.md -o output.html --view
 ```
 
 This will:
 - Convert the Markdown to MJML
 - Render it into clean HTML
 - Save the HTML to `output.html`
-- Optionally open it in your browser with `–view`
+- Optionally open it in your browser with `--view`
+
+### 3. Export the raw MJML
+
+```bash
+inkletter md2mjml input.md -o output.mjml
+```
+
+Without `-o`, the MJML is printed to stdout, ready to be piped anywhere.
 
 No fuss. No noise. Just results.
 

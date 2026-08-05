@@ -4,7 +4,7 @@ from inkletter.visitors.codegen import Codegen
 from inkletter.visitors.tree import print_tree
 
 
-def parse_markdown_to_mjml(markdown_text, print_ast=True, use_style=False):
+def parse_markdown_to_mjml(markdown_text, print_ast=False, use_style=False):
     ast = parse_markdown_to_ast(markdown_text)
     if print_ast:
         print_tree(ast)

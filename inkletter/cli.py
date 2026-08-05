@@ -17,6 +17,18 @@ def cli():
     pass
 
 
+def write_output(content: str, output: Path | None) -> Path:
+    """Write content to the given path, or to a temp file if none is given."""
+    if output:
+        output.write_text(content, encoding="utf-8")
+        return output
+    with tempfile.NamedTemporaryFile(
+        "w", suffix=".html", encoding="utf-8", delete=False
+    ) as f:
+        f.write(content)
+        return Path(f.name)
+
+
 @cli.command()
 @click.argument("filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option("-o", "--output", type=click.Path(dir_okay=False, writable=True, path_type=Path), help="Output HTML file path")
@@ -29,11 +41,7 @@ def preview(filepath: Path, output: Path | None):
         markdown_text = filepath.read_text(encoding="utf-8")
 
         # Markdown → MJML
-        mjml_code = parse_markdown_to_mjml(
-            markdown_text,
-            print_ast=False,
-            use_style=True,
-        )
+        mjml_code = parse_markdown_to_mjml(markdown_text, use_style=True)
 
         # MJML → HTML
         html_output = parse_mjml_to_html(mjml_code)
@@ -46,49 +54,49 @@ def preview(filepath: Path, output: Path | None):
             MJML_CONTENT=mjml_code,
             HTML_CONTENT=html_output,
         )
-
-        if output:
-            output.write_text(rendered, encoding="utf-8")
-            out_path = output
-        else:
-            with tempfile.NamedTemporaryFile("w", suffix=".html", encoding="utf-8", delete=False) as f:
-                f.write(rendered)
-                out_path = Path(f.name)
-
-        webbrowser.open(f"file://{out_path.resolve().as_uri()}")
-
-        click.secho(f"✅ Preview opened in browser:\n{out_path}", fg="green")
-
     except Exception as e:
-        click.secho(f"❌ Error: {e}", fg="red", err=True)
+        raise click.ClickException(str(e))
+
+    out_path = write_output(rendered, output)
+
+    webbrowser.open(out_path.resolve().as_uri())
+
+    click.secho(f"✅ Preview opened in browser:\n{out_path}", fg="green")
+
+
+@cli.command()
+@click.argument("filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("-o", "--output", type=click.Path(dir_okay=False, writable=True, path_type=Path), help="Output MJML file path")
+def md2mjml(filepath: Path, output: Path | None):
+    """Convert Markdown to MJML, print it or save it to a file."""
+    try:
+        markdown_text = filepath.read_text(encoding="utf-8")
+        mjml_code = parse_markdown_to_mjml(markdown_text)
+    except Exception as e:
+        raise click.ClickException(str(e))
+
+    if output:
+        output.write_text(mjml_code, encoding="utf-8")
+        click.secho(f"✅ MJML written to: {output}", fg="green")
+    else:
+        click.echo(mjml_code)
+
 
 @cli.command()
 @click.argument("filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option("-o", "--output", type=click.Path(dir_okay=False, writable=True, path_type=Path), help="Output HTML file path")
 @click.option("--view/--no-view", default=False, help="Open the result in a browser (default: false)")
-def md2mjml(filepath: Path, output: Path | None, view: bool):
-    """Convert Markdown to MJML then HTML, optionally save and open it."""
+def md2html(filepath: Path, output: Path | None, view: bool):
+    """Convert Markdown to HTML, optionally save and open it."""
     try:
-        # Lire Markdown
         markdown_text = filepath.read_text(encoding="utf-8")
-
-        # Markdown → HTML
         html_output = parse_markdown_to_html(markdown_text)
-
-
-        if output:
-            output.write_text(html_output, encoding="utf-8")
-            out_path = output
-        else:
-            with tempfile.NamedTemporaryFile("w", suffix=".html", encoding="utf-8", delete=False) as f:
-                f.write(html_output)
-                out_path = Path(f.name)
-
-        click.secho(f"✅ HTML written to: {out_path}", fg="green")
-
-        if view:
-            webbrowser.open(f"file://{out_path.resolve().as_uri()}")
-
     except Exception as e:
-        click.secho(f"❌ Error: {e}", fg="red", err=True)
+        raise click.ClickException(str(e))
 
+    out_path = write_output(html_output, output)
+
+    click.secho(f"✅ HTML written to: {out_path}", fg="green")
+
+    if view:
+        webbrowser.open(out_path.resolve().as_uri())
