@@ -127,6 +127,10 @@ class Image(Node):
         self.title = title
 
     def get_children(self):
+        if self.alt_text is None:
+            return []
+        if isinstance(self.alt_text, list):
+            return self.alt_text
         return [self.alt_text]
 
     def __repr__(self):

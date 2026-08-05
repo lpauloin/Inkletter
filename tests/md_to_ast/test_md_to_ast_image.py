@@ -19,6 +19,32 @@ def test_image_in_paragraph(ast):
     assert img.alt_text.value == "alt text"
 
 
+def test_image_alt_with_formatting(ast):
+    doc = ast("![*bold* alt](https://picsum.photos/600/300)")
+    print_tree(doc)
+    assert isinstance(doc, Document)
+
+    para = doc.children[0]
+    assert isinstance(para, Paragraph)
+    assert len(para.children) == 1
+
+    img = para.children[0]
+    assert isinstance(img, Image)
+    assert img.url == "https://picsum.photos/600/300"
+    assert isinstance(img.alt_text, LiteralText), img.alt_text
+    assert img.alt_text.value == "bold alt"
+
+
+def test_image_alt_with_nested_formatting(ast):
+    doc = ast("![**Very** `important` ~~old~~ text](https://picsum.photos/600/300)")
+    print_tree(doc)
+
+    img = doc.children[0].children[0]
+    assert isinstance(img, Image)
+    assert isinstance(img.alt_text, LiteralText)
+    assert img.alt_text.value == "Very important old text"
+
+
 def test_image_in_link(ast):
     doc = ast("[![Alt](https://picsum.photos/600/300)](https://lien.com)")
     print_tree(doc)

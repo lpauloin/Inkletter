@@ -99,11 +99,11 @@ class ASTRenderer(mistune.BaseRenderer):
         return BlockQuote(text)
 
     def image(self, alt, url, title=None):
+        # The tokenizer returns a list of inline nodes; the alt may contain
+        # formatting, which BlockTextMerger later merges into a single
+        # LiteralText since the HTML alt attribute cannot hold markup.
         if alt:
-            # The tokenizer return always a list of a single text
             assert isinstance(alt, list), alt
-            assert len(alt) == 1, alt
-            alt = alt[0]
         return Image(url, alt, title)
 
     # --- List renderers ---

@@ -148,3 +148,18 @@ def test_image_in_heading():
     print("expected:")
     print(expected)
     assert actual == expected
+
+
+def test_image_alt_with_formatting():
+    markdown_input = """![*Bold* star](https://picsum.photos/600/300)"""
+    expected_content = """\
+<mj-image src="https://picsum.photos/600/300" alt="Bold star"/>"""
+
+    actual = parse_markdown_to_mjml(markdown_input)
+    expected = wrap_mjml_body(expected_content)
+
+    print("actual:")
+    print(actual)
+    print("expected:")
+    print(expected)
+    assert actual == expected
