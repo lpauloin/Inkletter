@@ -155,6 +155,23 @@ class Annotation(NodeVisitor):
         self.generic_visit(node, scope)
         scope.pop(node)
 
+    def visit_InlineHtml(self, node, scope):
+        scope.push(node)
+        self.mark_text_if_needed(node, scope)
+        scope.pop(node)
+
+    def visit_BlockHtml(self, node, scope):
+        scope.push(node)
+        self.mark_column_if_needed(node, scope)
+        # Outside of any raw-HTML context (mj-text content, table, list item),
+        # raw HTML must be wrapped in mj-raw to be valid MJML.
+        node.annotations["requires_raw"] = not (
+            scope.get("in_text", False)
+            or scope.get("is_in_table_cell", False)
+            or scope.get("is_in_list_item", False)
+        )
+        scope.pop(node)
+
     def visit_CodeSpan(self, node, scope):
         scope.push(node)
         self.mark_text_if_needed(node, scope)

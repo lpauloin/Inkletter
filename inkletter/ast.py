@@ -49,6 +49,15 @@ class CodeSpan(Text):
         return f"CodeSpan(code='{self.code}')"
 
 
+class InlineHtml(Text):
+    def __init__(self, value):
+        super().__init__()
+        self.value = value
+
+    def __repr__(self):
+        return f"InlineHtml('{self.value}')"
+
+
 class Emphasis(TextBlock):
     def __repr__(self):
         return "Emphasis()"
@@ -114,6 +123,15 @@ class BlockCode(BlockNode):
 
     def __repr__(self):
         return f"BlockCode(language='{self.language}', code='{self.code}')"
+
+
+class BlockHtml(Node):
+    def __init__(self, value):
+        super().__init__()
+        self.value = value
+
+    def __repr__(self):
+        return f"BlockHtml('{self.value}')"
 
 
 # --- Image element ---

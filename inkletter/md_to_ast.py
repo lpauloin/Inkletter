@@ -59,6 +59,9 @@ class ASTRenderer(mistune.BaseRenderer):
     def codespan(self, text):
         return CodeSpan(text)
 
+    def inline_html(self, html):
+        return InlineHtml(html)
+
     def link(self, text, url, title=None):
         # If the text contains an image, we create an ImageLink
         # We extract the image from the text to create a new ImageLink node
@@ -82,6 +85,9 @@ class ASTRenderer(mistune.BaseRenderer):
 
     def block_text(self, text):
         return BlockText(text)
+
+    def block_html(self, html):
+        return BlockHtml(html.strip("\n"))
 
     def thematic_break(self):
         return ThematicBreak()

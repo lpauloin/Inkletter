@@ -271,6 +271,23 @@ class Codegen(NodeVisitor):
             with self.block_tag("a", attrs=attrs, inline=True):
                 self.generic_visit(node, scope)
 
+    def visit_InlineHtml(self, node, scope):
+        with self.ensure_open_text(node):
+            self.current.add_text(node.value)
+
+    def visit_BlockHtml(self, node, scope):
+        with self.ensure_open_column(node):
+            if node.annotations.get("requires_raw"):
+                with self.block_tag("mj-raw"):
+                    self.add_raw_lines(node.value)
+            else:
+                self.add_raw_lines(node.value)
+
+    def add_raw_lines(self, value):
+        for line in value.splitlines():
+            self.current.add_text(line)
+            self.current.add_newline()
+
     def visit_CodeSpan(self, node, scope):
         with self.ensure_open_text(node):
             with self.block_tag("code", inline=True):
