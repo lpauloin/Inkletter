@@ -5,6 +5,8 @@
 [![PyPI version](https://badge.fury.io/py/inkletter.svg)](https://badge.fury.io/py/inkletter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+![Inkletter — write your newsletter in Markdown, get a responsive themeable HTML email](sample/banner.png)
+
 **Write your emails like prose, send them like a pro.**
 
 Inkletter turns plain Markdown files into beautiful, responsive MJML and HTML email
@@ -20,6 +22,8 @@ and it becomes a **gorgeous, mobile-friendly HTML email** powered by MJML.
 ## Features
 
 - Markdown to MJML or to final responsive HTML, in one command
+- Layout from plain Markdown structure: side-by-side image rows, image-beside-text
+  media objects, and call-to-action buttons from a lone bold link
 - Seven built-in themes, or your own theme in a small TOML file
 - Live preview in your browser, with a device simulator (iPhone, iPad, desktop)
 - Clean Python API if you'd rather script it
@@ -106,7 +110,8 @@ including `text_layout = "stacked"` to disable media-object columns entirely.
 ## Theming
 
 Every command accepts `--theme` with a preset name or a theme file,
-and `--no-theme` for bare, unstyled MJML:
+and `--no-theme` to emit MJML without the theme head (styling values
+then fall back to the default theme):
 
 ```bash
 inkletter md2html newsletter.md --theme dark
