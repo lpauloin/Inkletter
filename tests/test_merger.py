@@ -68,3 +68,19 @@ This is anoter text
     assert isinstance(block.children[1], SoftBreak)
     assert isinstance(block.children[2], LiteralText)
     assert block.children[2].value == "This is anoter text"
+
+
+def test_terminals_are_stripped_at_both_edges_of_each_group():
+    # two inline groups split by an image: each flush must clean its own
+    # buffer (the helpers used to close over the outer one by accident)
+    ast = generate_ast(
+        "avant  \n![i](https://x.com/i.png)\nmilieu  \nfin"
+    )
+    merged = merge_ast(ast)
+    para = merged.children[0]
+
+    kinds = [type(c).__name__ for c in para.children]
+    assert kinds == ["BlockText", "Image", "BlockText"]
+    first, _, second = para.children
+    assert not isinstance(first.children[-1], TextTerminal)
+    assert not isinstance(second.children[0], TextTerminal)

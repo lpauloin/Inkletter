@@ -17,14 +17,14 @@ class BlockTextMerger(NodeVisitor):
                     _buf.pop(0)
                     continue
                 if isinstance(_buf[-1], TextTerminal):
-                    buffer.pop(-1)
+                    _buf.pop(-1)
                     continue
                 break
 
         def flush(_buf, _children):
             clean(_buf)
             if _buf:
-                _children.append(BlockText(buffer.copy()))
+                _children.append(BlockText(_buf.copy()))
                 _buf.clear()
 
         for child in children:
