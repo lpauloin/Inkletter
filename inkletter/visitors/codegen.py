@@ -8,7 +8,6 @@ from inkletter.codeblock import (
     CodeBlockResolver,
     TextElement,
 )
-from inkletter.theme import split_media_ratio
 from inkletter.visitors.generic import NodeVisitor
 
 
@@ -102,6 +101,14 @@ class Codegen(NodeVisitor):
                                 for child in band:
                                     self.visit(child, scope)
 
+    def visit_Button(self, node, scope):
+        attrs = {"href": node.href}
+        if node.title:
+            attrs["title"] = node.title
+        with self.block_tag("mj-button", attrs=attrs, inline=True):
+            self.generic_visit(node, scope)
+        self.current.add_newline()
+
     def visit_ImageRow(self, node, scope):
         with self.block_tag("mj-section"):
             for image in node.children:
@@ -109,29 +116,31 @@ class Codegen(NodeVisitor):
                     self.visit(image, scope)
 
     def visit_MediaObject(self, node, scope):
-        if self.theme is not None and self.theme.images.text_layout == "stacked":
-            with self.block_tag("mj-section"):
-                with self.block_tag("mj-column"):
-                    self.visit(node.image, scope)
-                    for child in node.children:
-                        self.visit(child, scope)
-            return
+        # The Annotation pass decided the layout and all its parameters.
+        emitters = {
+            "stacked": self.emit_media_stacked,
+            "columns": self.emit_media_columns,
+        }
+        emitters[node.annotations["media_layout"]](node, scope)
 
-        ratio = self.theme.images.media_ratio if self.theme is not None else "30%"
-        image_width, text_width = split_media_ratio(ratio)
-        # DOM order keeps the image first so it stacks on top on mobile;
-        # side=right is a desktop-only visual flip through direction=rtl.
-        attrs = {"direction": "rtl"} if node.side == "right" else {}
+    def emit_media_stacked(self, node, scope):
+        with self.block_tag("mj-section"):
+            with self.block_tag("mj-column"):
+                self.visit(node.image, scope)
+                for child in node.children:
+                    self.visit(child, scope)
+
+    def emit_media_columns(self, node, scope):
+        image_width, text_width = node.annotations["media_widths"]
+        attrs = {}
+        if node.annotations["media_direction"]:
+            attrs["direction"] = node.annotations["media_direction"]
         with self.block_tag("mj-section", attrs=attrs):
             with self.block_tag("mj-column", attrs={"width": image_width}):
                 self.visit(node.image, scope)
             with self.block_tag("mj-column", attrs={"width": text_width}):
                 for child in node.children:
                     self.visit(child, scope)
-
-    def row_image_padding(self):
-        gap = self.theme.images.row_gap if self.theme is not None else "8px"
-        return f"10px {gap}"
 
     def emit_head(self, theme):
         with self.block_tag("mj-head"):
@@ -178,6 +187,23 @@ class Codegen(NodeVisitor):
                     self_closing=True,
                 ):
                     pass
+                # mj-button also has its own MJML defaults (Ubuntu 13px
+                # on #414141) that must follow the theme instead
+                with self.block_tag(
+                    "mj-button",
+                    attrs={
+                        "background-color": theme.button_background(),
+                        "color": theme.buttons.color,
+                        "border-radius": theme.buttons.border_radius,
+                        "font-weight": theme.buttons.font_weight,
+                        "inner-padding": theme.buttons.padding,
+                        "align": theme.buttons.align,
+                        "font-family": theme.text.font_family,
+                        "font-size": theme.text.font_size,
+                    },
+                    self_closing=True,
+                ):
+                    pass
                 image_attrs = {
                     "fluid-on-mobile": "true",
                     "align": theme.images.align,
@@ -216,12 +242,11 @@ class Codegen(NodeVisitor):
                 self.current.add_text(html.escape(node.code), indented=False)
 
     def visit_ThematicBreak(self, node, scope):
-        # With a theme the styling comes from mj-attributes in the head.
-        if self.theme is not None:
-            attrs = {}
-        else:
-            attrs = {"border-color": "#cccccc", "border-width": "1px"}
-        with self.block_tag("mj-divider", attrs=attrs, self_closing=True):
+        with self.block_tag(
+            "mj-divider",
+            attrs=node.annotations["divider_attrs"],
+            self_closing=True,
+        ):
             pass
 
     def visit_LineBreak(self, node, scope):
@@ -255,8 +280,8 @@ class Codegen(NodeVisitor):
             attrs["style"] = self.image_style()
         else:
             tag = "mj-image"
-            if node.annotations.get("in_image_row"):
-                attrs["padding"] = self.row_image_padding()
+            if node.annotations.get("image_padding"):
+                attrs["padding"] = node.annotations["image_padding"]
 
         with self.block_tag(tag, attrs=attrs, self_closing=True):
             pass
@@ -285,8 +310,8 @@ class Codegen(NodeVisitor):
                 attrs["alt"] = node.img.alt_text.value
             if node.img.title:
                 attrs["title"] = node.img.title
-            if node.annotations.get("in_image_row"):
-                attrs["padding"] = self.row_image_padding()
+            if node.annotations.get("image_padding"):
+                attrs["padding"] = node.annotations["image_padding"]
 
             with self.block_tag("mj-image", attrs=attrs, self_closing=True, inline=True):
                 pass

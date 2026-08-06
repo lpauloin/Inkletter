@@ -4,8 +4,12 @@ from inkletter.visitors.codegen import Codegen
 from inkletter.visitors.tree import print_tree
 
 
-def parse_markdown_to_mjml(markdown_text, print_ast=False, theme=None):
-    ast = parse_markdown_to_ast(markdown_text)
+def parse_markdown_to_mjml(
+    markdown_text, print_ast=False, theme=None, bold_link_is_button=True
+):
+    ast = parse_markdown_to_ast(
+        markdown_text, bold_link_is_button=bold_link_is_button, theme=theme
+    )
     if print_ast:
         print_tree(ast)
     codegen = Codegen(theme=theme)

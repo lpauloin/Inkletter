@@ -75,6 +75,16 @@ class Divider:
 
 
 @dataclass(frozen=True)
+class Buttons:
+    background_color: str | None = None  # None inherits Links.color
+    color: str = WHITE
+    border_radius: str = "6px"
+    font_weight: str = "700"
+    padding: str = "12px 24px"  # mj-button inner-padding
+    align: str = "center"
+
+
+@dataclass(frozen=True)
 class Images:
     align: str = "center"  # lone image narrower than the column
     row_gap: str = "8px"  # horizontal padding inside image-row columns
@@ -102,6 +112,7 @@ class Theme:
     divider: Divider = field(default_factory=Divider)
     table: Table = field(default_factory=Table)
     images: Images = field(default_factory=Images)
+    buttons: Buttons = field(default_factory=Buttons)
 
     @classmethod
     def from_dict(cls, data):
@@ -142,6 +153,10 @@ class Theme:
 
     def to_dict(self):
         return asdict(self)
+
+    def button_background(self):
+        """The button background, inheriting the links color when unset."""
+        return self.buttons.background_color or self.links.color
 
     def to_css(self):
         """CSS rules for the raw HTML living inside mj-text blocks.
@@ -265,6 +280,9 @@ THEMES = {
             header_color=WHITE,
             header_background_color=Slate.DARKEST,
         ),
+        # light CTA popping on the dark slate; white text would be
+        # unreadable on the inherited light-blue links color
+        buttons=Buttons(background_color=Blue.LIGHT, color=Slate.DARKEST),
     ),
     "crystal": Theme(
         layout=Layout(background_color=Slate.LIGHTEST),

@@ -68,7 +68,7 @@ inkletter md2mjml newsletter.md -o newsletter.mjml
 
 Without `-o`, the MJML is printed to stdout, ready to be piped anywhere.
 
-## Image layout
+## Layout
 
 Layout is driven by plain CommonMark structure — no custom syntax, the same
 file stays clean in any Markdown editor (and reusable for other channels):
@@ -89,9 +89,19 @@ file stays clean in any Markdown editor (and reusable for other channels):
   He will own the rendering platform.
   ```
 
-On mobile both patterns stack, image on top. Ratios, spacing and behaviour
-are tuned in the `[images]` theme section below — including
-`text_layout = "stacked"` to disable media-object columns entirely.
+- A paragraph made **only of a bold link** becomes a call-to-action button
+  (a real `mj-button`, styled by the theme). A plain link stays a link, and
+  bold links inside lists, tables or quotes stay bold links:
+
+  ```markdown
+  **[Get started](https://example.com/go)**
+  ```
+
+  Pass `--no-bold-link-button` to keep bold links as links.
+
+On mobile everything stacks gracefully, image on top. Ratios, spacing and
+colors are tuned in the `[images]` and `[buttons]` theme sections below —
+including `text_layout = "stacked"` to disable media-object columns entirely.
 
 ## Theming
 
@@ -147,6 +157,7 @@ underline = false
 | `[divider]` | `color`, `width` |
 | `[table]` | `border_color`, `cell_padding`, `header_color`, `header_background_color` |
 | `[images]` | `align`, `row_gap`, `border_radius`, `text_layout`, `media_ratio` |
+| `[buttons]` | `background_color` (inherits `links.color`), `color`, `border_radius`, `font_weight`, `padding`, `align` |
 
 Any unknown section or key fails loudly, with the list of valid ones.
 

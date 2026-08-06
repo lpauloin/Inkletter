@@ -3,8 +3,9 @@ from inkletter.visitors.generic import NodeVisitor
 
 
 class BlockTextMerger(NodeVisitor):
-    def __init__(self):
+    def __init__(self, bold_link_is_button=True):
         self._text_parts = None
+        self.bold_link_is_button = bold_link_is_button
 
     def merge_inline_sequences(self, children):
         new_children = []
@@ -77,6 +78,10 @@ class BlockTextMerger(NodeVisitor):
         images = [c for c in node.children if isinstance(c, (Image, ImageLink))]
         others = [c for c in node.children if not isinstance(c, (Image, ImageLink))]
         if not images:
+            if self.bold_link_is_button:
+                button = self.promote_button(node)
+                if button is not None:
+                    return [button]
             return [node]
 
         if all(self.is_blank(c) for c in others):
@@ -98,14 +103,39 @@ class BlockTextMerger(NodeVisitor):
                 return [MediaObject(images[0], others, side="right")]
         return [node]
 
+    def promote_button(self, node):
+        """A paragraph made only of a bold link becomes a Button (CTA)."""
+        blocks = [c for c in node.children if not self.is_blank(c)]
+        if len(blocks) != 1 or not isinstance(blocks[0], BlockText):
+            return None
+        inlines = [c for c in blocks[0].children if not self.is_blank_inline(c)]
+        if len(inlines) != 1 or not isinstance(inlines[0], Strong):
+            return None
+        label = [c for c in inlines[0].children if not self.is_blank_inline(c)]
+        if len(label) != 1 or not isinstance(label[0], Link):
+            return None
+        link = label[0]
+        # never a button on an image link: the image always wins
+        if self.contains_image(link):
+            return None
+        return Button(link.children, link.href, link.title)
+
+    def contains_image(self, node):
+        if isinstance(node, (Image, ImageLink)):
+            return True
+        return any(
+            self.contains_image(c) for c in node.get_children() if c is not None
+        )
+
+    def is_blank_inline(self, node):
+        if isinstance(node, TextTerminal):
+            return True
+        return isinstance(node, LiteralText) and not node.value.strip()
+
     def is_blank(self, node):
         if not isinstance(node, BlockText):
             return False
-        return all(
-            isinstance(c, TextTerminal)
-            or (isinstance(c, LiteralText) and not c.value.strip())
-            for c in node.children
-        )
+        return all(self.is_blank_inline(c) for c in node.children)
 
     def strip_edge(self, blocks, leading):
         """Trim the whitespace left over next to the extracted image."""

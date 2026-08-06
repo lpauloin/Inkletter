@@ -34,6 +34,13 @@ CORPUS = [
     # images in tables
     "| A |\n|---|\n| ![i](https://x.com/i.png) |",
     "| A |\n|---|\n| [![i](https://x.com/i.png)](https://x.com) |",
+    # buttons
+    "**[Get started](https://x.com/go)**",
+    "**[*Vite* `go` <span>!</span>](https://x.com/go)**",
+    "- **[Go](https://x.com/go)**",
+    "| A |\n|---|\n| **[Go](https://x.com/go)** |",
+    "> **[Go](https://x.com/go)**",
+    "# **[Go](https://x.com/go)**",
     # layout conventions
     "![a](https://x.com/a.png) ![b](https://x.com/b.png)",
     "[![a](https://x.com/a.png)](https://x.com) ![b](https://x.com/b.png)",
@@ -52,7 +59,8 @@ CORPUS = [
         "![J](https://x.com/j.png) Média-objet.\n\n"
         "- [![l](https://x.com/l.png)](https://x.com) item\n\n"
         "| T |\n|---|\n| ![t](https://x.com/t.png) |\n\n"
-        "> quote ![q](https://x.com/q.png)"
+        "> quote ![q](https://x.com/q.png)\n\n"
+        "**[Get started](https://x.com/go)**"
     ),
 ]
 

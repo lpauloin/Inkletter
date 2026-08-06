@@ -153,3 +153,18 @@ def test_md2html_theme_preset(tmp_path):
 
     assert result.exit_code == 0
     assert "#b91c1c" in out.read_text(encoding="utf-8")  # Red.DARK link color
+
+
+def test_md2mjml_no_bold_link_button(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("**[Go](https://x.com)**", encoding="utf-8")
+
+    with_button = CliRunner().invoke(cli, ["md2mjml", str(md), "--no-theme"])
+    without = CliRunner().invoke(
+        cli, ["md2mjml", str(md), "--no-theme", "--no-bold-link-button"]
+    )
+
+    assert with_button.exit_code == 0 and without.exit_code == 0
+    assert "<mj-button" in with_button.output
+    assert "<mj-button" not in without.output
+    assert "<strong><a" in without.output

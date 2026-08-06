@@ -148,7 +148,7 @@ class ASTRenderer(mistune.BaseRenderer):
             return TableCell(text, align=align)
 
 
-def parse_markdown_to_ast(markdown_text):
+def parse_markdown_to_ast(markdown_text, bold_link_is_button=True, theme=None):
     renderer = ASTRenderer()
     markdown = mistune.create_markdown(
         renderer=renderer,
@@ -161,6 +161,6 @@ def parse_markdown_to_ast(markdown_text):
         ],
     )
     ast = markdown(markdown_text)
-    BlockTextMerger().visit(ast, scope=None)
-    Annotation().visit(ast, scope=ScopeStack())
+    BlockTextMerger(bold_link_is_button=bold_link_is_button).visit(ast, scope=None)
+    Annotation(theme=theme).visit(ast, scope=ScopeStack())
     return ast

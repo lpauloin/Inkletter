@@ -178,6 +178,21 @@ class ImageRow(BlockNode):
         return "ImageRow()"
 
 
+class Button(BlockNode):
+    """A paragraph made only of a bold link: a call-to-action button.
+
+    `children` is the inline label content of the link.
+    """
+
+    def __init__(self, children, href, title=None):
+        super().__init__(children)
+        self.href = href
+        self.title = title
+
+    def __repr__(self):
+        return f"Button(href='{self.href}', title='{self.title}')"
+
+
 class MediaObject(BlockNode):
     """A paragraph opening (or closing) with a single image beside its text.
 
