@@ -13,10 +13,10 @@ def test_paragraphs_are_separated_by_a_blank_line():
     assert actual == "First.\n\nSecond.\n"
 
 
-def test_h1_is_uppercased_and_underlined():
+def test_h1_is_underlined_with_equals():
     actual = parse_markdown_to_text("# My newsletter")
     print(actual)
-    assert actual == "MY NEWSLETTER\n=============\n"
+    assert actual == "My newsletter\n=============\n"
 
 
 def test_h2_is_underlined():

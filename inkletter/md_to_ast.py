@@ -3,6 +3,7 @@ import html
 import mistune
 
 from inkletter.ast import *
+from inkletter.django_tags import django_tags as django_tags_plugin
 from inkletter.scope import ScopeStack
 from inkletter.theme import DEFAULT_THEME
 from inkletter.visitors.annotation import Annotation
@@ -69,6 +70,9 @@ class ASTRenderer(mistune.BaseRenderer):
     def inline_html(self, html):
         return InlineHtml(html)
 
+    def django_tag(self, raw):
+        return TemplateTag(raw)
+
     def link(self, text, url, title=None):
         # If the text contains an image, we create an ImageLink
         # We extract the image from the text to create a new ImageLink node
@@ -96,6 +100,9 @@ class ASTRenderer(mistune.BaseRenderer):
 
     def block_html(self, html):
         return BlockHtml(html.strip("\n"))
+
+    def django_statement(self, raw):
+        return TemplateStatement(raw)
 
     def thematic_break(self):
         return ThematicBreak()
@@ -158,24 +165,30 @@ class ASTRenderer(mistune.BaseRenderer):
 
 
 def parse_markdown_to_ast(
-    markdown_text, bold_link_is_button=True, theme=None, url_factory=None
+    markdown_text,
+    bold_link_is_button=True,
+    theme=None,
+    url_factory=None,
+    django_tags=False,
 ):
     renderer = ASTRenderer()
-    markdown = mistune.create_markdown(
-        renderer=renderer,
-        plugins=[
-            "mistune.plugins.formatting.strikethrough",
-            "mistune.plugins.table.table",
-            "mistune.plugins.table.table_in_list",
-            "mistune.plugins.table.table_in_quote",
-            "mistune.plugins.task_lists.task_lists",
-        ],
-    )
+    plugins = [
+        "mistune.plugins.formatting.strikethrough",
+        "mistune.plugins.table.table",
+        "mistune.plugins.table.table_in_list",
+        "mistune.plugins.table.table_in_quote",
+        "mistune.plugins.task_lists.task_lists",
+    ]
+    if django_tags:
+        plugins.append(django_tags_plugin)
+    markdown = mistune.create_markdown(renderer=renderer, plugins=plugins)
 
     ast = markdown(markdown_text)
 
     if url_factory is not None:
-        URLRewriter(url_factory).visit(ast)
+        # an URL holding a template tag is unresolved: a factory cannot
+        # shorten it, and the call itself costs (quota, latency)
+        URLRewriter(url_factory, protected=django_tags).visit(ast)
 
     if theme is None:
         theme = DEFAULT_THEME

@@ -4,13 +4,18 @@ from inkletter.visitors.tree import print_tree
 
 
 def parse_markdown_to_text(
-    markdown_text, print_ast=False, bold_link_is_button=True, url_factory=None
+    markdown_text,
+    print_ast=False,
+    bold_link_is_button=True,
+    url_factory=None,
+    django_tags=False,
 ):
     """The plain-text alternative of the email (multipart/alternative)."""
     ast = parse_markdown_to_ast(
         markdown_text,
         bold_link_is_button=bold_link_is_button,
         url_factory=url_factory,
+        django_tags=django_tags,
     )
     if print_ast:
         print_tree(ast)

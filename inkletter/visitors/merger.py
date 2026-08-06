@@ -63,6 +63,12 @@ class BlockTextMerger(NodeVisitor):
         if self._text_parts is not None:
             self._text_parts.append(node.code)
 
+    def visit_TemplateTag(self, node, scope):
+        # an alt is flattened to plain text: without this the tag would
+        # simply vanish from it
+        if self._text_parts is not None:
+            self._text_parts.append(node.raw)
+
     def visit_Document(self, node, scope):
         self.process_blocknode(node, scope)
         promoted = []

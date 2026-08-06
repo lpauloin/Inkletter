@@ -17,10 +17,10 @@ class TextCodegen(NodeVisitor):
 
     Sibling of the MJML Codegen, built on the same CodeBlock machinery.
     Themes and annotations do not apply: plain text has no styling. A
-    fragment that must be reshaped before landing in the output (uppercased
-    title, quoted lines, padded table cells) is visited into a nested
-    CodeBlock, resolved to text, transformed, then written to the current
-    block.
+    fragment that must be reshaped before landing in the output (quoted
+    lines, padded table cells, an underline as wide as its title) is
+    visited into a nested CodeBlock, resolved to text, transformed, then
+    written to the current block.
     """
 
     def __init__(self):
@@ -94,8 +94,6 @@ class TextCodegen(NodeVisitor):
             for child in node.children:
                 self.visit(child, scope)
         title = self.resolver.resolve(block)
-        if node.level == 1:
-            title = title.upper()
         for line in title.splitlines():
             self.line(line)
         width = max((len(line) for line in title.splitlines()), default=0)
@@ -133,6 +131,13 @@ class TextCodegen(NodeVisitor):
 
     def visit_InlineHtml(self, node, scope):
         pass  # the tags vanish, the surrounding text nodes remain
+
+    def visit_TemplateTag(self, node, scope):
+        # never escaped: Django reads the tag exactly as it was written
+        self.current.add_text(node.raw)
+
+    def visit_TemplateStatement(self, node, scope):
+        self.line(node.raw)
 
     def visit_Emphasis(self, node, scope):
         self.generic_visit(node, scope)

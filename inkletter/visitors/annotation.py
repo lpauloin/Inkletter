@@ -267,16 +267,31 @@ class Annotation(NodeVisitor):
         self.mark_text_if_needed(node, scope)
         scope.pop(node)
 
-    def visit_BlockHtml(self, node, scope):
-        scope.push(node)
+    def mark_raw_if_needed(self, node, scope):
         # Outside of any raw-HTML context (mj-text content, table, list item),
-        # raw HTML must be wrapped in mj-raw to be valid MJML.
+        # raw content must be wrapped in mj-raw to be valid MJML.
         node.annotations["requires_raw"] = not (
             scope.get("in_text", False)
             or scope.get("is_in_table_cell", False)
             or scope.get("is_in_list_item", False)
             or scope.get("is_in_button", False)
         )
+
+    def visit_BlockHtml(self, node, scope):
+        scope.push(node)
+        self.mark_raw_if_needed(node, scope)
+        scope.pop(node)
+
+    def visit_TemplateStatement(self, node, scope):
+        # flow control wraps whole elements, so it sits in the column
+        # between them: same rule as raw HTML
+        scope.push(node)
+        self.mark_raw_if_needed(node, scope)
+        scope.pop(node)
+
+    def visit_TemplateTag(self, node, scope):
+        scope.push(node)
+        self.mark_text_if_needed(node, scope)
         scope.pop(node)
 
     def visit_ThematicBreak(self, node, scope):

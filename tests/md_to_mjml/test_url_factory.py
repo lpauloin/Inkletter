@@ -2,7 +2,7 @@ import pytest
 
 from inkletter.md_to_html import parse_markdown_to_html
 from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_body
-from inkletter.shortener import URLFactory
+from inkletter.shortener import BitlyShortener, URLFactory
 
 
 class PrefixFactory(URLFactory):
@@ -173,3 +173,105 @@ def test_factory_exceptions_propagate():
 
     with pytest.raises(RuntimeError, match="quota exceeded"):
         parse_markdown_to_mjml("[x](https://x.com)", url_factory=Failing())
+
+
+# --- Django tags: the factory must not even be called ---
+
+
+class SpyFactory(URLFactory):
+    """Records its calls: an unchanged URL would not prove anything on
+    its own, since a factory may well return what it was given."""
+
+    def __init__(self):
+        self.links = []
+        self.images = []
+
+    def rewrite_link(self, url):
+        self.links.append(url)
+        return f"https://short.test/?u={url}"
+
+    def rewrite_image(self, url):
+        self.images.append(url)
+        return f"https://img.test/?u={url}"
+
+
+def test_tagged_link_never_reaches_the_factory():
+    spy = SpyFactory()
+    actual = parse_markdown_to_mjml("[x]({{ url }})", url_factory=spy, django_tags=True)
+    print(actual)
+    assert spy.links == []
+    assert '<a href="{{ url }}">x</a>' in actual
+
+
+def test_tagged_image_never_reaches_the_factory():
+    spy = SpyFactory()
+    actual = parse_markdown_to_mjml(
+        "![i]({% static 'l.png' %})", url_factory=spy, django_tags=True
+    )
+    print(actual)
+    assert spy.images == []
+    assert "{% static 'l.png' %}" in actual
+
+
+def test_tagged_image_link_never_reaches_the_factory():
+    spy = SpyFactory()
+    actual = parse_markdown_to_mjml(
+        "[![i]({{ img }})]({{ url }})", url_factory=spy, django_tags=True
+    )
+    print(actual)
+    assert spy.links == []
+    assert spy.images == []
+
+
+def test_tagged_button_href_never_reaches_the_factory():
+    # same pass-ordering invariant as the plain case: the Button inherits
+    # the Link href — here, the one that was left alone
+    spy = SpyFactory()
+    actual = parse_markdown_to_mjml(
+        "**[Go]({{ url }})**", url_factory=spy, django_tags=True
+    )
+    print(actual)
+    assert spy.links == []
+    assert '<mj-button href="{{ url }}">Go</mj-button>' in actual
+
+
+def test_url_mixing_text_and_a_tag_is_left_alone():
+    spy = SpyFactory()
+    actual = parse_markdown_to_mjml(
+        "[x](https://x.com/{{ id }}/p)", url_factory=spy, django_tags=True
+    )
+    print(actual)
+    assert spy.links == []
+    assert 'href="https://x.com/{{ id }}/p"' in actual
+
+
+def test_only_the_resolved_url_of_a_document_is_rewritten():
+    spy = SpyFactory()
+    actual = parse_markdown_to_mjml(
+        "A [real](https://x.com/page) and a [tagged]({{ url }}) link.",
+        url_factory=spy,
+        django_tags=True,
+    )
+    print(actual)
+    assert spy.links == ["https://x.com/page"]
+    assert "https://short.test/?u=https://x.com/page" in actual
+    assert 'href="{{ url }}"' in actual
+
+
+def test_without_django_tags_the_factory_still_sees_everything():
+    # no opt-in, no new behaviour: {{ url }} is just a weird URL
+    spy = SpyFactory()
+    parse_markdown_to_mjml("[x]({{url}})", url_factory=spy)
+    assert spy.links == ["%7B%7Burl%7D%7D"]
+
+
+def test_bitly_makes_no_request_for_a_tagged_url():
+    class ExplodingBitly(BitlyShortener):
+        def rewrite_link(self, url):
+            raise AssertionError(f"called the Bitly API for {url!r}")
+
+    parse_markdown_to_mjml(
+        "**[Go]({% url 'plan' %})**",
+        url_factory=ExplodingBitly(token="unused"),
+        django_tags=True,
+    )

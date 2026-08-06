@@ -25,6 +25,7 @@ and it becomes a **gorgeous, mobile-friendly HTML email** powered by MJML.
 - Layout from plain Markdown structure: side-by-side image rows, image-beside-text
   media objects, and call-to-action buttons from a lone bold link
 - Seven built-in themes, or your own theme in a small TOML file
+- Django template tags kept intact, to use Inkletter as a build step
 - Live preview in your browser, with a device simulator (iPhone, iPad, desktop)
 - Clean Python API if you'd rather script it
 - Runs entirely on your machine, no account, no vendor lock-in
@@ -83,6 +84,30 @@ deliverability, and a readable email everywhere. Headings are underlined,
 links become `label <url>`, buttons become `→ label : url` call-to-action
 lines, and tables are ASCII-aligned.
 
+## Django templates
+
+Building emails for a Django app? Pass `--django` and the tags survive
+the conversion, so the output is itself a Django template:
+
+```bash
+inkletter md2html welcome_email.md --django -o templates/welcome_email.html
+inkletter md2txt  welcome_email.md --django -o templates/welcome_email.txt
+```
+
+```markdown
+# Welcome aboard, {{ user.first_name }}
+
+**[Activate your account]({% url 'activate' token %})**
+```
+
+One source, both halves of the `multipart` email, rendered at send time
+with `render_to_string`. Variables, filters, `{% url %}` in links,
+conditionals around whole blocks — all of it comes out untouched.
+Without the flag, nothing changes: it is opt-in.
+
+See the **[Django template reference](sample/DJANGO.md)** for what is
+supported, the two layout rules, and the limitations.
+
 ## Layout
 
 Layout is driven by plain CommonMark structure — no custom syntax, the same
@@ -130,15 +155,15 @@ inkletter md2html newsletter.md --theme mytheme.toml
 
 ### Built-in presets
 
-| Preset | Mood |
-|--------|------|
-| `default` | Clean and neutral — Helvetica, gray text, blue links |
-| `dark` | Slate night mode — light text, Trebuchet MS headings |
-| `crystal` | Airy and elegant — Palatino headings, cold blue accents |
-| `blue` | Corporate and trustworthy — Tahoma text, Trebuchet MS headings |
-| `green` | Organic and editorial — Georgia throughout |
-| `red` | Bold and editorial — Georgia headings over Helvetica text |
-| `yellow` | Warm and friendly — Verdana text, Trebuchet MS headings |
+| Preset    | Mood                                                           |
+|-----------|----------------------------------------------------------------|
+| `default` | Clean and neutral — Helvetica, gray text, blue links           |
+| `dark`    | Slate night mode — light text, Trebuchet MS headings           |
+| `crystal` | Airy and elegant — Palatino headings, cold blue accents        |
+| `blue`    | Corporate and trustworthy — Tahoma text, Trebuchet MS headings |
+| `green`   | Organic and editorial — Georgia throughout                     |
+| `red`     | Bold and editorial — Georgia headings over Helvetica text      |
+| `yellow`  | Warm and friendly — Verdana text, Trebuchet MS headings        |
 
 Each preset is rendered on desktop and on a 375px mobile screen in the
 **[theme gallery](sample/THEMES.md)**.
@@ -160,18 +185,18 @@ color = "#c0392b"
 underline = false
 ```
 
-| Section | Keys |
-|---------|------|
-| `[layout]` | `width`, `background_color`, `content_background_color`, `section_padding` |
-| `[text]` | `font_family`, `font_size`, `line_height`, `color` |
-| `[headings]` | `font_family`, `color`, `font_weight`, `h1_size`, `h2_size`, `h3_size` |
-| `[links]` | `color`, `underline` |
-| `[code]` | `font_family`, `background_color`, `color` |
-| `[quote]` | `color`, `border_color`, `font_style` |
-| `[divider]` | `color`, `width` |
-| `[table]` | `border_color`, `cell_padding`, `header_color`, `header_background_color` |
-| `[images]` | `align`, `row_gap`, `border_radius`, `text_layout`, `media_ratio` |
-| `[buttons]` | `background_color` (inherits `links.color`), `color`, `border_radius`, `font_weight`, `padding`, `align` |
+| Section      | Keys                                                                                                     |
+|--------------|----------------------------------------------------------------------------------------------------------|
+| `[layout]`   | `width`, `background_color`, `content_background_color`, `section_padding`                               |
+| `[text]`     | `font_family`, `font_size`, `line_height`, `color`                                                       |
+| `[headings]` | `font_family`, `color`, `font_weight`, `h1_size`, `h2_size`, `h3_size`                                   |
+| `[links]`    | `color`, `underline`                                                                                     |
+| `[code]`     | `font_family`, `background_color`, `color`                                                               |
+| `[quote]`    | `color`, `border_color`, `font_style`                                                                    |
+| `[divider]`  | `color`, `width`                                                                                         |
+| `[table]`    | `border_color`, `cell_padding`, `header_color`, `header_background_color`                                |
+| `[images]`   | `align`, `row_gap`, `border_radius`, `text_layout`, `media_ratio`                                        |
+| `[buttons]`  | `background_color` (inherits `links.color`), `color`, `border_radius`, `font_weight`, `padding`, `align` |
 
 Any unknown section or key fails loudly, with the list of valid ones.
 
@@ -209,6 +234,7 @@ you — `rewrite_link` for click URLs (links, image links, buttons),
 ```python
 from inkletter.shortener import URLFactory
 
+
 class UTMTagger(URLFactory):
     def rewrite_link(self, url):
         return f"{url}?utm_source=newsletter&utm_medium=email"
@@ -224,6 +250,7 @@ the CLI does not expose factories.
 - [sample.html](sample/sample.html) — the generated responsive email
 - [sample/themes/](sample/themes/) — the same source rendered with every preset
 - [theme gallery](sample/THEMES.md) — all presets at a glance, desktop and mobile
+- [Django template reference](sample/DJANGO.md) — using Inkletter as a build step for Django emails
 
 ## Contributing
 

@@ -112,3 +112,38 @@ def test_text_output_is_clean(markdown):
     text = parse_markdown_to_text(markdown)
     assert "<mj-" not in text
     assert "<strong>" not in text and "<a href" not in text
+
+
+# --- Django tags ---
+
+
+def with_tags(markdown):
+    """The same document, wrapped in flow control and given a variable."""
+    return (
+        f"{{% if show %}}\n\n{markdown}\n\nSigned, {{{{ user.name }}}}\n\n{{% endif %}}"
+    )
+
+
+@pytest.mark.parametrize("markdown", CORPUS)
+def test_corpus_is_identical_with_django_tags_on(markdown):
+    # the corpus holds no tag, so turning the plugin on must change
+    # strictly nothing: opting in is never a behaviour change
+    assert parse_markdown_to_mjml(markdown, django_tags=True) == parse_markdown_to_mjml(
+        markdown
+    )
+
+
+@pytest.mark.parametrize("markdown", CORPUS)
+def test_tagged_corpus_has_no_leak(markdown):
+    mjml = parse_markdown_to_mjml(with_tags(markdown), django_tags=True)
+    assert_no_component_leak(mjml)
+    assert "inktag" not in mjml
+    assert "{% if show %}" in mjml and "{{ user.name }}" in mjml
+
+
+@pytest.mark.parametrize("markdown", CORPUS)
+def test_tagged_corpus_compiles_to_html(markdown):
+    html = parse_markdown_to_html(with_tags(markdown), django_tags=True)
+    assert "<mj-" not in html
+    assert "inktag" not in html
+    assert "{% if show %}" in html and "{{ user.name }}" in html

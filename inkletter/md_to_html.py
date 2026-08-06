@@ -1,6 +1,6 @@
 from mjml import mjml2html
 
-from inkletter.md_to_mjml import parse_markdown_to_mjml
+from inkletter.md_to_mjml import render_mjml
 
 
 def parse_mjml_to_html(mjml_text):
@@ -8,13 +8,18 @@ def parse_mjml_to_html(mjml_text):
 
 
 def parse_markdown_to_html(
-    markdown_text, theme=None, bold_link_is_button=True, url_factory=None
+    markdown_text,
+    theme=None,
+    bold_link_is_button=True,
+    url_factory=None,
+    django_tags=False,
 ):
-    return parse_mjml_to_html(
-        parse_markdown_to_mjml(
-            markdown_text,
-            theme=theme,
-            bold_link_is_button=bold_link_is_button,
-            url_factory=url_factory,
-        )
+    # compile first, reveal after: Django tags never cross mjml2html
+    mjml, mask = render_mjml(
+        markdown_text,
+        theme=theme,
+        bold_link_is_button=bold_link_is_button,
+        url_factory=url_factory,
+        django_tags=django_tags,
     )
+    return mask.reveal(parse_mjml_to_html(mjml))

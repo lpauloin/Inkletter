@@ -83,7 +83,7 @@ She will own the rendering platform.
     actual = parse_markdown_to_text(markdown_input)
     print(actual)
     assert actual == """\
-THE INKLETTER TIMES
+The Inkletter Times
 ===================
 
 A paragraph with emphasis, strong, strikethrough, code span,

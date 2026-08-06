@@ -59,6 +59,20 @@ class InlineHtml(Text):
         return f"InlineHtml('{self.value}')"
 
 
+class TemplateTag(Text):
+    """A Django template tag in the flow of the text, kept opaque.
+
+    Being a Text, it merges into a BlockText like any other inline node.
+    """
+
+    def __init__(self, raw):
+        super().__init__()
+        self.raw = raw
+
+    def __repr__(self):
+        return f"TemplateTag('{self.raw}')"
+
+
 class Emphasis(TextBlock):
     def __repr__(self):
         return "Emphasis()"
@@ -133,6 +147,21 @@ class BlockHtml(Node):
 
     def __repr__(self):
         return f"BlockHtml('{self.value}')"
+
+
+class TemplateStatement(Node):
+    """A line made only of Django statements: flow control around blocks.
+
+    Deliberately not a Text: it must never be merged into a BlockText,
+    it is a block of its own (like BlockHtml, its closest cousin).
+    """
+
+    def __init__(self, raw):
+        super().__init__()
+        self.raw = raw
+
+    def __repr__(self):
+        return f"TemplateStatement('{self.raw}')"
 
 
 # --- Image element ---

@@ -6,7 +6,7 @@ import click
 from jinja2 import Environment, FileSystemLoader
 
 from inkletter.md_to_html import parse_markdown_to_html, parse_mjml_to_html
-from inkletter.md_to_mjml import parse_markdown_to_mjml
+from inkletter.md_to_mjml import parse_markdown_to_mjml, render_mjml
 from inkletter.md_to_text import parse_markdown_to_text
 from inkletter.theme import THEMES, Theme, ThemeError
 
@@ -21,6 +21,12 @@ def cli():
 
 
 def conversion_options(command):
+    command = click.option(
+        "--django",
+        "django_tags",
+        is_flag=True,
+        help="Keep Django template tags intact, so the output is a Django template.",
+    )(command)
     command = click.option(
         "--no-bold-link-button",
         "no_bold_link_button",
@@ -82,6 +88,7 @@ def preview(
     output: Path | None,
     theme_name: str | None,
     no_bold_link_button: bool,
+    django_tags: bool,
 ):
     """
     Convert a Markdown file into MJML, then into HTML, and preview it in a browser.
@@ -91,15 +98,18 @@ def preview(
         # Load Markdown
         markdown_text = filepath.read_text(encoding="utf-8")
 
-        # Markdown → MJML
-        mjml_code = parse_markdown_to_mjml(
+        # Markdown → MJML, keeping the Django tags masked until the
+        # MJML compiler is done with them
+        masked_mjml, mask = render_mjml(
             markdown_text,
             theme=theme,
             bold_link_is_button=not no_bold_link_button,
+            django_tags=django_tags,
         )
+        mjml_code = mask.reveal(masked_mjml)
 
         # MJML → HTML
-        html_output = parse_mjml_to_html(mjml_code)
+        html_output = mask.reveal(parse_mjml_to_html(masked_mjml))
 
         # Render with Jinja2
         env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
@@ -136,6 +146,7 @@ def md2mjml(
     output: Path | None,
     theme_name: str | None,
     no_bold_link_button: bool,
+    django_tags: bool,
 ):
     """Convert Markdown to MJML, print it or save it to a file."""
     theme = load_theme(theme_name)
@@ -145,6 +156,7 @@ def md2mjml(
             markdown_text,
             theme=theme,
             bold_link_is_button=not no_bold_link_button,
+            django_tags=django_tags,
         )
     except Exception as e:
         raise click.ClickException(str(e))
@@ -179,6 +191,7 @@ def md2html(
     view: bool,
     theme_name: str | None,
     no_bold_link_button: bool,
+    django_tags: bool,
 ):
     """Convert Markdown to HTML, optionally save and open it."""
     theme = load_theme(theme_name)
@@ -188,6 +201,7 @@ def md2html(
             markdown_text,
             theme=theme,
             bold_link_is_button=not no_bold_link_button,
+            django_tags=django_tags,
         )
     except Exception as e:
         raise click.ClickException(str(e))
@@ -215,6 +229,7 @@ def md2txt(
     filepath: Path,
     output: Path | None,
     no_bold_link_button: bool,
+    django_tags: bool,
 ):
     """Convert Markdown to the plain-text email alternative."""
     try:
@@ -222,6 +237,7 @@ def md2txt(
         text = parse_markdown_to_text(
             markdown_text,
             bold_link_is_button=not no_bold_link_button,
+            django_tags=django_tags,
         )
     except Exception as e:
         raise click.ClickException(str(e))
