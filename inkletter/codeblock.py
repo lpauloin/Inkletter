@@ -80,7 +80,9 @@ class CodeBlockResolver:
 
     def visit_text(self, node):
         if self.current_line is None:
-            self.current_line = " " * (self.current_indent * self.indent_size) if node.indented else ""
+            self.current_line = (
+                " " * (self.current_indent * self.indent_size) if node.indented else ""
+            )
         self.current_line += node.text
 
     def visit_codeblock(self, node):

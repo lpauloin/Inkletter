@@ -23,6 +23,7 @@ class BlockNode(Node):
 
 # --- Text elements ---
 
+
 class Text(Node):
     pass
 

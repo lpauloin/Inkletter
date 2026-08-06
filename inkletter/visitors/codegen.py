@@ -244,7 +244,9 @@ class Codegen(NodeVisitor):
             if node.annotations.get("image_padding"):
                 attrs["padding"] = node.annotations["image_padding"]
 
-            with self.block_tag("mj-image", attrs=attrs, self_closing=True, inline=True):
+            with self.block_tag(
+                "mj-image", attrs=attrs, self_closing=True, inline=True
+            ):
                 pass
 
     def visit_List(self, node, scope):

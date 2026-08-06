@@ -112,11 +112,9 @@ def test_image_in_list(ast):
 
 
 def test_image_in_blockquote(ast):
-    doc = ast(
-        """\
+    doc = ast("""\
 > ![Quote Icon](https://picsum.photos/600/300)
-> Citation"""
-    )
+> Citation""")
     print_tree(doc)
     assert isinstance(doc, Document)
 

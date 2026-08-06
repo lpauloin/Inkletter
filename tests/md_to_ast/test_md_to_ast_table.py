@@ -3,14 +3,12 @@ from inkletter.visitors.tree import print_tree
 
 
 def test_table(ast):
-    doc = ast(
-        """\
+    doc = ast("""\
 | Header 1 | Header 2 |
 |----------|----------|
 | Cell 1   | Cell 2   |
 | Cell 3   | Cell 4   |
-"""
-    )
+""")
     print_tree(doc)
     assert isinstance(doc, Document)
 
@@ -56,14 +54,12 @@ def test_table(ast):
 
 
 def test_table_with_alignment(ast):
-    doc = ast(
-        """\
+    doc = ast("""\
 | Left Aligned | Center Aligned | Right Aligned |
 |:-------------|:--------------:|--------------:|
 | Row 1        | Data           | More          |
 | Row 2        | Data           | More          |
-"""
-    )
+""")
     print_tree(doc)
     assert isinstance(doc, Document)
 
@@ -107,13 +103,11 @@ def test_table_with_alignment(ast):
 
 
 def test_table_with_formated_cells(ast):
-    doc = ast(
-        """\
+    doc = ast("""\
 | ~~Header **1**~~                       | ~~Header **2**~~ |
 |----------------------------------------|------------------|
 | ~~**strong** and strike~~ cell         | **Cell 2**       |
-"""
-    )
+""")
     print_tree(doc)
     assert isinstance(doc, Document)
 

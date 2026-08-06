@@ -8,7 +8,9 @@ from inkletter.theme import Images, Theme, ThemeError, split_media_ratio
 
 
 def test_image_row_two_columns():
-    actual = parse_markdown_to_mjml("![a](https://x.com/a.png) ![b](https://x.com/b.png)")
+    actual = parse_markdown_to_mjml(
+        "![a](https://x.com/a.png) ![b](https://x.com/b.png)"
+    )
     print(actual)
     expected = """\
 <mjml>
@@ -62,7 +64,9 @@ def test_row_gap_comes_from_the_theme():
 
 
 def test_media_object_left():
-    actual = parse_markdown_to_mjml("![Jean](https://x.com/j.png) Jean rejoint l'équipe.")
+    actual = parse_markdown_to_mjml(
+        "![Jean](https://x.com/j.png) Jean rejoint l'équipe."
+    )
     print(actual)
     expected = """\
 <mjml>
@@ -83,7 +87,9 @@ def test_media_object_left():
 
 
 def test_media_object_right_uses_rtl_with_image_first_in_dom():
-    actual = parse_markdown_to_mjml("Jean rejoint l'équipe. ![Jean](https://x.com/j.png)")
+    actual = parse_markdown_to_mjml(
+        "Jean rejoint l'équipe. ![Jean](https://x.com/j.png)"
+    )
     print(actual)
     assert '<mj-section direction="rtl">' in actual
     # DOM order: image column before text column, so mobile stacks image on top
@@ -120,14 +126,14 @@ def test_images_section_unknown_key():
 
 def test_border_radius_reaches_head_and_manual_images():
     theme = Theme(images=Images(border_radius="6px"))
-    actual = parse_markdown_to_mjml(
-        "- ![i](https://x.com/i.png) item", theme=theme
-    )
+    actual = parse_markdown_to_mjml("- ![i](https://x.com/i.png) item", theme=theme)
     assert 'border-radius="6px"' in actual  # mj-image default in head
     assert "border-radius: 6px;" in actual  # manual <img> in the list
 
 
-@pytest.mark.parametrize("ratio, expected", [("30%", ("30%", "70%")), ("25", ("25%", "75%"))])
+@pytest.mark.parametrize(
+    "ratio, expected", [("30%", ("30%", "70%")), ("25", ("25%", "75%"))]
+)
 def test_split_media_ratio(ratio, expected):
     assert split_media_ratio(ratio) == expected
 

@@ -58,9 +58,7 @@ def test_divider_carries_theme_attributes_inline():
 def test_unthemed_divider_uses_the_default_theme():
     actual = parse_markdown_to_mjml("---")
     print(actual)
-    expected = wrap_mjml_body(
-        '<mj-divider border-color="#e5e7eb" border-width="1px"/>'
-    )
+    expected = wrap_mjml_body('<mj-divider border-color="#e5e7eb" border-width="1px"/>')
     assert actual == expected
 
 
@@ -83,12 +81,15 @@ def test_table_theme_reaches_cells():
     from inkletter.theme import Table
 
     markdown = "| A |\n|---|\n| b |"
-    theme = Theme(table=Table(border_color="#123456", header_background_color="#eeeeee"))
+    theme = Theme(
+        table=Table(border_color="#123456", header_background_color="#eeeeee")
+    )
     actual = parse_markdown_to_mjml(markdown, theme=theme)
     print(actual)
     assert "border-bottom: 2px solid #123456" in actual  # header cell
     assert "background-color: #eeeeee" in actual
     assert "border-bottom: 1px solid #123456" in actual  # body cell
+
 
 def test_table_typography_follows_the_theme():
     from inkletter.theme import Text

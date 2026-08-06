@@ -12,6 +12,7 @@ from inkletter.theme import THEMES, Theme, ThemeError
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 
+
 @click.group()
 def cli():
     """Inkletter CLI — Convert and preview Markdown as MJML"""
@@ -69,8 +70,15 @@ def write_output(content: str, output: Path | None) -> Path:
 
 
 @cli.command()
-@click.argument("filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path))
-@click.option("-o", "--output", type=click.Path(dir_okay=False, writable=True, path_type=Path), help="Output HTML file path")
+@click.argument(
+    "filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path)
+)
+@click.option(
+    "-o",
+    "--output",
+    type=click.Path(dir_okay=False, writable=True, path_type=Path),
+    help="Output HTML file path",
+)
 @theme_options
 @conversion_options
 def preview(
@@ -117,8 +125,15 @@ def preview(
 
 
 @cli.command()
-@click.argument("filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path))
-@click.option("-o", "--output", type=click.Path(dir_okay=False, writable=True, path_type=Path), help="Output MJML file path")
+@click.argument(
+    "filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path)
+)
+@click.option(
+    "-o",
+    "--output",
+    type=click.Path(dir_okay=False, writable=True, path_type=Path),
+    help="Output MJML file path",
+)
 @theme_options
 @conversion_options
 def md2mjml(
@@ -148,9 +163,20 @@ def md2mjml(
 
 
 @cli.command()
-@click.argument("filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path))
-@click.option("-o", "--output", type=click.Path(dir_okay=False, writable=True, path_type=Path), help="Output HTML file path")
-@click.option("--view/--no-view", default=False, help="Open the result in a browser (default: false)")
+@click.argument(
+    "filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path)
+)
+@click.option(
+    "-o",
+    "--output",
+    type=click.Path(dir_okay=False, writable=True, path_type=Path),
+    help="Output HTML file path",
+)
+@click.option(
+    "--view/--no-view",
+    default=False,
+    help="Open the result in a browser (default: false)",
+)
 @theme_options
 @conversion_options
 def md2html(

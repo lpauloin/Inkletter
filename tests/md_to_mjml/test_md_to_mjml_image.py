@@ -190,7 +190,7 @@ def test_manual_image_link_keeps_its_link():
         "- [![alt](https://x.com/i.png)](https://x.com) item"
     )
     print(actual)
-    assert '<img' in actual and 'href' not in actual.split("<img")[1].split("/>")[0]
+    assert "<img" in actual and "href" not in actual.split("<img")[1].split("/>")[0]
     assert '<a href="https://x.com"><img' in actual
 
 

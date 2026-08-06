@@ -2,7 +2,6 @@ import pytest
 
 from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_body
 
-
 # --- Paragraph ---
 
 

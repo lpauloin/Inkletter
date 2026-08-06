@@ -33,9 +33,7 @@ def test_inline_html_in_paragraph(ast):
     assert isinstance(para.children[0], BlockText)
 
     block = para.children[0]
-    values = [
-        (type(c).__name__, c.value) for c in block.children
-    ]
+    values = [(type(c).__name__, c.value) for c in block.children]
     assert values == [
         ("LiteralText", "Un "),
         ("InlineHtml", "<span>"),
@@ -51,6 +49,4 @@ def test_inline_html_br(ast):
 
     block = doc.children[0].children[0]
     assert isinstance(block, BlockText)
-    assert any(
-        isinstance(c, InlineHtml) and c.value == "<br>" for c in block.children
-    )
+    assert any(isinstance(c, InlineHtml) and c.value == "<br>" for c in block.children)

@@ -71,9 +71,9 @@ def assert_no_component_leak(mjml):
     body = mjml[mjml.find("<mj-body") :]
     for tag in RAW_CONTEXTS:
         for m in re.finditer(rf"<{tag}[^>]*>(.*?)</{tag}>", body, re.S):
-            assert "<mj-" not in m.group(1), (
-                f"MJML component inside {tag}: {m.group(1)!r}"
-            )
+            assert "<mj-" not in m.group(
+                1
+            ), f"MJML component inside {tag}: {m.group(1)!r}"
 
 
 @pytest.mark.parametrize("markdown", CORPUS)

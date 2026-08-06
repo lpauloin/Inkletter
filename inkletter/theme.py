@@ -126,7 +126,9 @@ class Theme:
                     f"unknown section '[{group_name}]'; "
                     f"valid sections: {', '.join(sorted(groups))}"
                 )
-            kwargs[group_name] = _build_group(groups[group_name], group_name, group_data)
+            kwargs[group_name] = _build_group(
+                groups[group_name], group_name, group_data
+            )
         return cls(**kwargs)
 
     @classmethod

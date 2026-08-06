@@ -123,9 +123,7 @@ class BlockTextMerger(NodeVisitor):
     def contains_image(self, node):
         if isinstance(node, (Image, ImageLink)):
             return True
-        return any(
-            self.contains_image(c) for c in node.get_children() if c is not None
-        )
+        return any(self.contains_image(c) for c in node.get_children() if c is not None)
 
     def is_blank_inline(self, node):
         if isinstance(node, TextTerminal):

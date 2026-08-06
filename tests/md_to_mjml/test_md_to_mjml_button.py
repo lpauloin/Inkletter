@@ -29,16 +29,14 @@ def test_button_snapshot():
 def test_button_stays_in_the_flow_band():
     actual = parse_markdown_to_mjml(f"Avant.\n\n**[Go]({URL})**\n\nAprès.")
     print(actual)
-    expected = wrap_mjml_body(
-        f"""\
+    expected = wrap_mjml_body(f"""\
 <mj-text>
   Avant.
 </mj-text>
 <mj-button href="{URL}">Go</mj-button>
 <mj-text>
   Après.
-</mj-text>"""
-    )
+</mj-text>""")
     assert actual == expected
 
 
@@ -96,18 +94,14 @@ def test_label_with_emphasis_and_code():
 def test_label_is_escaped():
     actual = parse_markdown_to_mjml(f"**[A & B < C]({URL})**")
     print(actual)
-    expected = wrap_mjml_body(
-        f'<mj-button href="{URL}">A &amp; B &lt; C</mj-button>'
-    )
+    expected = wrap_mjml_body(f'<mj-button href="{URL}">A &amp; B &lt; C</mj-button>')
     assert actual == expected
 
 
 def test_label_inline_html_passthrough():
     actual = parse_markdown_to_mjml(f"**[Go <span>!</span>]({URL})**")
     print(actual)
-    expected = wrap_mjml_body(
-        f'<mj-button href="{URL}">Go <span>!</span></mj-button>'
-    )
+    expected = wrap_mjml_body(f'<mj-button href="{URL}">Go <span>!</span></mj-button>')
     assert actual == expected
 
 
@@ -168,12 +162,10 @@ def test_buttons_section_unknown_key():
 def test_bold_link_is_button_off_restores_previous_output():
     actual = parse_markdown_to_mjml(f"**[Go]({URL})**", bold_link_is_button=False)
     print(actual)
-    expected = wrap_mjml_body(
-        f"""\
+    expected = wrap_mjml_body(f"""\
 <mj-text>
   <strong><a href="{URL}">Go</a></strong>
-</mj-text>"""
-    )
+</mj-text>""")
     assert actual == expected
 
 

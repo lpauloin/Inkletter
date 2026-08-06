@@ -3,12 +3,10 @@ from inkletter.visitors.tree import print_tree
 
 
 def test_unordered_list(ast):
-    doc = ast(
-        """\
+    doc = ast("""\
 - Item 1
 - Item 2
-"""
-    )
+""")
     print_tree(doc)
     assert isinstance(doc, Document)
 
@@ -34,12 +32,10 @@ def test_unordered_list(ast):
 
 
 def test_ordered_list(ast):
-    doc = ast(
-        """\
+    doc = ast("""\
 1. First item
 2. Second item
-"""
-    )
+""")
     print_tree(doc)
     assert isinstance(doc, Document)
 
