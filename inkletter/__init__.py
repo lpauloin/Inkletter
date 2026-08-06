@@ -1,10 +1,25 @@
-def parse_markdown(markdown_text: str) -> list:
-    """Parse le Markdown enrichi et retourne l'AST."""
+"""Inkletter: Markdown to responsive MJML/HTML emails."""
 
+from importlib.metadata import PackageNotFoundError, version
 
-def ast_to_mjml(ast: list) -> str:
-    """Transforme l'AST en MJML."""
+from inkletter.md_to_html import parse_markdown_to_html, parse_mjml_to_html
+from inkletter.md_to_mjml import parse_markdown_to_mjml
+from inkletter.shortener import BitlyShortener, URLFactory
+from inkletter.theme import THEMES, Theme, ThemeError
 
+try:
+    __version__ = version("inkletter")
+except PackageNotFoundError:  # not installed (e.g. sources on sys.path)
+    __version__ = "0.0.0"
 
-def markdown_to_mjml(markdown_text: str) -> str:
-    """Pipeline complet: Markdown -> AST -> MJML."""
+__all__ = [
+    "parse_markdown_to_mjml",
+    "parse_markdown_to_html",
+    "parse_mjml_to_html",
+    "Theme",
+    "ThemeError",
+    "THEMES",
+    "URLFactory",
+    "BitlyShortener",
+    "__version__",
+]
