@@ -238,12 +238,6 @@ class Annotation(NodeVisitor):
         self.generic_visit(node, scope)
         scope.pop(node)
 
-    def visit_Text(self, node, scope):
-        scope.push(node)
-        self.mark_text_if_needed(node, scope)
-        self.generic_visit(node, scope)
-        scope.pop(node)
-
     def visit_Emphasis(self, node, scope):
         scope.push(node)
         self.mark_text_if_needed(node, scope)

@@ -324,11 +324,6 @@ class TableHeaderCell(TableCell):
         return f"TableHeaderCell(align={self.align})"
 
 
-class TableRegularCell(TableCell):
-    def __repr__(self):
-        return f"TableRegularCell(align={self.align})"
-
-
 class TableHeader(Node):
     def __init__(self, headers):
         super().__init__()
