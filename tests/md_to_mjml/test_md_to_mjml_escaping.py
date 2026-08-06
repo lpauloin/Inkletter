@@ -105,3 +105,63 @@ def test_special_characters_in_image_alt():
     print("expected:")
     print(expected)
     assert actual == expected
+
+
+# --- HTML entities (CommonMark decodes them everywhere but in code) ---
+
+
+def test_entities_are_decoded_in_text():
+    actual = parse_markdown_to_mjml("AT&amp;T coûte 5&nbsp;€ et &copy; 2026")
+    print(actual)
+    expected = wrap_mjml_body("""\
+<mj-text>
+  AT&amp;T coûte 5 € et © 2026
+</mj-text>""")
+    assert actual == expected
+
+
+def test_numeric_entities_are_decoded():
+    actual = parse_markdown_to_mjml("&#169; et &#x2764;")
+    print(actual)
+    expected = wrap_mjml_body("""\
+<mj-text>
+  © et ❤
+</mj-text>""")
+    assert actual == expected
+
+
+def test_double_entity_stays_literal():
+    # the author wrote &amp;amp; to display "&amp;"
+    actual = parse_markdown_to_mjml("&amp;amp;")
+    print(actual)
+    expected = wrap_mjml_body("""\
+<mj-text>
+  &amp;amp;
+</mj-text>""")
+    assert actual == expected
+
+
+def test_entities_stay_literal_in_code():
+    actual = parse_markdown_to_mjml("Le code `&amp;` puis :\n\n```\n&copy;\n```")
+    print(actual)
+    assert "<code>&amp;amp;</code>" in actual  # renders the literal "&amp;"
+    assert "&amp;copy;" in actual  # renders the literal "&copy;"
+
+
+def test_entities_are_decoded_in_alt_and_title():
+    actual = parse_markdown_to_mjml(
+        '![AT&amp;T](https://x.com/i.png "Tom &amp; Jerry")'
+    )
+    print(actual)
+    expected = wrap_mjml_body(
+        '<mj-image src="https://x.com/i.png" alt="AT&amp;T" title="Tom &amp; Jerry"/>'
+    )
+    assert actual == expected
+
+
+def test_entity_cannot_smuggle_html():
+    # &lt;script&gt; decodes to <script> then gets re-escaped: no injection
+    actual = parse_markdown_to_mjml("&lt;script&gt;alert(1)&lt;/script&gt;")
+    print(actual)
+    assert "<script>" not in actual
+    assert "&lt;script&gt;" in actual

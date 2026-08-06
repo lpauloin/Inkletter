@@ -7,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from inkletter.md_to_html import parse_markdown_to_html, parse_mjml_to_html
 from inkletter.md_to_mjml import parse_markdown_to_mjml
+from inkletter.md_to_text import parse_markdown_to_text
 from inkletter.theme import THEMES, Theme, ThemeError
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -197,3 +198,36 @@ def md2html(
 
     if view:
         webbrowser.open(out_path.resolve().as_uri())
+
+
+@cli.command()
+@click.argument(
+    "filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path)
+)
+@click.option(
+    "-o",
+    "--output",
+    type=click.Path(dir_okay=False, writable=True, path_type=Path),
+    help="Output text file path",
+)
+@conversion_options
+def md2txt(
+    filepath: Path,
+    output: Path | None,
+    no_bold_link_button: bool,
+):
+    """Convert Markdown to the plain-text email alternative."""
+    try:
+        markdown_text = filepath.read_text(encoding="utf-8")
+        text = parse_markdown_to_text(
+            markdown_text,
+            bold_link_is_button=not no_bold_link_button,
+        )
+    except Exception as e:
+        raise click.ClickException(str(e))
+
+    if output:
+        output.write_text(text, encoding="utf-8")
+        click.secho(f"✅ Text written to: {output}", fg="green")
+    else:
+        click.echo(text, nl=False)

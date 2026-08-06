@@ -156,3 +156,43 @@ def test_md2mjml_no_bold_link_button(tmp_path):
     assert "<mj-button href=" in with_button.output
     assert "<mj-button href=" not in without.output
     assert "<strong><a" in without.output
+
+
+# --- Plain text ---
+
+
+def test_md2txt_prints_to_stdout(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("# Title\n\nSome **text**.", encoding="utf-8")
+
+    result = CliRunner().invoke(cli, ["md2txt", str(md)])
+
+    assert result.exit_code == 0
+    assert result.output == "TITLE\n=====\n\nSome text.\n"
+
+
+def test_md2txt_writes_output_file(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("**[Go](https://x.com)**", encoding="utf-8")
+    out = tmp_path / "out.txt"
+
+    result = CliRunner().invoke(cli, ["md2txt", str(md), "-o", str(out)])
+
+    assert result.exit_code == 0
+    assert out.read_text(encoding="utf-8") == "→ Go : https://x.com\n"
+
+
+def test_md2txt_no_bold_link_button(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("**[Go](https://x.com)**", encoding="utf-8")
+
+    result = CliRunner().invoke(cli, ["md2txt", str(md), "--no-bold-link-button"])
+
+    assert result.exit_code == 0
+    assert result.output == "Go <https://x.com>\n"
+
+
+def test_md2txt_missing_input_fails():
+    result = CliRunner().invoke(cli, ["md2txt", "/nonexistent/input.md"])
+
+    assert result.exit_code != 0

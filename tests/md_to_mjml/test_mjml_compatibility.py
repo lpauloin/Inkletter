@@ -101,3 +101,14 @@ def test_no_leak_with_url_factory(markdown):
             return f"https://short.test/?u={url}"
 
     assert_no_component_leak(parse_markdown_to_mjml(markdown, url_factory=Prefix()))
+
+
+@pytest.mark.parametrize("markdown", CORPUS)
+def test_text_output_is_clean(markdown):
+    # the plain-text sibling renders the whole corpus without exception,
+    # and never leaks MJML components or HTML tags
+    from inkletter.md_to_text import parse_markdown_to_text
+
+    text = parse_markdown_to_text(markdown)
+    assert "<mj-" not in text
+    assert "<strong>" not in text and "<a href" not in text

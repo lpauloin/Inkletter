@@ -72,6 +72,17 @@ inkletter md2mjml newsletter.md -o newsletter.mjml
 
 Without `-o`, the MJML is printed to stdout, ready to be piped anywhere.
 
+### Plain-text version
+
+```bash
+inkletter md2txt newsletter.md -o newsletter.txt
+```
+
+The plain-text alternative for `multipart/alternative` sending — better
+deliverability, and a readable email everywhere. Headings are underlined,
+links become `label <url>`, buttons become `→ label : url` call-to-action
+lines, and tables are ASCII-aligned.
+
 ## Layout
 
 Layout is driven by plain CommonMark structure — no custom syntax, the same

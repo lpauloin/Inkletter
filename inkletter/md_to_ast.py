@@ -1,3 +1,5 @@
+import html
+
 import mistune
 
 from inkletter.ast import *
@@ -47,7 +49,10 @@ class ASTRenderer(mistune.BaseRenderer):
     # --- Inline renderers ---
 
     def text(self, value):
-        return LiteralText(value)
+        # CommonMark decodes HTML entities everywhere but in code:
+        # mistune hands the raw text over, unescape it here (the codegen
+        # re-escapes for HTML output, so &amp; round-trips correctly)
+        return LiteralText(html.unescape(value))
 
     def emphasis(self, text):
         return Emphasis(text)
@@ -68,6 +73,7 @@ class ASTRenderer(mistune.BaseRenderer):
         # If the text contains an image, we create an ImageLink
         # We extract the image from the text to create a new ImageLink node
         # The rest of the text is ignored
+        title = html.unescape(title) if title else title
         if img := next((t for t in text if isinstance(t, Image)), None):
             return ImageLink(img, url, title)
         else:
@@ -112,6 +118,7 @@ class ASTRenderer(mistune.BaseRenderer):
         # LiteralText since the HTML alt attribute cannot hold markup.
         if alt:
             assert isinstance(alt, list), alt
+        title = html.unescape(title) if title else title
         return Image(url, alt, title)
 
     # --- List renderers ---
