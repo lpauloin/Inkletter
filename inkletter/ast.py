@@ -247,16 +247,17 @@ class BlankLine(TextTerminal):
 
 
 class List(Node):
-    def __init__(self, elements, ordered=False):
+    def __init__(self, elements, ordered=False, start=None):
         super().__init__()
         self.elements = elements
         self.ordered = ordered
+        self.start = start
 
     def get_children(self):
         return self.elements
 
     def __repr__(self):
-        return f"List(ordered={self.ordered})"
+        return f"List(ordered={self.ordered}, start={self.start})"
 
 
 class ListItem(BlockNode):

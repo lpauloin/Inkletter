@@ -257,6 +257,8 @@ class Codegen(NodeVisitor):
                 if node.annotations.get("is_task_list")
                 else {}
             )
+            if node.ordered and node.start not in (None, 1):
+                attrs["start"] = node.start
             with self.block_tag(tag, attrs=attrs):
                 self.generic_visit(node, scope)
 

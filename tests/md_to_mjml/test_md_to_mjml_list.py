@@ -215,3 +215,32 @@ def test_task_list_nested_2(ast):
     print("expected:")
     print(expected)
     assert actual == expected
+
+
+def test_ordered_list_keeps_its_start_number():
+    markdown_input = "3. trois\n4. quatre"
+    expected_content = """\
+<mj-text>
+  <ol start="3">
+    <li>
+      trois
+    </li>
+    <li>
+      quatre
+    </li>
+  </ol>
+</mj-text>"""
+
+    actual = parse_markdown_to_mjml(markdown_input)
+    expected = wrap_mjml_body(expected_content)
+    print("actual:")
+    print(actual)
+    print("expected:")
+    print(expected)
+    assert actual == expected
+
+
+def test_ordered_list_starting_at_one_has_no_start_attribute():
+    actual = parse_markdown_to_mjml("1. un\n2. deux")
+    print(actual)
+    assert "start=" not in actual

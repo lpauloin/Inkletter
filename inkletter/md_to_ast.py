@@ -117,7 +117,7 @@ class ASTRenderer(mistune.BaseRenderer):
     # --- List renderers ---
 
     def list(self, elements, ordered, **attrs):
-        return List(elements, ordered=ordered)
+        return List(elements, ordered=ordered, start=attrs.get("start"))
 
     def list_item(self, element, **attrs):
         return ListItem(element)
