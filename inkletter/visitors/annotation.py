@@ -19,11 +19,10 @@ class Annotation(NodeVisitor):
             node.annotations["requires_manual_table"] = True
 
     def mark_manual_image_if_needed(self, node, scope):
-        is_in_table = scope.get("is_in_table", False)
-        is_in_heading = scope.get("is_in_heading", False)
-        is_in_blockquote = scope.get("is_in_blockquote", False)
-        is_in_list = scope.get("is_in_list", False)
-        if is_in_table or is_in_heading or is_in_blockquote or is_in_list:
+        # Inside the raw HTML of an mj-text (in_text: headings, quotes,
+        # lists, inline formatting) or of an mj-table, an mj-image would
+        # leak as an unknown tag: render a plain <img> instead.
+        if scope.get("in_text", False) or scope.get("is_in_table", False):
             node.annotations["requires_manual_image"] = True
 
     def visit_List(self, node, scope):
@@ -63,7 +62,6 @@ class Annotation(NodeVisitor):
 
     def visit_BlockQuote(self, node, scope):
         scope.push(node)
-        scope.set("is_in_blockquote", True)
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
@@ -123,7 +121,6 @@ class Annotation(NodeVisitor):
 
     def visit_Heading(self, node, scope):
         scope.push(node)
-        scope.set("is_in_heading", True)
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)

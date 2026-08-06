@@ -262,22 +262,34 @@ class Codegen(NodeVisitor):
             pass
 
     def visit_ImageLink(self, node, scope):
-        attrs = {"src": node.img.url, "href": node.href}
-        if node.img.alt_text:
-            attrs["alt"] = node.img.alt_text.value
-        if node.img.title:
-            attrs["title"] = node.img.title
-
         if node.img.annotations.get("requires_manual_image"):
-            tag = "img"
-            attrs["style"] = self.image_style()
+            # href is not a valid <img> attribute: wrap in an anchor
+            link_attrs = {"href": node.href}
+            if node.title:
+                link_attrs["title"] = node.title
+            with self.block_tag("a", attrs=link_attrs, inline=True):
+                img_attrs = {"src": node.img.url}
+                if node.img.alt_text:
+                    img_attrs["alt"] = node.img.alt_text.value
+                if node.img.title:
+                    img_attrs["title"] = node.img.title
+                img_attrs["style"] = self.image_style()
+
+                with self.block_tag(
+                    "img", attrs=img_attrs, self_closing=True, inline=True
+                ):
+                    pass
         else:
-            tag = "mj-image"
+            attrs = {"src": node.img.url, "href": node.href}
+            if node.img.alt_text:
+                attrs["alt"] = node.img.alt_text.value
+            if node.img.title:
+                attrs["title"] = node.img.title
             if node.annotations.get("in_image_row"):
                 attrs["padding"] = self.row_image_padding()
 
-        with self.block_tag(tag, attrs=attrs, self_closing=True, inline=True):
-            pass
+            with self.block_tag("mj-image", attrs=attrs, self_closing=True, inline=True):
+                pass
 
     def visit_List(self, node, scope):
         with self.ensure_open_text(node):
