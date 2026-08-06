@@ -78,7 +78,7 @@
 <body>
   <div class="left-panel">
     <div class="top-left">
-      <pre><code class="language-markdown">{{ MD_CONTENT }}</code></pre>
+      <pre><code class="language-markdown">{{ MD_CONTENT |e }}</code></pre>
     </div>
     <div class="bottom-left">
       <pre><code class="language-html">{{ MJML_CONTENT |e }}</code></pre>
@@ -103,7 +103,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
   <script>
-    hljs.highlightAll();
+    if (window.hljs) hljs.highlightAll();
 
     const htmlContent = {{ HTML_CONTENT | tojson | safe }};
     const iframe = document.getElementById("preview-frame");
