@@ -192,3 +192,47 @@ def test_theme_with_fonts_stays_hashable_and_round_trips():
         Theme(text=Text(font_family=SERIF_STACK), fonts={"Lora": LORA})
     )
     assert Theme.from_dict(theme.to_dict()) == theme
+
+
+def test_font_url_with_query_parameters():
+    # the shape a real Google Fonts URL takes
+    swap = "https://fonts.googleapis.com/css2?family=Lora&display=swap"
+    theme = Theme(text=Text(font_family=SERIF_STACK), fonts={"Lora": swap})
+    assert theme.fonts == (("Lora", swap),)
+
+
+def test_two_word_font_name_matches_a_quoted_stack():
+    url = "https://fonts.example/pt.css"
+    for stack in ['"PT Serif", Georgia', "'PT Serif', Georgia", "PT Serif, Georgia"]:
+        theme = Theme(text=Text(font_family=stack), fonts={"PT Serif": url})
+        assert theme.fonts == (("PT Serif", url),)
+
+
+def test_font_declared_twice_is_refused():
+    with pytest.raises(ThemeError, match="declared twice"):
+        Theme(
+            text=Text(font_family=SERIF_STACK), fonts=(("Lora", LORA), ("lora", LORA))
+        )
+
+
+def test_fonts_from_toml(tmp_path):
+    path = tmp_path / "theme.toml"
+    path.write_text(
+        f'[text]\nfont_family = "{SERIF_STACK}"\n\n[fonts]\nLora = "{LORA}"\n',
+        encoding="utf-8",
+    )
+    assert Theme.from_toml(path).fonts == (("Lora", LORA),)
+
+
+def test_empty_fonts_section():
+    assert Theme.from_dict({"fonts": {}}).fonts == ()
+
+
+def test_fonts_must_be_pairs():
+    with pytest.raises(ThemeError, match="map a font name to a URL"):
+        Theme(text=Text(font_family=SERIF_STACK), fonts=(("Lora",),))
+
+
+def test_presets_declare_no_web_font():
+    # the rendering must not depend on a CDN by default
+    assert all(theme.fonts == () for theme in THEMES.values())

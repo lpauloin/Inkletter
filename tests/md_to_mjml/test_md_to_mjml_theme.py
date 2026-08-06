@@ -150,3 +150,24 @@ def test_declared_font_reaches_the_final_html():
 def test_an_email_without_fonts_makes_no_external_request():
     html = parse_markdown_to_html("# Title\n\nSome text.")
     assert "fonts.googleapis" not in html
+
+
+def test_font_url_ampersand_is_escaped_in_the_attribute():
+    swap = "https://fonts.googleapis.com/css2?family=Lora&display=swap"
+    actual = parse_markdown_to_mjml("Hello", theme=font_theme(fonts={"Lora": swap}))
+    print(actual)
+    assert (
+        'href="https://fonts.googleapis.com/css2?family=Lora&amp;display=swap"'
+        in actual
+    )
+
+
+def test_web_font_and_django_tags_together():
+    html = parse_markdown_to_html(
+        "# {{ title }}\n\ntext",
+        theme=font_theme(fonts={"Lora": LORA}),
+        django_tags=True,
+    )
+    assert "{{ title }}" in html
+    assert "family=Lora" in html
+    assert "inktag" not in html

@@ -250,6 +250,7 @@ def _validate_fonts(fonts, text):
         fonts = tuple(fonts)
 
     used = _font_stack(text.font_family)
+    seen = set()
     for pair in fonts:
         if not isinstance(pair, tuple) or len(pair) != 2:
             raise ThemeError("[fonts] must map a font name to a URL")
@@ -263,7 +264,11 @@ def _validate_fonts(fonts, text):
                 f"font '{name}' in [fonts] must be an http:// or https:// URL; "
                 "an email loads its fonts over the network"
             )
-        if name.strip().lower() not in used:
+        key = name.strip().lower()
+        if key in seen:
+            raise ThemeError(f"font '{name}' is declared twice in [fonts]")
+        seen.add(key)
+        if key not in used:
             raise ThemeError(
                 f"font '{name}' is declared in [fonts] but missing from "
                 "text.font_family; MJML only loads a font used in a component "
