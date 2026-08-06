@@ -157,6 +157,11 @@ class Codegen(NodeVisitor):
 
     def emit_head(self, head):
         with self.block_tag("mj-head"):
+            for name, href in head["fonts"]:
+                with self.block_tag(
+                    "mj-font", attrs={"name": name, "href": href}, self_closing=True
+                ):
+                    pass
             with self.block_tag("mj-attributes"):
                 for tag, attrs in head["attributes"].items():
                     with self.block_tag(tag, attrs=attrs, self_closing=True):

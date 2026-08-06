@@ -55,6 +55,7 @@ class Annotation(NodeVisitor):
                 "mj-image": image_attrs,
             },
             "css": theme.to_css(),
+            "fonts": theme.fonts,
         }
         node.annotations["body_attrs"] = {
             "width": theme.layout.width,

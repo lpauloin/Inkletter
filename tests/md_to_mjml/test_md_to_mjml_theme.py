@@ -1,6 +1,6 @@
 from inkletter.md_to_html import parse_markdown_to_html
 from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_body
-from inkletter.theme import Layout, Links, Theme
+from inkletter.theme import Layout, Links, Text, Theme
 
 
 def test_no_theme_means_the_default_theme():
@@ -99,3 +99,54 @@ def test_table_typography_follows_the_theme():
     print(actual)
     # mj-table must not keep MJML's black/Ubuntu defaults
     assert '<mj-table color="#e2e8f0" font-family="Georgia, serif"' in actual
+
+
+# --- Web fonts ---
+
+LORA = "https://fonts.googleapis.com/css2?family=Lora"
+
+
+def font_theme(**kwargs):
+    return Theme(text=Text(font_family="Lora, Georgia, serif"), **kwargs)
+
+
+def test_declared_font_is_emitted_in_the_head():
+    actual = parse_markdown_to_mjml("Hello", theme=font_theme(fonts={"Lora": LORA}))
+    print(actual)
+    assert f'<mj-font name="Lora" href="{LORA}"/>' in actual
+
+
+def test_fonts_are_emitted_in_their_declared_order():
+    inter = "https://fonts.example/inter.css"
+    theme = Theme(
+        text=Text(font_family="Lora, Inter, serif"),
+        fonts={"Lora": LORA, "Inter": inter},
+    )
+    actual = parse_markdown_to_mjml("Hello", theme=theme)
+    print(actual)
+    assert actual.index('name="Lora"') < actual.index('name="Inter"')
+
+
+def test_no_fonts_leaves_the_head_untouched():
+    # the feature costs nothing to whoever does not use it
+    assert parse_markdown_to_mjml(
+        "Hello", theme=font_theme()
+    ) == parse_markdown_to_mjml(
+        "Hello", theme=Theme(text=Text(font_family="Lora, Georgia, serif"))
+    )
+    assert "<mj-font" not in parse_markdown_to_mjml("Hello")
+
+
+def test_declared_font_reaches_the_final_html():
+    # the end-to-end proof of the mj-font contract: the compiler only
+    # emits the font because text.font_family uses it
+    html = parse_markdown_to_html(
+        "# Title\n\nSome text.", theme=font_theme(fonts={"Lora": LORA})
+    )
+    assert "family=Lora" in html
+    assert "[if !mso]" in html[: html.index("family=Lora")]  # MJML guards it
+
+
+def test_an_email_without_fonts_makes_no_external_request():
+    html = parse_markdown_to_html("# Title\n\nSome text.")
+    assert "fonts.googleapis" not in html

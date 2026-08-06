@@ -147,3 +147,15 @@ def test_tagged_corpus_compiles_to_html(markdown):
     assert "<mj-" not in html
     assert "inktag" not in html
     assert "{% if show %}" in html and "{{ user.name }}" in html
+
+
+@pytest.mark.parametrize("markdown", CORPUS)
+def test_no_leak_with_a_web_font(markdown):
+    # a theme loading a web font must not disturb the components
+    from inkletter.theme import Text, Theme
+
+    theme = Theme(
+        text=Text(font_family="Lora, Georgia, serif"),
+        fonts={"Lora": "https://fonts.example/lora.css"},
+    )
+    assert_no_component_leak(parse_markdown_to_mjml(markdown, theme=theme))

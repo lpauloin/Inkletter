@@ -122,3 +122,73 @@ def test_table_section():
 def test_table_unknown_key():
     with pytest.raises(ThemeError, match=r"unknown key 'borders' in \[table\]"):
         Theme.from_dict({"table": {"borders": "#fff"}})
+
+
+# --- Web fonts ---
+
+LORA = "https://fonts.googleapis.com/css2?family=Lora"
+SERIF_STACK = "Lora, Georgia, serif"
+
+
+def test_fonts_default_to_none_declared():
+    assert Theme().fonts == ()
+
+
+def test_fonts_from_dict():
+    theme = Theme.from_dict(
+        {"text": {"font_family": SERIF_STACK}, "fonts": {"Lora": LORA}}
+    )
+    assert theme.fonts == (("Lora", LORA),)
+
+
+def test_several_fonts_keep_their_declared_order():
+    inter = "https://fonts.example/inter.css"
+    theme = Theme.from_dict(
+        {
+            "text": {"font_family": "Lora, Inter, serif"},
+            "fonts": {"Lora": LORA, "Inter": inter},
+        }
+    )
+    assert theme.fonts == (("Lora", LORA), ("Inter", inter))
+
+
+def test_font_name_matching_ignores_case_and_quotes():
+    theme = Theme(text=Text(font_family="'lora', Georgia"), fonts={"Lora": LORA})
+    assert theme.fonts == (("Lora", LORA),)
+
+
+def test_font_must_be_used_by_the_text_font_family():
+    # MJML only loads a font used in a component attribute, and
+    # text.font_family is the only theme setting that reaches one
+    with pytest.raises(ThemeError, match="missing from text.font_family"):
+        Theme(text=Text(font_family="Georgia, serif"), fonts={"Lora": LORA})
+
+
+def test_font_declared_for_headings_alone_is_refused():
+    with pytest.raises(ThemeError, match="rely on the fallback"):
+        Theme.from_dict(
+            {"headings": {"font_family": SERIF_STACK}, "fonts": {"Lora": LORA}}
+        )
+
+
+def test_font_url_must_be_http():
+    with pytest.raises(ThemeError, match="http:// or https://"):
+        Theme(text=Text(font_family=SERIF_STACK), fonts={"Lora": "/local/lora.css"})
+
+
+def test_font_url_must_be_a_string():
+    with pytest.raises(ThemeError, match="must be a URL string"):
+        Theme(text=Text(font_family=SERIF_STACK), fonts={"Lora": 3})
+
+
+def test_font_name_cannot_be_empty():
+    with pytest.raises(ThemeError, match="cannot be empty"):
+        Theme(text=Text(font_family=SERIF_STACK), fonts={"  ": LORA})
+
+
+def test_theme_with_fonts_stays_hashable_and_round_trips():
+    theme = Theme(text=Text(font_family=SERIF_STACK), fonts={"Lora": LORA})
+    assert hash(theme) == hash(
+        Theme(text=Text(font_family=SERIF_STACK), fonts={"Lora": LORA})
+    )
+    assert Theme.from_dict(theme.to_dict()) == theme

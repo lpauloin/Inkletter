@@ -200,6 +200,30 @@ underline = false
 
 Any unknown section or key fails loudly, with the list of valid ones.
 
+### Web fonts
+
+A `[fonts]` section loads a font your readers may not have. Declare the
+name and a stylesheet URL, then use it in `text.font_family`:
+
+```toml
+[fonts]
+Lora = "https://fonts.googleapis.com/css2?family=Lora"
+
+[text]
+font_family = "Lora, Georgia, serif"
+```
+
+**The fallback is the main rendering, not a safety net.** Web fonts load
+in Apple Mail, iOS Mail, Outlook for Mac and Thunderbird. Gmail, Outlook
+for Windows and most webmails ignore them and show the next font in the
+stack — so `Lora, Georgia, serif` has to look good *without* Lora.
+
+MJML only loads a font that a component actually uses, and
+`text.font_family` is the only theme setting it reads. A font declared
+for the headings alone would never load, so Inkletter refuses that
+theme rather than letting it fail in silence. Without a `[fonts]`
+section, an Inkletter email makes no external request at all.
+
 ### From Python
 
 Same defaults, same presets, plus optional named color palettes:

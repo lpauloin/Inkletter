@@ -113,6 +113,12 @@ class Theme:
     table: Table = field(default_factory=Table)
     images: Images = field(default_factory=Images)
     buttons: Buttons = field(default_factory=Buttons)
+    # web fonts to load, name -> stylesheet URL; a tuple of pairs rather
+    # than a dict so the theme stays hashable and truly immutable
+    fonts: tuple[tuple[str, str], ...] = field(default_factory=tuple)
+
+    def __post_init__(self):
+        object.__setattr__(self, "fonts", _validate_fonts(self.fonts, self.text))
 
     @classmethod
     def from_dict(cls, data):
@@ -126,6 +132,10 @@ class Theme:
                     f"unknown section '[{group_name}]'; "
                     f"valid sections: {', '.join(sorted(groups))}"
                 )
+            if group_name == "fonts":
+                # a free table of names, not a fixed set of keys
+                kwargs[group_name] = group_data
+                continue
             kwargs[group_name] = _build_group(
                 groups[group_name], group_name, group_data
             )
@@ -220,6 +230,47 @@ def _build_group(group_cls, group_name, group_data):
         elif not isinstance(value, str) and not (default is None and value is None):
             raise ThemeError(f"key '{key}' in [{group_name}] must be a str")
     return group_cls(**group_data)
+
+
+def _font_stack(font_family):
+    """The font names of a CSS stack, lowercased and unquoted."""
+    return {name.strip().strip("\"'").lower() for name in font_family.split(",")}
+
+
+def _validate_fonts(fonts, text):
+    """Normalise [fonts] to a tuple of pairs, and refuse what cannot load.
+
+    MJML only loads a font the template uses in a *component attribute*,
+    and text.font_family is the only theme setting that reaches one — so
+    a font declared for the headings alone would silently never load.
+    """
+    if isinstance(fonts, dict):
+        fonts = tuple(fonts.items())
+    else:
+        fonts = tuple(fonts)
+
+    used = _font_stack(text.font_family)
+    for pair in fonts:
+        if not isinstance(pair, tuple) or len(pair) != 2:
+            raise ThemeError("[fonts] must map a font name to a URL")
+        name, href = pair
+        if not isinstance(name, str) or not name.strip():
+            raise ThemeError("a font name in [fonts] cannot be empty")
+        if not isinstance(href, str):
+            raise ThemeError(f"font '{name}' in [fonts] must be a URL string")
+        if not href.startswith(("http://", "https://")):
+            raise ThemeError(
+                f"font '{name}' in [fonts] must be an http:// or https:// URL; "
+                "an email loads its fonts over the network"
+            )
+        if name.strip().lower() not in used:
+            raise ThemeError(
+                f"font '{name}' is declared in [fonts] but missing from "
+                "text.font_family; MJML only loads a font used in a component "
+                "attribute, so add it there to load it, or drop the "
+                "declaration and rely on the fallback"
+            )
+    return fonts
 
 
 def split_media_ratio(ratio):
