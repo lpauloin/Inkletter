@@ -184,16 +184,44 @@ def test_table_with_formated_cells(ast):
     assert actual == expected
 
 
-def test_malformed_table_still_works():
+def test_table_without_trailing_pipes_parses():
+    # GFM allows omitting trailing pipes; mistune >= 3.3 parses this as
+    # a table (with its upstream quirk of a leading empty cell)
     markdown_input = """\
 | Name | Age
 |------|----
 | Bob  | 25"""
     expected_content = """\
+<mj-table>
+  <tr>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;"></th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Name</th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Age</th>
+  </tr>
+  <tr>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;"></td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Bob</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">25</td>
+  </tr>
+</mj-table>"""
+    actual = parse_markdown_to_mjml(markdown_input)
+    expected = wrap_mjml_body(expected_content)
+    print("actual:")
+    print(actual)
+    print("expected:")
+    print(expected)
+    assert actual == expected
+
+
+def test_malformed_table_still_works():
+    # no separator row: not a table, degrades to plain text
+    markdown_input = """\
+| Name | Age |
+| Bob  | 25 |"""
+    expected_content = """\
 <mj-text>
-  | Name | Age<br/>
-  |------|----<br/>
-  | Bob  | 25
+  | Name | Age |<br/>
+  | Bob  | 25 |
 </mj-text>"""
     actual = parse_markdown_to_mjml(markdown_input)
     expected = wrap_mjml_body(expected_content)
