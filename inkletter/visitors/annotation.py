@@ -100,12 +100,10 @@ class Annotation(NodeVisitor):
         scope.set("is_in_list", True)
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
-        node.annotations["is_task_list"] = scope.get("has_task_item", False)
         scope.pop(node)
 
     def visit_TaskListItem(self, node, scope):
         assert isinstance(scope.stack[-1]["node"], List)
-        scope.set("has_task_item", True)
         scope.push(node)
         scope.set("is_in_list_item", True)
         self.generic_visit(node, scope)
@@ -113,7 +111,6 @@ class Annotation(NodeVisitor):
 
     def visit_ListItem(self, node, scope):
         assert isinstance(scope.stack[-1]["node"], List)
-        scope.set("has_task_item", False)
         scope.push(node)
         scope.set("is_in_list_item", True)
         self.generic_visit(node, scope)

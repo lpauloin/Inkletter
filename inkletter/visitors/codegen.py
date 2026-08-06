@@ -252,11 +252,7 @@ class Codegen(NodeVisitor):
     def visit_List(self, node, scope):
         with self.ensure_open_text(node):
             tag = "ol" if node.ordered else "ul"
-            attrs = (
-                {"style": "list-style-type: none;"}
-                if node.annotations.get("is_task_list")
-                else {}
-            )
+            attrs = {}
             if node.ordered and node.start not in (None, 1):
                 attrs["start"] = node.start
             with self.block_tag(tag, attrs=attrs):
@@ -268,7 +264,9 @@ class Codegen(NodeVisitor):
 
     def visit_TaskListItem(self, node, scope):
         checkbox = "☑" if node.checked else "☐"
-        with self.block_tag("li"):
+        # the checkbox replaces the bullet for this item only, so mixed
+        # task/normal lists keep their bullets on normal items
+        with self.block_tag("li", attrs={"style": "list-style-type: none;"}):
             block = node.children[0]
             assert isinstance(block, BlockText)
             self.current.add_text(checkbox + " ")

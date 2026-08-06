@@ -107,16 +107,15 @@ def test_task_list(ast):
 
     expected_content = """\
 <mj-text>
-  <ul style="list-style-type: none;">
-    <li>
+  <ul>
+    <li style="list-style-type: none;">
       ☑ Checked
     </li>
-    <li>
+    <li style="list-style-type: none;">
       ☐ Not checked
     </li>
   </ul>
-</mj-text>
-"""
+</mj-text>"""
 
     actual = parse_markdown_to_mjml(markdown_input)
     expected = wrap_mjml_body(expected_content)
@@ -140,8 +139,8 @@ def test_task_list_nested_1(ast):
 
     expected_content = """\
 <mj-text>
-  <ul style="list-style-type: none;">
-    <li>
+  <ul>
+    <li style="list-style-type: none;">
       ☑ Checked
       <ol>
         <li>
@@ -152,7 +151,7 @@ def test_task_list_nested_1(ast):
         </li>
       </ol>
     </li>
-    <li>
+    <li style="list-style-type: none;">
       ☐ Not checked
       <ol>
         <li>
@@ -164,8 +163,7 @@ def test_task_list_nested_1(ast):
       </ol>
     </li>
   </ul>
-</mj-text>
-"""
+</mj-text>"""
 
     actual = parse_markdown_to_mjml(markdown_input)
     expected = wrap_mjml_body(expected_content)
@@ -194,18 +192,17 @@ def test_task_list_nested_2(ast):
     </li>
     <li>
       List Item 2
-      <ul style="list-style-type: none;">
-        <li>
+      <ul>
+        <li style="list-style-type: none;">
           ☑ Checked
         </li>
-        <li>
+        <li style="list-style-type: none;">
           ☐ Not checked
         </li>
       </ul>
     </li>
   </ol>
-</mj-text>
-"""
+</mj-text>"""
 
     actual = parse_markdown_to_mjml(markdown_input)
     expected = wrap_mjml_body(expected_content)
@@ -244,3 +241,29 @@ def test_ordered_list_starting_at_one_has_no_start_attribute():
     actual = parse_markdown_to_mjml("1. un\n2. deux")
     print(actual)
     assert "start=" not in actual
+
+
+def test_mixed_task_and_normal_list_keeps_bullets():
+    markdown_input = "- [x] done\n- normal\n- [ ] todo"
+    expected_content = """\
+<mj-text>
+  <ul>
+    <li style="list-style-type: none;">
+      ☑ done
+    </li>
+    <li>
+      normal
+    </li>
+    <li style="list-style-type: none;">
+      ☐ todo
+    </li>
+  </ul>
+</mj-text>"""
+
+    actual = parse_markdown_to_mjml(markdown_input)
+    expected = wrap_mjml_body(expected_content)
+    print("actual:")
+    print(actual)
+    print("expected:")
+    print(expected)
+    assert actual == expected

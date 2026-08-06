@@ -162,17 +162,17 @@ Let's make this launch unforgettable!
           <h3>Pre-Launch</h3>
         </mj-text>
         <mj-text>
-          <ul style="list-style-type: none;">
-            <li>
+          <ul>
+            <li style="list-style-type: none;">
               ☑ Define target audience
             </li>
-            <li>
+            <li style="list-style-type: none;">
               ☑ Finalize product specs
             </li>
-            <li>
+            <li style="list-style-type: none;">
               ☐ Build landing page
             </li>
-            <li>
+            <li style="list-style-type: none;">
               ☐ Send teaser emails
             </li>
           </ul>
@@ -181,17 +181,17 @@ Let's make this launch unforgettable!
           <h3>Launch Week</h3>
         </mj-text>
         <mj-text>
-          <ul style="list-style-type: none;">
-            <li>
+          <ul>
+            <li style="list-style-type: none;">
               ☐ Go live on website
             </li>
-            <li>
+            <li style="list-style-type: none;">
               ☐ Announce on <strong>social media</strong>
             </li>
-            <li>
+            <li style="list-style-type: none;">
               ☐ Release press release
             </li>
-            <li>
+            <li style="list-style-type: none;">
               ☐ Partner with influencers
             </li>
           </ul>
@@ -200,14 +200,14 @@ Let's make this launch unforgettable!
           <h3>Post-Launch</h3>
         </mj-text>
         <mj-text>
-          <ul style="list-style-type: none;">
-            <li>
+          <ul>
+            <li style="list-style-type: none;">
               ☐ Gather reviews
             </li>
-            <li>
+            <li style="list-style-type: none;">
               ☐ Run retargeting ads
             </li>
-            <li>
+            <li style="list-style-type: none;">
               ☐ Send thank-you emails
             </li>
           </ul>

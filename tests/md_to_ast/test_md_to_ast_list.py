@@ -13,7 +13,6 @@ def test_unordered_list(ast):
     lst = doc.children[0]
     assert isinstance(lst, List)
     assert lst.ordered is False
-    assert not lst.annotations.get("is_task_list")
     assert len(lst.elements) == 2
 
     item1 = lst.elements[0]
@@ -42,7 +41,6 @@ def test_ordered_list(ast):
     lst = doc.children[0]
     assert isinstance(lst, List)
     assert lst.ordered is True
-    assert not lst.annotations.get("is_task_list")
     assert len(lst.elements) == 2
 
     item1 = lst.elements[0]
@@ -76,7 +74,6 @@ def test_task_list(ast):
     lst = doc.children[0]
     assert isinstance(lst, List)
     assert lst.ordered is False
-    assert lst.annotations.get("is_task_list")
 
     # Should have 2 TaskListItems
     assert len(lst.elements) == 2
@@ -124,7 +121,6 @@ def test_task_list_nested_1(ast):
     assert isinstance(doc, Document)
     main_list = doc.children[0]
     assert isinstance(main_list, List)
-    assert main_list.annotations.get("is_task_list")
     assert len(main_list.elements) == 2
 
     # --- First TaskListItem ---
@@ -139,7 +135,6 @@ def test_task_list_nested_1(ast):
 
     nested_list_1 = first_task.children[1]
     assert isinstance(nested_list_1, List)
-    assert not nested_list_1.annotations.get("is_task_list")
     assert len(nested_list_1.elements) == 2
 
     expected_sub_items_1 = [
@@ -166,7 +161,6 @@ def test_task_list_nested_1(ast):
 
     nested_list_2 = second_task.children[1]
     assert isinstance(nested_list_2, List)
-    assert not nested_list_2.annotations.get("is_task_list")
     assert len(nested_list_2.elements) == 2
 
     expected_sub_items_2 = [
@@ -223,7 +217,6 @@ def test_task_list_nested_2(ast):
     nested_list = item_2.children[1]
     assert isinstance(nested_list, List)
     assert nested_list.ordered is False
-    assert nested_list.annotations.get("is_task_list")
     assert len(nested_list.elements) == 2
 
     first_task = nested_list.elements[0]
