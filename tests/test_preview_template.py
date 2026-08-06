@@ -20,7 +20,7 @@ def test_markdown_content_is_escaped():
 
 
 def test_mjml_content_is_escaped():
-    rendered = render_preview("x", mjml='<mj-text>a & b</mj-text>')
+    rendered = render_preview("x", mjml="<mj-text>a & b</mj-text>")
 
     assert "&lt;mj-text&gt;a &amp; b&lt;/mj-text&gt;" in rendered
 

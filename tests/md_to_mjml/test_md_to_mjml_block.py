@@ -247,3 +247,22 @@ def test_block_code_with_html():
     print("expected:")
     print(expected)
     assert actual == expected
+
+
+def test_soft_break_is_a_visible_line_break_by_design():
+    # deliberate divergence from CommonMark: a newline in the source is
+    # a <br/>, newsletter authors line-wrap on purpose
+    markdown_input = "ligne un\nligne deux"
+    expected_content = """\
+<mj-text>
+  ligne un<br/>
+  ligne deux
+</mj-text>"""
+
+    actual = parse_markdown_to_mjml(markdown_input)
+    expected = wrap_mjml_body(expected_content)
+    print("actual:")
+    print(actual)
+    print("expected:")
+    print(expected)
+    assert actual == expected

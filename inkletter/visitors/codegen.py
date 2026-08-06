@@ -193,6 +193,9 @@ class Codegen(NodeVisitor):
         self.current.add_newline()
 
     def visit_SoftBreak(self, node, scope):
+        # Deliberate divergence from CommonMark (which renders a soft
+        # break as a space): newsletter authors line-wrap on purpose,
+        # a single newline in the source is a visible line break.
         self.current.add_text("<br/>")
         self.current.add_newline()
 
