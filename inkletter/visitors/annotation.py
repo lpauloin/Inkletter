@@ -1,14 +1,67 @@
 from inkletter.ast import *
-from inkletter.theme import split_media_ratio
+from inkletter.theme import DEFAULT_THEME, split_media_ratio
 from inkletter.visitors.generic import NodeVisitor
 
 
 class Annotation(NodeVisitor):
     """Decorates the AST with everything the codegen needs to render each
-    node: the codegen visits and executes, all decisions are made here."""
+    node — all styling lives here, the codegen only executes.
 
-    def __init__(self, theme=None):
+    There is always a theme.
+    """
+
+    def __init__(self, theme):
         self.theme = theme
+
+    def visit_Document(self, node, scope):
+        scope.push(node)
+        theme = self.theme
+        image_attrs = {
+            "fluid-on-mobile": "true",
+            "align": theme.images.align,
+        }
+        if theme.images.border_radius not in ("0", "0px"):
+            image_attrs["border-radius"] = theme.images.border_radius
+        node.annotations["head"] = {
+            # mj-table and mj-button have their own MJML defaults
+            # (black Ubuntu 13px) and must follow the theme instead
+            "attributes": {
+                "mj-section": {
+                    "padding": theme.layout.section_padding,
+                    "background-color": theme.layout.content_background_color,
+                },
+                "mj-text": {
+                    "font-family": theme.text.font_family,
+                    "font-size": theme.text.font_size,
+                    "line-height": theme.text.line_height,
+                    "color": theme.text.color,
+                },
+                "mj-table": {
+                    "color": theme.text.color,
+                    "font-family": theme.text.font_family,
+                    "font-size": theme.text.font_size,
+                    "line-height": theme.text.line_height,
+                },
+                "mj-button": {
+                    "background-color": theme.button_background(),
+                    "color": theme.buttons.color,
+                    "border-radius": theme.buttons.border_radius,
+                    "font-weight": theme.buttons.font_weight,
+                    "inner-padding": theme.buttons.padding,
+                    "align": theme.buttons.align,
+                    "font-family": theme.text.font_family,
+                    "font-size": theme.text.font_size,
+                },
+                "mj-image": image_attrs,
+            },
+            "css": theme.to_css(),
+        }
+        node.annotations["body_attrs"] = {
+            "width": theme.layout.width,
+            "background-color": theme.layout.background_color,
+        }
+        self.generic_visit(node, scope)
+        scope.pop(node)
 
     def mark_text_if_needed(self, node, scope):
         if (
@@ -29,13 +82,18 @@ class Annotation(NodeVisitor):
         # Inside the raw HTML of an mj-text (in_text: headings, quotes,
         # lists, inline formatting), of an mj-table or of an mj-button
         # label, an mj-image would leak as an unknown tag: render a
-        # plain <img> instead.
+        # plain <img> instead, with its style ready to emit.
         if (
             scope.get("in_text", False)
             or scope.get("is_in_table", False)
             or scope.get("is_in_button", False)
         ):
             node.annotations["requires_manual_image"] = True
+            style = "max-width: 100%; height: auto;"
+            radius = self.theme.images.border_radius
+            if radius not in ("0", "0px"):
+                style += f" border-radius: {radius};"
+            node.annotations["image_style"] = style
 
     def visit_List(self, node, scope):
         scope.push(node)
@@ -94,12 +152,29 @@ class Annotation(NodeVisitor):
     def visit_TableHeaderCell(self, node, scope):
         scope.push(node)
         scope.set("is_in_table_cell", True)
+        table = self.theme.table
+        style = (
+            f"border-bottom: 2px solid {table.border_color};"
+            f" padding: {table.cell_padding};"
+        )
+        if table.header_color:
+            style += f" color: {table.header_color};"
+        if table.header_background_color:
+            style += f" background-color: {table.header_background_color};"
+        if not node.align:
+            style += " text-align: left;"
+        node.annotations["cell_style"] = style
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_TableCell(self, node, scope):
         scope.push(node)
         scope.set("is_in_table_cell", True)
+        table = self.theme.table
+        node.annotations["cell_style"] = (
+            f"border-bottom: 1px solid {table.border_color};"
+            f" padding: {table.cell_padding};"
+        )
         self.generic_visit(node, scope)
         scope.pop(node)
 
@@ -113,10 +188,11 @@ class Annotation(NodeVisitor):
 
     def visit_ImageRow(self, node, scope):
         scope.push(node)
-        # This node renders as its own multi-column section, and each of
-        # its images carries the row spacing to apply.
-        node.annotations["own_section"] = True
-        gap = self.theme.images.row_gap if self.theme is not None else "8px"
+        # A row defines its own column layout: it cannot live inside the
+        # single-column flow section, it emits its own mj-section. Each
+        # image carries the row spacing to apply.
+        node.annotations["defines_own_columns"] = True
+        gap = self.theme.images.row_gap
         for image in node.children:
             image.annotations["image_padding"] = f"10px {gap}"
         self.generic_visit(node, scope)
@@ -124,15 +200,16 @@ class Annotation(NodeVisitor):
 
     def visit_MediaObject(self, node, scope):
         scope.push(node)
-        node.annotations["own_section"] = True
+        # Same as ImageRow: its 30/70 columns need their own mj-section.
+        node.annotations["defines_own_columns"] = True
         # Full render instructions: layout mode, column widths, and the
         # desktop-only rtl flip for side=right (image stays first in the
         # DOM so it stacks on top on mobile).
-        if self.theme is not None and self.theme.images.text_layout == "stacked":
+        if self.theme.images.text_layout == "stacked":
             node.annotations["media_layout"] = "stacked"
         else:
             node.annotations["media_layout"] = "columns"
-            ratio = self.theme.images.media_ratio if self.theme else "30%"
+            ratio = self.theme.images.media_ratio
             node.annotations["media_widths"] = split_media_ratio(ratio)
             node.annotations["media_direction"] = (
                 "rtl" if node.side == "right" else None
@@ -213,15 +290,10 @@ class Annotation(NodeVisitor):
 
     def visit_ThematicBreak(self, node, scope):
         scope.push(node)
-        # Themed dividers are styled by the head mj-attributes; without a
-        # theme the legacy hardcoded style applies.
-        if self.theme is None:
-            node.annotations["divider_attrs"] = {
-                "border-color": "#cccccc",
-                "border-width": "1px",
-            }
-        else:
-            node.annotations["divider_attrs"] = {}
+        node.annotations["divider_attrs"] = {
+            "border-color": self.theme.divider.color,
+            "border-width": self.theme.divider.width,
+        }
         scope.pop(node)
 
     def visit_LineBreak(self, node, scope):

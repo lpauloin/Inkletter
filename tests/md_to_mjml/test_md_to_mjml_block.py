@@ -119,7 +119,7 @@ def test_blockquote():
 
 def test_thematic_break():
     markdown_input = """---"""
-    expected_content = """<mj-divider border-color="#cccccc" border-width="1px"/>"""
+    expected_content = """<mj-divider border-color="#e5e7eb" border-width="1px"/>"""
     actual = parse_markdown_to_mjml(markdown_input)
     expected = wrap_mjml_body(expected_content)
     print("actual:")

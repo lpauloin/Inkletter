@@ -86,7 +86,7 @@ Let's make this launch unforgettable!
           Welcome to our official campaign brief for the <strong>MegaWidget 5000</strong>.<br/>
           Let's make this launch unforgettable!
         </mj-text>
-        <mj-divider border-color="#cccccc" border-width="1px"/>
+        <mj-divider border-color="#e5e7eb" border-width="1px"/>
         <mj-text>
           <h2>🚀 Campaign Goals</h2>
         </mj-text>
@@ -103,38 +103,38 @@ Let's make this launch unforgettable!
             </li>
           </ul>
         </mj-text>
-        <mj-divider border-color="#cccccc" border-width="1px"/>
+        <mj-divider border-color="#e5e7eb" border-width="1px"/>
         <mj-text>
           <h2>📅 Timeline</h2>
         </mj-text>
         <mj-table>
           <tr>
-            <th>Phase</th>
-            <th>Start Date</th>
-            <th>End Date</th>
+            <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Phase</th>
+            <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Start Date</th>
+            <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">End Date</th>
           </tr>
           <tr>
-            <td>Planning</td>
-            <td>2025-04-01</td>
-            <td>2025-04-15</td>
+            <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Planning</td>
+            <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">2025-04-01</td>
+            <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">2025-04-15</td>
           </tr>
           <tr>
-            <td>Teaser Phase</td>
-            <td>2025-04-16</td>
-            <td>2025-04-30</td>
+            <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Teaser Phase</td>
+            <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">2025-04-16</td>
+            <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">2025-04-30</td>
           </tr>
           <tr>
-            <td>Launch Phase</td>
-            <td>2025-05-01</td>
-            <td>2025-05-31</td>
+            <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Launch Phase</td>
+            <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">2025-05-01</td>
+            <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">2025-05-31</td>
           </tr>
           <tr>
-            <td>Follow-up</td>
-            <td>2025-06-01</td>
-            <td>2025-06-15</td>
+            <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Follow-up</td>
+            <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">2025-06-01</td>
+            <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">2025-06-15</td>
           </tr>
         </mj-table>
-        <mj-divider border-color="#cccccc" border-width="1px"/>
+        <mj-divider border-color="#e5e7eb" border-width="1px"/>
         <mj-text>
           <h2>📌 Key Actions</h2>
         </mj-text>
@@ -192,7 +192,7 @@ Let's make this launch unforgettable!
             </li>
           </ul>
         </mj-text>
-        <mj-divider border-color="#cccccc" border-width="1px"/>
+        <mj-divider border-color="#e5e7eb" border-width="1px"/>
         <mj-text>
           <h2>💬 Messaging Examples</h2>
         </mj-text>
@@ -201,7 +201,7 @@ Let's make this launch unforgettable!
             "<strong>Revolutionize your workflow</strong> — Meet the MegaWidget 5000."<em>"Faster, smarter, better. The tool you didn't know you needed."</em>
           </blockquote>
         </mj-text>
-        <mj-divider border-color="#cccccc" border-width="1px"/>
+        <mj-divider border-color="#e5e7eb" border-width="1px"/>
         <mj-text>
           <h2>📧 Email Snippet</h2>
         </mj-text>

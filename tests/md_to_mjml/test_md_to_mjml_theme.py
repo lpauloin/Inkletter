@@ -1,5 +1,5 @@
 from inkletter.md_to_html import parse_markdown_to_html
-from inkletter.md_to_mjml import parse_markdown_to_mjml
+from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_body
 from inkletter.theme import Layout, Links, Theme
 
 
@@ -37,15 +37,31 @@ def test_dark_preset():
     assert 'color="#e2e8f0"' in actual
 
 
-def test_themed_divider_relies_on_attributes():
-    actual = parse_markdown_to_mjml("---", theme=Theme())
-    assert "<mj-divider/>" in actual
-    assert '<mj-divider border-color="#e5e7eb" border-width="1px"/>' in actual  # head
+def test_divider_carries_theme_attributes_inline():
+    from inkletter.theme import Divider
+
+    theme = Theme(divider=Divider(color="#123456", width="2px"))
+    actual = parse_markdown_to_mjml("---", theme=theme)
+    print(actual)
+    body = actual[actual.find("<mj-body") :]
+    assert body == """\
+<mj-body width="600px" background-color="#f9fafb">
+    <mj-section>
+      <mj-column>
+        <mj-divider border-color="#123456" border-width="2px"/>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>"""
 
 
-def test_unthemed_divider_keeps_legacy_attributes():
+def test_unthemed_divider_uses_the_default_theme():
     actual = parse_markdown_to_mjml("---")
-    assert '<mj-divider border-color="#cccccc" border-width="1px"/>' in actual
+    print(actual)
+    expected = wrap_mjml_body(
+        '<mj-divider border-color="#e5e7eb" border-width="1px"/>'
+    )
+    assert actual == expected
 
 
 def test_theme_css_is_inlined_in_final_html():

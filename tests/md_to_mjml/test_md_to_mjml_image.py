@@ -113,12 +113,12 @@ def test_image_in_table():
     expected_content = """\
 <mj-table>
   <tr>
-    <th>Produit</th>
-    <th>Image</th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Produit</th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Image</th>
   </tr>
   <tr>
-    <td>Stylo</td>
-    <td><img src="https://picsum.photos/600/300" alt="Stylo" style="max-width: 100%; height: auto;"/>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Stylo</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;"><img src="https://picsum.photos/600/300" alt="Stylo" style="max-width: 100%; height: auto;"/>
     </td>
   </tr>
 </mj-table>"""

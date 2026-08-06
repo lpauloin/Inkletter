@@ -12,12 +12,12 @@ def test_simple_table():
     expected_content = """\
 <mj-table>
   <tr>
-    <th>Col1</th>
-    <th>Col2</th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Col1</th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Col2</th>
   </tr>
   <tr>
-    <td>Val1</td>
-    <td>Val2</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Val1</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Val2</td>
   </tr>
 </mj-table>"""
     actual = parse_markdown_to_mjml(markdown_input)
@@ -42,20 +42,20 @@ def test_table_multiple_rows():
     expected_content = """\
 <mj-table>
   <tr>
-    <th>Name</th>
-    <th>Age</th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Name</th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Age</th>
   </tr>
   <tr>
-    <td>Alice</td>
-    <td>30</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Alice</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">30</td>
   </tr>
   <tr>
-    <td>Bob</td>
-    <td>25</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Bob</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">25</td>
   </tr>
   <tr>
-    <td>Carl</td>
-    <td>40</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Carl</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">40</td>
   </tr>
 </mj-table>"""
     actual = parse_markdown_to_mjml(markdown_input)
@@ -79,16 +79,16 @@ def test_table_with_empty_cells():
     expected_content = """\
 <mj-table>
   <tr>
-    <th>Product</th>
-    <th>Price</th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Product</th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Price</th>
   </tr>
   <tr>
-    <td>Apple</td>
-    <td></td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Apple</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;"></td>
   </tr>
   <tr>
-    <td>Banana</td>
-    <td>$1</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Banana</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">$1</td>
   </tr>
 </mj-table>"""
     actual = parse_markdown_to_mjml(markdown_input)
@@ -111,14 +111,14 @@ def test_table_with_alignment():
     expected_content = """\
 <mj-table>
   <tr>
-    <th align="left">Left</th>
-    <th align="center">Center</th>
-    <th align="right">Right</th>
+    <th align="left" style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px;">Left</th>
+    <th align="center" style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px;">Center</th>
+    <th align="right" style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px;">Right</th>
   </tr>
   <tr>
-    <td align="left">A</td>
-    <td align="center">B</td>
-    <td align="right">C</td>
+    <td align="left" style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">A</td>
+    <td align="center" style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">B</td>
+    <td align="right" style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">C</td>
   </tr>
 </mj-table>"""
     actual = parse_markdown_to_mjml(markdown_input)
@@ -141,12 +141,12 @@ def test_table_without_header():
     expected_content = """\
 <mj-table>
   <tr>
-    <th>Val1</th>
-    <th>Val2</th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Val1</th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Val2</th>
   </tr>
   <tr>
-    <td>Val3</td>
-    <td>Val4</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Val3</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Val4</td>
   </tr>
 </mj-table>"""
     actual = parse_markdown_to_mjml(markdown_input)
@@ -168,12 +168,12 @@ def test_table_with_formated_cells(ast):
     expected_content = """\
 <mj-table>
   <tr>
-    <th><del>Header <strong>1</strong></del></th>
-    <th><del>Header <strong>2</strong></del></th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;"><del>Header <strong>1</strong></del></th>
+    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;"><del>Header <strong>2</strong></del></th>
   </tr>
   <tr>
-    <td><del><strong>strong</strong> and strike</del> cell</td>
-    <td><strong>Cell 2</strong></td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;"><del><strong>strong</strong> and strike</del> cell</td>
+    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;"><strong>Cell 2</strong></td>
   </tr>
 </mj-table>"""
     actual = parse_markdown_to_mjml(markdown_input)
@@ -218,12 +218,12 @@ def test_table_in_list():
       Item 1
       <table>
         <tr>
-          <th>Col1</th>
-          <th>Col2</th>
+          <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Col1</th>
+          <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Col2</th>
         </tr>
         <tr>
-          <td>Val1</td>
-          <td>Val2</td>
+          <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Val1</td>
+          <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Val2</td>
         </tr>
       </table>
     </li>

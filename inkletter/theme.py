@@ -234,6 +234,10 @@ def split_media_ratio(ratio):
     return f"{value:g}%", f"{100 - value:g}%"
 
 
+# The theme applied whenever none is provided
+DEFAULT_THEME = Theme()
+
+
 # --- Presets ---
 
 # Standard, email-safe font stacks used by the presets

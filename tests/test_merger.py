@@ -3,6 +3,7 @@ import mistune
 from inkletter.ast import *
 from inkletter.md_to_ast import ASTRenderer
 from inkletter.scope import ScopeStack
+from inkletter.theme import DEFAULT_THEME
 from inkletter.visitors.annotation import Annotation
 from inkletter.visitors.merger import BlockTextMerger
 from inkletter.visitors.tree import print_tree
@@ -19,7 +20,7 @@ def generate_ast(markdown_input):
         ],
     )
     ast = markdown(markdown_input)
-    Annotation().visit(ast, scope=ScopeStack())
+    Annotation(DEFAULT_THEME).visit(ast, scope=ScopeStack())
     print("AST:")
     print_tree(ast)
     return ast

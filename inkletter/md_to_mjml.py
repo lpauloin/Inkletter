@@ -12,7 +12,7 @@ def parse_markdown_to_mjml(
     )
     if print_ast:
         print_tree(ast)
-    codegen = Codegen(theme=theme)
+    codegen = Codegen()
     codegen.visit(ast, scope=None)
     code = codegen.get_code()
     return code

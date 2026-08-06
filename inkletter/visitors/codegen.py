@@ -12,12 +12,14 @@ from inkletter.visitors.generic import NodeVisitor
 
 
 class Codegen(NodeVisitor):
-    def __init__(self, theme=None):
+    """Emits MJML from the annotated AST. Every styling decision reaches
+    it as annotation-provided instructions: no theme in sight."""
+
+    def __init__(self):
         super().__init__()
         self.root = CodeBlock()
         self.resolver = CodeBlockResolver()
         self.current = self.root
-        self.theme = theme
 
     def get_code(self):
         return self.resolver.resolve(self.root)
@@ -78,28 +80,33 @@ class Codegen(NodeVisitor):
             yield
 
     def visit_Document(self, node, scope):
-        # The document is a sequence of bands: consecutive ordinary blocks
-        # share one section/column, while nodes annotated own_section
-        # (image rows, media objects) generate their own section.
         with self.block_tag("mjml"):
-            body_attrs = {}
-            if self.theme is not None:
-                self.emit_head(self.theme)
-                body_attrs = {
-                    "width": self.theme.layout.width,
-                    "background-color": self.theme.layout.background_color,
-                }
-            with self.block_tag("mj-body", attrs=body_attrs):
-                own_section = lambda c: bool(c.annotations.get("own_section"))
-                for standalone, band in groupby(node.children, key=own_section):
-                    if standalone:
-                        for child in band:
-                            self.visit(child, scope)
-                    else:
-                        with self.block_tag("mj-section"):
-                            with self.block_tag("mj-column"):
-                                for child in band:
-                                    self.visit(child, scope)
+            head = node.annotations["head"]
+            if head is not None:
+                self.emit_head(head)
+            with self.block_tag("mj-body", attrs=node.annotations["body_attrs"]):
+                self.emit_bands(node.children, scope)
+
+    def defines_own_columns(self, node):
+        return bool(node.annotations.get("defines_own_columns"))
+
+    def emit_bands(self, children, scope):
+        """The document body alternates two kinds of bands: blocks that
+        stack in a single column share one flow section, while nodes
+        defining their own column layout (image rows, media objects)
+        emit their own mj-section through their visitor."""
+        for multi_column, band in groupby(children, key=self.defines_own_columns):
+            if multi_column:
+                for node in band:
+                    self.visit(node, scope)
+            else:
+                self.emit_flow_band(band, scope)
+
+    def emit_flow_band(self, children, scope):
+        with self.block_tag("mj-section"):
+            with self.block_tag("mj-column"):
+                for child in children:
+                    self.visit(child, scope)
 
     def visit_Button(self, node, scope):
         attrs = {"href": node.href}
@@ -142,82 +149,14 @@ class Codegen(NodeVisitor):
                 for child in node.children:
                     self.visit(child, scope)
 
-    def emit_head(self, theme):
+    def emit_head(self, head):
         with self.block_tag("mj-head"):
             with self.block_tag("mj-attributes"):
-                with self.block_tag(
-                    "mj-section",
-                    attrs={
-                        "padding": theme.layout.section_padding,
-                        "background-color": theme.layout.content_background_color,
-                    },
-                    self_closing=True,
-                ):
-                    pass
-                with self.block_tag(
-                    "mj-text",
-                    attrs={
-                        "font-family": theme.text.font_family,
-                        "font-size": theme.text.font_size,
-                        "line-height": theme.text.line_height,
-                        "color": theme.text.color,
-                    },
-                    self_closing=True,
-                ):
-                    pass
-                # mj-table has its own MJML defaults (black Ubuntu 13px)
-                # that would ignore the theme typography
-                with self.block_tag(
-                    "mj-table",
-                    attrs={
-                        "color": theme.text.color,
-                        "font-family": theme.text.font_family,
-                        "font-size": theme.text.font_size,
-                        "line-height": theme.text.line_height,
-                    },
-                    self_closing=True,
-                ):
-                    pass
-                with self.block_tag(
-                    "mj-divider",
-                    attrs={
-                        "border-color": theme.divider.color,
-                        "border-width": theme.divider.width,
-                    },
-                    self_closing=True,
-                ):
-                    pass
-                # mj-button also has its own MJML defaults (Ubuntu 13px
-                # on #414141) that must follow the theme instead
-                with self.block_tag(
-                    "mj-button",
-                    attrs={
-                        "background-color": theme.button_background(),
-                        "color": theme.buttons.color,
-                        "border-radius": theme.buttons.border_radius,
-                        "font-weight": theme.buttons.font_weight,
-                        "inner-padding": theme.buttons.padding,
-                        "align": theme.buttons.align,
-                        "font-family": theme.text.font_family,
-                        "font-size": theme.text.font_size,
-                    },
-                    self_closing=True,
-                ):
-                    pass
-                image_attrs = {
-                    "fluid-on-mobile": "true",
-                    "align": theme.images.align,
-                }
-                if theme.images.border_radius not in ("0", "0px"):
-                    image_attrs["border-radius"] = theme.images.border_radius
-                with self.block_tag(
-                    "mj-image",
-                    attrs=image_attrs,
-                    self_closing=True,
-                ):
-                    pass
+                for tag, attrs in head["attributes"].items():
+                    with self.block_tag(tag, attrs=attrs, self_closing=True):
+                        pass
             with self.block_tag("mj-style", attrs={"inline": "inline"}):
-                self.add_raw_lines(theme.to_css())
+                self.add_raw_lines(head["css"])
 
     def visit_Paragraph(self, node, scope):
         self.generic_visit(node, scope)
@@ -260,14 +199,6 @@ class Codegen(NodeVisitor):
     def visit_BlankLine(self, node, scope):
         pass
 
-    def image_style(self):
-        style = "max-width: 100%; height: auto;"
-        if self.theme is not None:
-            radius = self.theme.images.border_radius
-            if radius not in ("0", "0px"):
-                style += f" border-radius: {radius};"
-        return style
-
     def visit_Image(self, node, scope):
         attrs = {"src": node.url}
         if node.alt_text:
@@ -277,7 +208,7 @@ class Codegen(NodeVisitor):
 
         if node.annotations.get("requires_manual_image"):
             tag = "img"
-            attrs["style"] = self.image_style()
+            attrs["style"] = node.annotations["image_style"]
         else:
             tag = "mj-image"
             if node.annotations.get("image_padding"):
@@ -298,7 +229,7 @@ class Codegen(NodeVisitor):
                     img_attrs["alt"] = node.img.alt_text.value
                 if node.img.title:
                     img_attrs["title"] = node.img.title
-                img_attrs["style"] = self.image_style()
+                img_attrs["style"] = node.img.annotations["image_style"]
 
                 with self.block_tag(
                     "img", attrs=img_attrs, self_closing=True, inline=True
@@ -367,31 +298,14 @@ class Codegen(NodeVisitor):
 
     def visit_TableHeaderCell(self, node, scope):
         attrs = {"align": node.align} if node.align else {}
-        if self.theme is not None:
-            table = self.theme.table
-            style = (
-                f"border-bottom: 2px solid {table.border_color};"
-                f" padding: {table.cell_padding};"
-            )
-            if table.header_color:
-                style += f" color: {table.header_color};"
-            if table.header_background_color:
-                style += f" background-color: {table.header_background_color};"
-            if not node.align:
-                style += " text-align: left;"
-            attrs["style"] = style
+        attrs["style"] = node.annotations["cell_style"]
         with self.block_tag("th", attrs=attrs, inline=True):
             self.generic_visit(node, scope)
         self.current.add_newline()
 
     def visit_TableCell(self, node, scope):
         attrs = {"align": node.align} if node.align else {}
-        if self.theme is not None:
-            table = self.theme.table
-            attrs["style"] = (
-                f"border-bottom: 1px solid {table.border_color};"
-                f" padding: {table.cell_padding};"
-            )
+        attrs["style"] = node.annotations["cell_style"]
         with self.block_tag("td", attrs=attrs, inline=True):
             self.generic_visit(node, scope)
         self.current.add_newline()
