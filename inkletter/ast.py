@@ -287,14 +287,8 @@ class Table(Node):
         self.rows = rows
 
     def get_children(self):
-        if self.header is None:
-            if self.rows is None:
-                children = []
-            else:
-                children = self.rows
-        else:
-            children = [self.header] + self.rows
-        return children
+        header = [self.header] if self.header is not None else []
+        return header + (self.rows or [])
 
     def __repr__(self):
         return "Table()"

@@ -174,3 +174,10 @@ def test_table_with_formated_cells(ast):
     assert len(cell2.children[0].children) == 1
     assert isinstance(cell2.children[0].children[0], LiteralText)
     assert cell2.children[0].children[0].value == "Cell 2"
+
+
+def test_table_children_with_header_and_no_rows():
+    # defensive: a header without rows must not crash ([header] + None)
+    table = Table(header=TableHeader([]), rows=None)
+    assert table.get_children() == [table.header]
+    assert Table().get_children() == []
