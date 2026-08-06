@@ -109,9 +109,8 @@ including `text_layout = "stacked"` to disable media-object columns entirely.
 
 ## Theming
 
-Every command accepts `--theme` with a preset name or a theme file,
-and `--no-theme` to emit MJML without the theme head (styling values
-then fall back to the default theme):
+There is always a theme: without `--theme`, the default one applies.
+Every command accepts `--theme` with a preset name or a theme file:
 
 ```bash
 inkletter md2html newsletter.md --theme dark
@@ -130,9 +129,8 @@ inkletter md2html newsletter.md --theme mytheme.toml
 | `red` | Bold and editorial — Georgia headings over Helvetica text |
 | `yellow` | Warm and friendly — Verdana text, Trebuchet MS headings |
 
-Here is each preset rendered on desktop and on a 375px mobile screen:
-
-![The built-in themes on desktop and mobile](sample/themes.png)
+Each preset is rendered on desktop and on a 375px mobile screen in the
+**[theme gallery](sample/THEMES.md)**.
 
 ### Write your own
 
@@ -179,11 +177,42 @@ theme = Theme(text=Text(font_family="Georgia, serif"), links=Links(color=Blue.DA
 html = parse_markdown_to_html(markdown, theme=theme)
 ```
 
+## URL shortening
+
+Every URL of the document can go through a factory you define — the
+classic newsletter needs: shorteners, click tracking, UTM tags. A Bitly
+implementation ships with Inkletter:
+
+```python
+from inkletter.md_to_html import parse_markdown_to_html
+from inkletter.shortener import BitlyShortener
+
+html = parse_markdown_to_html(markdown, url_factory=BitlyShortener(token="..."))
+```
+
+Or write your own: subclass `URLFactory` and override only what concerns
+you — `rewrite_link` for click URLs (links, image links, buttons),
+`rewrite_image` for image sources. A shortener that only overrides
+`rewrite_link` never touches images, by simple inheritance:
+
+```python
+from inkletter.shortener import URLFactory
+
+class UTMTagger(URLFactory):
+    def rewrite_link(self, url):
+        return f"{url}?utm_source=newsletter&utm_medium=email"
+```
+
+`BitlyShortener` shortens each distinct URL once (in-memory cache), and
+exceptions raised by a factory propagate untouched. Python API only —
+the CLI does not expose factories.
+
 ## Samples
 
 - [sample.md](sample/sample.md) — the Markdown source
 - [sample.html](sample/sample.html) — the generated responsive email
 - [sample/themes/](sample/themes/) — the same source rendered with every preset
+- [theme gallery](sample/THEMES.md) — all presets at a glance, desktop and mobile
 
 ## Contributing
 

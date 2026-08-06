@@ -1,7 +1,7 @@
 import pytest
 
 from inkletter.md_to_html import parse_markdown_to_html
-from inkletter.md_to_mjml import parse_markdown_to_mjml
+from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_document
 from inkletter.theme import Images, Theme, ThemeError, split_media_ratio
 
 # --- Image rows ---
@@ -12,19 +12,15 @@ def test_image_row_two_columns():
         "![a](https://x.com/a.png) ![b](https://x.com/b.png)"
     )
     print(actual)
-    expected = """\
-<mjml>
-  <mj-body>
-    <mj-section>
-      <mj-column>
-        <mj-image src="https://x.com/a.png" alt="a" padding="10px 8px"/>
-      </mj-column>
-      <mj-column>
-        <mj-image src="https://x.com/b.png" alt="b" padding="10px 8px"/>
-      </mj-column>
-    </mj-section>
-  </mj-body>
-</mjml>"""
+    expected = wrap_mjml_document("""\
+<mj-section>
+  <mj-column>
+    <mj-image src="https://x.com/a.png" alt="a" padding="10px 8px"/>
+  </mj-column>
+  <mj-column>
+    <mj-image src="https://x.com/b.png" alt="b" padding="10px 8px"/>
+  </mj-column>
+</mj-section>""")
     assert actual == expected
 
 
@@ -41,8 +37,9 @@ def test_five_images_wrap_in_rows_of_three():
     markdown = " ".join(f"![i{n}](https://x.com/{n}.png)" for n in range(5))
     actual = parse_markdown_to_mjml(markdown)
     print(actual)
-    assert actual.count("<mj-section>") == 2
-    assert actual.count("<mj-image") == 5
+    body = actual[actual.find("<mj-body") :]
+    assert body.count("<mj-section>") == 2
+    assert body.count("<mj-image") == 5
 
 
 def test_four_images_stay_on_one_row():
@@ -68,21 +65,17 @@ def test_media_object_left():
         "![Jean](https://x.com/j.png) Jean rejoint l'équipe."
     )
     print(actual)
-    expected = """\
-<mjml>
-  <mj-body>
-    <mj-section>
-      <mj-column width="30%">
-        <mj-image src="https://x.com/j.png" alt="Jean"/>
-      </mj-column>
-      <mj-column width="70%">
-        <mj-text>
-          Jean rejoint l'équipe.
-        </mj-text>
-      </mj-column>
-    </mj-section>
-  </mj-body>
-</mjml>"""
+    expected = wrap_mjml_document("""\
+<mj-section>
+  <mj-column width="30%">
+    <mj-image src="https://x.com/j.png" alt="Jean"/>
+  </mj-column>
+  <mj-column width="70%">
+    <mj-text>
+      Jean rejoint l'équipe.
+    </mj-text>
+  </mj-column>
+</mj-section>""")
     assert actual == expected
 
 
@@ -91,9 +84,10 @@ def test_media_object_right_uses_rtl_with_image_first_in_dom():
         "Jean rejoint l'équipe. ![Jean](https://x.com/j.png)"
     )
     print(actual)
-    assert '<mj-section direction="rtl">' in actual
+    body = actual[actual.find("<mj-body") :]
+    assert '<mj-section direction="rtl">' in body
     # DOM order: image column before text column, so mobile stacks image on top
-    assert actual.index("mj-image") < actual.index("mj-text")
+    assert body.index("mj-image") < body.index("mj-text")
 
 
 def test_media_ratio_comes_from_the_theme():

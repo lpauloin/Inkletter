@@ -19,6 +19,9 @@ dependencies = [
     "tomli==2.2.1; python_version < '3.11'"
 ]
 
+[tool.black]
+target-version = ["py310", "py311", "py312", "py313"]
+
 [project.scripts]
 inkletter = "inkletter.cli:cli"
 

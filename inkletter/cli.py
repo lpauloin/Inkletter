@@ -37,15 +37,10 @@ def theme_options(command):
         metavar="NAME_OR_FILE",
         help=f"Theme preset ({', '.join(sorted(THEMES))}) or path to a .toml theme file.",
     )(command)
-    command = click.option(
-        "--no-theme", is_flag=True, help="Generate bare MJML without any theme."
-    )(command)
     return command
 
 
-def load_theme(theme_name: str | None, no_theme: bool) -> Theme | None:
-    if no_theme:
-        return None
+def load_theme(theme_name: str | None) -> Theme:
     if theme_name is None:
         return Theme()
     try:
@@ -85,13 +80,12 @@ def preview(
     filepath: Path,
     output: Path | None,
     theme_name: str | None,
-    no_theme: bool,
     no_bold_link_button: bool,
 ):
     """
     Convert a Markdown file into MJML, then into HTML, and preview it in a browser.
     """
-    theme = load_theme(theme_name, no_theme)
+    theme = load_theme(theme_name)
     try:
         # Load Markdown
         markdown_text = filepath.read_text(encoding="utf-8")
@@ -140,11 +134,10 @@ def md2mjml(
     filepath: Path,
     output: Path | None,
     theme_name: str | None,
-    no_theme: bool,
     no_bold_link_button: bool,
 ):
     """Convert Markdown to MJML, print it or save it to a file."""
-    theme = load_theme(theme_name, no_theme)
+    theme = load_theme(theme_name)
     try:
         markdown_text = filepath.read_text(encoding="utf-8")
         mjml_code = parse_markdown_to_mjml(
@@ -184,11 +177,10 @@ def md2html(
     output: Path | None,
     view: bool,
     theme_name: str | None,
-    no_theme: bool,
     no_bold_link_button: bool,
 ):
     """Convert Markdown to HTML, optionally save and open it."""
-    theme = load_theme(theme_name, no_theme)
+    theme = load_theme(theme_name)
     try:
         markdown_text = filepath.read_text(encoding="utf-8")
         html_output = parse_markdown_to_html(

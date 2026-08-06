@@ -1,7 +1,11 @@
 import pytest
 
 from inkletter.md_to_html import parse_markdown_to_html
-from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_body
+from inkletter.md_to_mjml import (
+    parse_markdown_to_mjml,
+    wrap_mjml_body,
+    wrap_mjml_document,
+)
 from inkletter.theme import Buttons, Theme, ThemeError
 
 URL = "https://exemple.com/go"
@@ -48,34 +52,30 @@ def test_button_between_image_row_and_media_object():
     )
     actual = parse_markdown_to_mjml(markdown)
     print(actual)
-    expected = f"""\
-<mjml>
-  <mj-body>
-    <mj-section>
-      <mj-column>
-        <mj-image src="https://x.com/a.png" alt="a" padding="10px 8px"/>
-      </mj-column>
-      <mj-column>
-        <mj-image src="https://x.com/b.png" alt="b" padding="10px 8px"/>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
-        <mj-button href="{URL}">Go</mj-button>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column width="30%">
-        <mj-image src="https://x.com/j.png" alt="J"/>
-      </mj-column>
-      <mj-column width="70%">
-        <mj-text>
-          Un média-objet.
-        </mj-text>
-      </mj-column>
-    </mj-section>
-  </mj-body>
-</mjml>"""
+    expected = wrap_mjml_document(f"""\
+<mj-section>
+  <mj-column>
+    <mj-image src="https://x.com/a.png" alt="a" padding="10px 8px"/>
+  </mj-column>
+  <mj-column>
+    <mj-image src="https://x.com/b.png" alt="b" padding="10px 8px"/>
+  </mj-column>
+</mj-section>
+<mj-section>
+  <mj-column>
+    <mj-button href="{URL}">Go</mj-button>
+  </mj-column>
+</mj-section>
+<mj-section>
+  <mj-column width="30%">
+    <mj-image src="https://x.com/j.png" alt="J"/>
+  </mj-column>
+  <mj-column width="70%">
+    <mj-text>
+      Un média-objet.
+    </mj-text>
+  </mj-column>
+</mj-section>""")
     assert actual == expected
 
 

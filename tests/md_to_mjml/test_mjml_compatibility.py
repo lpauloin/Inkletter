@@ -89,3 +89,15 @@ def test_no_mjml_tag_survives_in_final_html(markdown):
     for theme in (None, Theme()):
         html = parse_markdown_to_html(markdown, theme=theme)
         assert "<mj-" not in html
+
+
+@pytest.mark.parametrize("markdown", CORPUS)
+def test_no_leak_with_url_factory(markdown):
+    # rewriting URLs must never change the component structure
+    from inkletter.shortener import URLFactory
+
+    class Prefix(URLFactory):
+        def rewrite_link(self, url):
+            return f"https://short.test/?u={url}"
+
+    assert_no_component_leak(parse_markdown_to_mjml(markdown, url_factory=Prefix()))

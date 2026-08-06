@@ -3,10 +3,10 @@ from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_body
 from inkletter.theme import Layout, Links, Theme
 
 
-def test_no_theme_has_no_head():
-    actual = parse_markdown_to_mjml("Hello")
-    assert "<mj-head>" not in actual
-    assert "<mj-body>" in actual
+def test_no_theme_means_the_default_theme():
+    assert parse_markdown_to_mjml("Hello") == parse_markdown_to_mjml(
+        "Hello", theme=Theme()
+    )
 
 
 def test_default_theme_emits_head():

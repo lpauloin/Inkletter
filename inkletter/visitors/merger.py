@@ -118,6 +118,8 @@ class BlockTextMerger(NodeVisitor):
         # never a button on an image link: the image always wins
         if self.contains_image(link):
             return None
+        # the href may already have been rewritten by the URLRewriter
+        # pass, which runs before this merger (see parse_markdown_to_ast)
         return Button(link.children, link.href, link.title)
 
     def contains_image(self, node):

@@ -5,6 +5,7 @@ from inkletter.scope import ScopeStack
 from inkletter.theme import DEFAULT_THEME
 from inkletter.visitors.annotation import Annotation
 from inkletter.visitors.merger import BlockTextMerger
+from inkletter.visitors.urls import URLRewriter
 
 
 class ASTRenderer(mistune.BaseRenderer):
@@ -149,7 +150,9 @@ class ASTRenderer(mistune.BaseRenderer):
             return TableCell(text, align=align)
 
 
-def parse_markdown_to_ast(markdown_text, bold_link_is_button=True, theme=None):
+def parse_markdown_to_ast(
+    markdown_text, bold_link_is_button=True, theme=None, url_factory=None
+):
     renderer = ASTRenderer()
     markdown = mistune.create_markdown(
         renderer=renderer,
@@ -161,14 +164,16 @@ def parse_markdown_to_ast(markdown_text, bold_link_is_button=True, theme=None):
             "mistune.plugins.task_lists.task_lists",
         ],
     )
+
     ast = markdown(markdown_text)
-    BlockTextMerger(bold_link_is_button=bold_link_is_button).visit(ast, scope=None)
-    Annotation(theme if theme is not None else DEFAULT_THEME).visit(
-        ast, scope=ScopeStack()
-    )
+
+    if url_factory is not None:
+        URLRewriter(url_factory).visit(ast)
+
     if theme is None:
-        # headless conversion (--no-theme): the annotation always works
-        # against a theme, the pipeline strips the head instruction
-        ast.annotations["head"] = None
-        ast.annotations["body_attrs"] = {}
+        theme = DEFAULT_THEME
+
+    BlockTextMerger(bold_link_is_button=bold_link_is_button).visit(ast)
+    Annotation(theme=theme).visit(ast, scope=ScopeStack())
+
     return ast

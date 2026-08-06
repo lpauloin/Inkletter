@@ -171,7 +171,8 @@ def test_image_inside_inline_formatting_is_manual():
     # an mj-image inside a mj-text would leak as an unknown tag
     actual = parse_markdown_to_mjml("**[![alt](https://x.com/i.png)](https://x.com)**")
     print(actual)
-    assert "mj-image" not in actual
+    body = actual[actual.find("<mj-body") :]
+    assert "mj-image" not in body
     assert (
         '<strong><a href="https://x.com">'
         '<img src="https://x.com/i.png" alt="alt"' in actual.replace("\n", "")
@@ -180,7 +181,8 @@ def test_image_inside_inline_formatting_is_manual():
 
 def test_image_inside_emphasis_is_manual():
     actual = parse_markdown_to_mjml("*voici ![ico](https://x.com/i.png) la*")
-    assert "mj-image" not in actual
+    body = actual[actual.find("<mj-body") :]
+    assert "mj-image" not in body
     assert '<img src="https://x.com/i.png" alt="ico"' in actual
 
 
@@ -215,14 +217,16 @@ def test_manual_image_link_escapes_urls():
 
 def test_image_in_strong_without_link_is_manual():
     actual = parse_markdown_to_mjml("**![gras](https://x.com/i.png)**")
-    assert "mj-image" not in actual
+    body = actual[actual.find("<mj-body") :]
+    assert "mj-image" not in body
     assert "<strong><img" in actual.replace("\n", "").replace("  ", "")
 
 
 def test_linked_image_in_heading_keeps_anchor():
     actual = parse_markdown_to_mjml("# [![i](https://x.com/i.png)](https://x.com)")
     print(actual)
-    assert "mj-image" not in actual
+    body = actual[actual.find("<mj-body") :]
+    assert "mj-image" not in body
     assert '<a href="https://x.com"><img' in actual
 
 

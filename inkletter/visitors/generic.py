@@ -1,5 +1,5 @@
 class NodeVisitor:
-    def visit(self, node, scope):
+    def visit(self, node, scope=None):
         """Dispatch to the appropriate visit method or fallback to generic_visit."""
         method_name = f"visit_{node.__class__.__name__}"
         visitor = getattr(self, method_name, self.generic_visit)

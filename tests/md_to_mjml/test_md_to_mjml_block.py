@@ -140,7 +140,27 @@ def greet(name):
 ```"""
     expected = """\
 <mjml>
-  <mj-body>
+  <mj-head>
+    <mj-attributes>
+      <mj-section padding="16px 0" background-color="#ffffff"/>
+      <mj-text font-family="Helvetica, Arial, sans-serif" font-size="14px" line-height="1.6" color="#374151"/>
+      <mj-table color="#374151" font-family="Helvetica, Arial, sans-serif" font-size="14px" line-height="1.6"/>
+      <mj-button background-color="#1d4ed8" color="#ffffff" border-radius="6px" font-weight="700" inner-padding="12px 24px" align="center" font-family="Helvetica, Arial, sans-serif" font-size="14px"/>
+      <mj-image fluid-on-mobile="true" align="center"/>
+    </mj-attributes>
+    <mj-style inline="inline">
+      h1, h2, h3, h4, h5, h6 { font-family: Helvetica, Arial, sans-serif; color: #374151; font-weight: 700; line-height: 1.3; margin: 0; }
+      h1 { font-size: 28px; }
+      h2 { font-size: 22px; }
+      h3 { font-size: 18px; }
+      a { color: #1d4ed8; text-decoration: underline; }
+      blockquote { color: #6b7280; font-style: italic; border-left: 3px solid #e5e7eb; margin: 0; padding: 2px 0 2px 14px; }
+      code { font-family: Menlo, Consolas, monospace; background-color: #f9fafb; color: #111827; padding: 2px 4px; border-radius: 3px; }
+      pre { font-family: Menlo, Consolas, monospace; background-color: #f9fafb; color: #111827; margin: 0; padding: 12px; border-radius: 6px; overflow-x: auto; }
+      ul, ol { margin: 0; padding-left: 24px; }
+    </mj-style>
+  </mj-head>
+  <mj-body width="600px" background-color="#f9fafb">
     <mj-section>
       <mj-column>
         <mj-text>
@@ -179,7 +199,27 @@ def test_block_code_with_html():
 ```"""
     expected = """\
 <mjml>
-  <mj-body>
+  <mj-head>
+    <mj-attributes>
+      <mj-section padding="16px 0" background-color="#ffffff"/>
+      <mj-text font-family="Helvetica, Arial, sans-serif" font-size="14px" line-height="1.6" color="#374151"/>
+      <mj-table color="#374151" font-family="Helvetica, Arial, sans-serif" font-size="14px" line-height="1.6"/>
+      <mj-button background-color="#1d4ed8" color="#ffffff" border-radius="6px" font-weight="700" inner-padding="12px 24px" align="center" font-family="Helvetica, Arial, sans-serif" font-size="14px"/>
+      <mj-image fluid-on-mobile="true" align="center"/>
+    </mj-attributes>
+    <mj-style inline="inline">
+      h1, h2, h3, h4, h5, h6 { font-family: Helvetica, Arial, sans-serif; color: #374151; font-weight: 700; line-height: 1.3; margin: 0; }
+      h1 { font-size: 28px; }
+      h2 { font-size: 22px; }
+      h3 { font-size: 18px; }
+      a { color: #1d4ed8; text-decoration: underline; }
+      blockquote { color: #6b7280; font-style: italic; border-left: 3px solid #e5e7eb; margin: 0; padding: 2px 0 2px 14px; }
+      code { font-family: Menlo, Consolas, monospace; background-color: #f9fafb; color: #111827; padding: 2px 4px; border-radius: 3px; }
+      pre { font-family: Menlo, Consolas, monospace; background-color: #f9fafb; color: #111827; margin: 0; padding: 12px; border-radius: 6px; overflow-x: auto; }
+      ul, ol { margin: 0; padding-left: 24px; }
+    </mj-style>
+  </mj-head>
+  <mj-body width="600px" background-color="#f9fafb">
     <mj-section>
       <mj-column>
         <mj-text>
