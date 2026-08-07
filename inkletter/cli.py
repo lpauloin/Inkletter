@@ -1,9 +1,11 @@
 from pathlib import Path
+import html
+import json
+import re
 import tempfile
 import webbrowser
 
 import click
-from jinja2 import Environment, FileSystemLoader
 
 from inkletter.md_to_html import parse_markdown_to_html, parse_mjml_to_html
 from inkletter.md_to_mjml import parse_markdown_to_mjml
@@ -13,6 +15,31 @@ from inkletter.theme import THEMES, Theme
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
+
+#: The named slots of the preview page. Substituted in one pass, so a
+#: value holding the text of another slot is never itself substituted.
+PREVIEW_SLOTS = re.compile(r"\{\{ (MD_CONTENT|MJML_CONTENT|HTML_CONTENT) \}\}")
+
+
+def render_preview(markdown_text, mjml_code, html_output):
+    """Fill the three slots of the preview page.
+
+    Three substitutions in one static page never needed a templating
+    engine. The two code panes are HTML-escaped; the email itself goes
+    into a JavaScript string, so it is JSON-encoded with < > & escaped
+    on top — an email holding </script> would otherwise end the block
+    early. That last part is what the tojson filter used to do here.
+    """
+    page = (TEMPLATES_DIR / "preview.html").read_text(encoding="utf-8")
+    embedded = json.dumps(html_output)
+    for char, escape in (("<", "\\u003c"), (">", "\\u003e"), ("&", "\\u0026")):
+        embedded = embedded.replace(char, escape)
+    values = {
+        "MD_CONTENT": html.escape(markdown_text),
+        "MJML_CONTENT": html.escape(mjml_code),
+        "HTML_CONTENT": embedded,
+    }
+    return PREVIEW_SLOTS.sub(lambda match: values[match.group(1)], page)
 
 
 @click.group()
@@ -95,14 +122,7 @@ def preview(
         )
         html_output = parse_mjml_to_html(mjml_code)
 
-        # Render with Jinja2
-        env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
-        template = env.get_template("preview.html")
-        rendered = template.render(
-            MD_CONTENT=markdown_text,
-            MJML_CONTENT=mjml_code,
-            HTML_CONTENT=html_output,
-        )
+        rendered = render_preview(markdown_text, mjml_code, html_output)
     except Exception as e:
         raise click.ClickException(str(e))
 

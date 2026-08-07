@@ -78,10 +78,10 @@
 <body>
   <div class="left-panel">
     <div class="top-left">
-      <pre><code class="language-markdown">{{ MD_CONTENT |e }}</code></pre>
+      <pre><code class="language-markdown">{{ MD_CONTENT }}</code></pre>
     </div>
     <div class="bottom-left">
-      <pre><code class="language-html">{{ MJML_CONTENT |e }}</code></pre>
+      <pre><code class="language-html">{{ MJML_CONTENT }}</code></pre>
     </div>
   </div>
   <div class="right-panel">
@@ -105,7 +105,7 @@
   <script>
     if (window.hljs) hljs.highlightAll();
 
-    const htmlContent = {{ HTML_CONTENT | tojson | safe }};
+    const htmlContent = {{ HTML_CONTENT }};
     const iframe = document.getElementById("preview-frame");
     const wrapper = document.getElementById("device-wrapper");
 
