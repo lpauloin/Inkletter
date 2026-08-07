@@ -18,8 +18,6 @@ def test_rewritten_links_reach_the_text():
 def test_rewritten_button_href_reaches_the_text():
     # same pass-ordering invariant as SPEC-URLS: the Button inherits the
     # already rewritten Link href
-    actual = parse_markdown_to_text(
-        "**[Go](https://example.com/go)**", url_factory=PrefixFactory()
-    )
+    actual = parse_markdown_to_text("**[Go](https://example.com/go)**", url_factory=PrefixFactory())
     print(actual)
     assert actual == "→ Go : https://short.test/?u=https://example.com/go\n"

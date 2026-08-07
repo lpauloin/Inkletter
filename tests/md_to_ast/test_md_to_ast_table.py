@@ -74,9 +74,7 @@ def test_table_with_alignment(ast):
     alignments = ["left", "center", "right"]
     header_texts = ["Left Aligned", "Center Aligned", "Right Aligned"]
 
-    for cell, expected_text, expected_align in zip(
-        header.headers, header_texts, alignments
-    ):
+    for cell, expected_text, expected_align in zip(header.headers, header_texts, alignments):
         assert isinstance(cell, TableHeaderCell)
         assert cell.align == expected_align
         assert len(cell.children) == 1

@@ -182,9 +182,7 @@ class Image(Node):
         return [self.alt_text]
 
     def __repr__(self):
-        return (
-            f"Image(url='{self.url}', title='{self.title}', alt_text='{self.alt_text}'"
-        )
+        return f"Image(url='{self.url}', title='{self.title}', alt_text='{self.alt_text}'"
 
 
 class ImageLink(Node):

@@ -8,9 +8,7 @@ from inkletter.theme import Images, Theme, ThemeError, split_media_ratio
 
 
 def test_image_row_two_columns():
-    actual = parse_markdown_to_mjml(
-        "![a](https://x.com/a.png) ![b](https://x.com/b.png)"
-    )
+    actual = parse_markdown_to_mjml("![a](https://x.com/a.png) ![b](https://x.com/b.png)")
     print(actual)
     expected = wrap_mjml_document("""\
 <mj-section>
@@ -61,9 +59,7 @@ def test_row_gap_comes_from_the_theme():
 
 
 def test_media_object_left():
-    actual = parse_markdown_to_mjml(
-        "![Jean](https://x.com/j.png) Jean rejoint l'équipe."
-    )
+    actual = parse_markdown_to_mjml("![Jean](https://x.com/j.png) Jean rejoint l'équipe.")
     print(actual)
     expected = wrap_mjml_document("""\
 <mj-section>
@@ -80,9 +76,7 @@ def test_media_object_left():
 
 
 def test_media_object_right_uses_rtl_with_image_first_in_dom():
-    actual = parse_markdown_to_mjml(
-        "Jean rejoint l'équipe. ![Jean](https://x.com/j.png)"
-    )
+    actual = parse_markdown_to_mjml("Jean rejoint l'équipe. ![Jean](https://x.com/j.png)")
     print(actual)
     body = actual[actual.find("<mj-body") :]
     assert '<mj-section direction="rtl">' in body
@@ -92,18 +86,14 @@ def test_media_object_right_uses_rtl_with_image_first_in_dom():
 
 def test_media_ratio_comes_from_the_theme():
     theme = Theme(images=Images(media_ratio="40%"))
-    actual = parse_markdown_to_mjml(
-        "![J](https://x.com/j.png) Texte à côté.", theme=theme
-    )
+    actual = parse_markdown_to_mjml("![J](https://x.com/j.png) Texte à côté.", theme=theme)
     assert '<mj-column width="40%">' in actual
     assert '<mj-column width="60%">' in actual
 
 
 def test_stacked_layout_keeps_image_then_text():
     theme = Theme(images=Images(text_layout="stacked"))
-    actual = parse_markdown_to_mjml(
-        "![J](https://x.com/j.png) Texte en dessous.", theme=theme
-    )
+    actual = parse_markdown_to_mjml("![J](https://x.com/j.png) Texte en dessous.", theme=theme)
     print(actual)
     assert "direction" not in actual
     assert 'width="30%"' not in actual
@@ -125,9 +115,7 @@ def test_border_radius_reaches_head_and_manual_images():
     assert "border-radius: 6px;" in actual  # manual <img> in the list
 
 
-@pytest.mark.parametrize(
-    "ratio, expected", [("30%", ("30%", "70%")), ("25", ("25%", "75%"))]
-)
+@pytest.mark.parametrize("ratio, expected", [("30%", ("30%", "70%")), ("25", ("25%", "75%"))])
 def test_split_media_ratio(ratio, expected):
     assert split_media_ratio(ratio) == expected
 

@@ -188,9 +188,7 @@ def test_image_inside_emphasis_is_manual():
 
 def test_manual_image_link_keeps_its_link():
     # href is not a valid <img> attribute: the anchor must wrap the image
-    actual = parse_markdown_to_mjml(
-        "- [![alt](https://x.com/i.png)](https://x.com) item"
-    )
+    actual = parse_markdown_to_mjml("- [![alt](https://x.com/i.png)](https://x.com) item")
     print(actual)
     assert "<img" in actual and "href" not in actual.split("<img")[1].split("/>")[0]
     assert '<a href="https://x.com"><img' in actual
@@ -208,9 +206,7 @@ def test_manual_image_link_titles_land_on_the_right_tags():
 
 
 def test_manual_image_link_escapes_urls():
-    actual = parse_markdown_to_mjml(
-        "- [![a](https://x.com/i.png?a=1&b=2)](https://x.com/?c=3&d=4)"
-    )
+    actual = parse_markdown_to_mjml("- [![a](https://x.com/i.png?a=1&b=2)](https://x.com/?c=3&d=4)")
     assert 'href="https://x.com/?c=3&amp;d=4"' in actual
     assert 'src="https://x.com/i.png?a=1&amp;b=2"' in actual
 
@@ -231,9 +227,7 @@ def test_linked_image_in_heading_keeps_anchor():
 
 
 def test_linked_image_in_table_cell_keeps_anchor():
-    actual = parse_markdown_to_mjml(
-        "| A |\n|---|\n| [![i](https://x.com/i.png)](https://x.com) |"
-    )
+    actual = parse_markdown_to_mjml("| A |\n|---|\n| [![i](https://x.com/i.png)](https://x.com) |")
     print(actual)
     assert "mj-image" not in actual.split("<mj-table>")[1]
     assert '<a href="https://x.com"><img' in actual

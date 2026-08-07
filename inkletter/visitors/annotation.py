@@ -15,6 +15,9 @@ class Annotation(NodeVisitor):
 
     def visit_Document(self, node, scope):
         scope.push(node)
+        # an empty slot the first h1 fills in, with its text or with
+        # None when it turns out not to be usable as a title
+        scope.set("document_title", [])
         theme = self.theme
         image_attrs = {
             "fluid-on-mobile": "true",
@@ -62,6 +65,8 @@ class Annotation(NodeVisitor):
             "background-color": theme.layout.background_color,
         }
         self.generic_visit(node, scope)
+        found = scope.get("document_title")
+        node.annotations["head"]["title"] = found[0] if found else None
         scope.pop(node)
 
     def mark_text_if_needed(self, node, scope):
@@ -151,10 +156,7 @@ class Annotation(NodeVisitor):
         scope.push(node)
         scope.set("is_in_table_cell", True)
         table = self.theme.table
-        style = (
-            f"border-bottom: 2px solid {table.border_color};"
-            f" padding: {table.cell_padding};"
-        )
+        style = f"border-bottom: 2px solid {table.border_color}; padding: {table.cell_padding};"
         if table.header_color:
             style += f" color: {table.header_color};"
         if table.header_background_color:
@@ -170,8 +172,7 @@ class Annotation(NodeVisitor):
         scope.set("is_in_table_cell", True)
         table = self.theme.table
         node.annotations["cell_style"] = (
-            f"border-bottom: 1px solid {table.border_color};"
-            f" padding: {table.cell_padding};"
+            f"border-bottom: 1px solid {table.border_color}; padding: {table.cell_padding};"
         )
         self.generic_visit(node, scope)
         scope.pop(node)
@@ -209,9 +210,7 @@ class Annotation(NodeVisitor):
             node.annotations["media_layout"] = "columns"
             ratio = self.theme.images.media_ratio
             node.annotations["media_widths"] = split_media_ratio(ratio)
-            node.annotations["media_direction"] = (
-                "rtl" if node.side == "right" else None
-            )
+            node.annotations["media_direction"] = "rtl" if node.side == "right" else None
         self.generic_visit(node, scope)
         scope.pop(node)
 
@@ -229,12 +228,30 @@ class Annotation(NodeVisitor):
 
     def visit_Heading(self, node, scope):
         scope.push(node)
+        # Only the first h1 of the document body is its title, and only
+        # if it holds nothing but text — anything else disqualifies it
+        # rather than being flattened away. in_text already tells us the
+        # heading sits in a quote, a list or a cell.
+        slot = scope.get("document_title")
+        claims_title = node.level == 1 and not scope.get("in_text") and not slot
+        if claims_title:
+            scope.record_types()
+            scope.set("title_parts", [])
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
+        if claims_title:
+            # listing what a title may hold rather than what it may not:
+            # a node type added later disqualifies it on its own
+            plain = scope.types() <= {BlockText, LiteralText}
+            text = "".join(scope.get("title_parts")).strip()
+            slot.append(text if plain and text else None)
         scope.pop(node)
 
     def visit_LiteralText(self, node, scope):
         scope.push(node)
+        parts = scope.get("title_parts")
+        if parts is not None:
+            parts.append(node.value)
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
@@ -252,6 +269,12 @@ class Annotation(NodeVisitor):
         scope.pop(node)
 
     def visit_StrikeThrough(self, node, scope):
+        scope.push(node)
+        self.mark_text_if_needed(node, scope)
+        self.generic_visit(node, scope)
+        scope.pop(node)
+
+    def visit_Link(self, node, scope):
         scope.push(node)
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)

@@ -14,9 +14,7 @@ URL = "https://exemple.com/go"
 def head_button_line(mjml):
     """The full mj-button defaults line from the head mj-attributes."""
     return next(
-        line.strip()
-        for line in mjml.splitlines()
-        if "mj-button" in line and "background" in line
+        line.strip() for line in mjml.splitlines() if "mj-button" in line and "background" in line
     )
 
 
@@ -108,9 +106,7 @@ def test_label_inline_html_passthrough():
 def test_link_title_lands_on_the_button():
     actual = parse_markdown_to_mjml(f'**[Go]({URL} "Mon titre")**')
     print(actual)
-    expected = wrap_mjml_body(
-        f'<mj-button href="{URL}" title="Mon titre">Go</mj-button>'
-    )
+    expected = wrap_mjml_body(f'<mj-button href="{URL}" title="Mon titre">Go</mj-button>')
     assert actual == expected
 
 
@@ -170,9 +166,7 @@ def test_bold_link_is_button_off_restores_previous_output():
 
 
 def test_bold_link_is_button_off_with_theme():
-    actual = parse_markdown_to_mjml(
-        f"**[Go]({URL})**", theme=Theme(), bold_link_is_button=False
-    )
+    actual = parse_markdown_to_mjml(f"**[Go]({URL})**", theme=Theme(), bold_link_is_button=False)
     print(actual)
     body = actual[actual.find("<mj-body") :]
     assert body == f"""\
@@ -199,3 +193,12 @@ def test_final_html_renders_the_button():
     # theme values are inlined
     assert "#1d4ed8" in html
     assert "border-radius:6px" in html.replace(" ", "")
+
+
+def test_a_deeply_nested_image_still_forbids_the_button():
+    # the image always wins, however deep it sits in the label — this is
+    # what the scope records for the promotion to read
+    actual = parse_markdown_to_mjml("**[*![alt](https://x.com/i.png)*](https://x.com)**")
+    print(actual)
+    assert "<mj-button" not in actual.split("<mj-body")[1]
+    assert "<img" in actual or "mj-image" in actual

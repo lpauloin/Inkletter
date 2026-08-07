@@ -33,8 +33,7 @@ class Codegen(NodeVisitor):
         # every attribute funnels through here: protecting the values in
         # one place covers href, src, alt and title at once
         attrs_str = "".join(
-            f' {k}="{html.escape(self.mask.hide(str(v)), quote=True)}"'
-            for k, v in attrs.items()
+            f' {k}="{html.escape(self.mask.hide(str(v)), quote=True)}"' for k, v in attrs.items()
         )
         if self_closing:
             self.current.add_text(f"<{name}{attrs_str}/>")
@@ -46,11 +45,7 @@ class Codegen(NodeVisitor):
         parent = self.current
 
         block = CodeBlock()
-        if (
-            not inline
-            and parent.elements
-            and isinstance(parent.elements[-1], TextElement)
-        ):
+        if not inline and parent.elements and isinstance(parent.elements[-1], TextElement):
             block.add_newline()
 
         block.add_text(f"<{name}{attrs_str}>")
@@ -157,6 +152,10 @@ class Codegen(NodeVisitor):
 
     def emit_head(self, head):
         with self.block_tag("mj-head"):
+            if head["title"]:
+                with self.block_tag("mj-title", inline=True):
+                    self.current.add_text(html.escape(head["title"], quote=False))
+                self.current.add_newline()
             for name, href in head["fonts"]:
                 with self.block_tag(
                     "mj-font", attrs={"name": name, "href": href}, self_closing=True
@@ -245,9 +244,7 @@ class Codegen(NodeVisitor):
                     img_attrs["title"] = node.img.title
                 img_attrs["style"] = node.img.annotations["image_style"]
 
-                with self.block_tag(
-                    "img", attrs=img_attrs, self_closing=True, inline=True
-                ):
+                with self.block_tag("img", attrs=img_attrs, self_closing=True, inline=True):
                     pass
         else:
             attrs = {"src": node.img.url, "href": node.href}
@@ -258,9 +255,7 @@ class Codegen(NodeVisitor):
             if node.annotations.get("image_padding"):
                 attrs["padding"] = node.annotations["image_padding"]
 
-            with self.block_tag(
-                "mj-image", attrs=attrs, self_closing=True, inline=True
-            ):
+            with self.block_tag("mj-image", attrs=attrs, self_closing=True, inline=True):
                 pass
 
     def visit_List(self, node, scope):
@@ -291,11 +286,7 @@ class Codegen(NodeVisitor):
                 self.visit(extra_child, scope)
 
     def visit_Table(self, node, scope):
-        tag = (
-            "table"
-            if node.annotations.get("requires_manual_table", False)
-            else "mj-table"
-        )
+        tag = "table" if node.annotations.get("requires_manual_table", False) else "mj-table"
         with self.block_tag(tag):
             if node.header:
                 self.visit(node.header, scope)

@@ -4,9 +4,7 @@ from inkletter.theme import Layout, Links, Text, Theme
 
 
 def test_no_theme_means_the_default_theme():
-    assert parse_markdown_to_mjml("Hello") == parse_markdown_to_mjml(
-        "Hello", theme=Theme()
-    )
+    assert parse_markdown_to_mjml("Hello") == parse_markdown_to_mjml("Hello", theme=Theme())
 
 
 def test_default_theme_emits_head():
@@ -81,9 +79,7 @@ def test_table_theme_reaches_cells():
     from inkletter.theme import Table
 
     markdown = "| A |\n|---|\n| b |"
-    theme = Theme(
-        table=Table(border_color="#123456", header_background_color="#eeeeee")
-    )
+    theme = Theme(table=Table(border_color="#123456", header_background_color="#eeeeee"))
     actual = parse_markdown_to_mjml(markdown, theme=theme)
     print(actual)
     assert "border-bottom: 2px solid #123456" in actual  # header cell
@@ -129,9 +125,7 @@ def test_fonts_are_emitted_in_their_declared_order():
 
 def test_no_fonts_leaves_the_head_untouched():
     # the feature costs nothing to whoever does not use it
-    assert parse_markdown_to_mjml(
-        "Hello", theme=font_theme()
-    ) == parse_markdown_to_mjml(
+    assert parse_markdown_to_mjml("Hello", theme=font_theme()) == parse_markdown_to_mjml(
         "Hello", theme=Theme(text=Text(font_family="Lora, Georgia, serif"))
     )
     assert "<mj-font" not in parse_markdown_to_mjml("Hello")
@@ -140,9 +134,7 @@ def test_no_fonts_leaves_the_head_untouched():
 def test_declared_font_reaches_the_final_html():
     # the end-to-end proof of the mj-font contract: the compiler only
     # emits the font because text.font_family uses it
-    html = parse_markdown_to_html(
-        "# Title\n\nSome text.", theme=font_theme(fonts={"Lora": LORA})
-    )
+    html = parse_markdown_to_html("# Title\n\nSome text.", theme=font_theme(fonts={"Lora": LORA}))
     assert "family=Lora" in html
     assert "[if !mso]" in html[: html.index("family=Lora")]  # MJML guards it
 
@@ -156,10 +148,7 @@ def test_font_url_ampersand_is_escaped_in_the_attribute():
     swap = "https://fonts.googleapis.com/css2?family=Lora&display=swap"
     actual = parse_markdown_to_mjml("Hello", theme=font_theme(fonts={"Lora": swap}))
     print(actual)
-    assert (
-        'href="https://fonts.googleapis.com/css2?family=Lora&amp;display=swap"'
-        in actual
-    )
+    assert 'href="https://fonts.googleapis.com/css2?family=Lora&amp;display=swap"' in actual
 
 
 def test_web_font_and_django_tags_together():

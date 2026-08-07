@@ -25,9 +25,7 @@ class LinkOnlyFactory(URLFactory):
 
 def test_no_factory_output_is_unchanged():
     markdown = "Un [lien](https://x.com) et ![img](https://x.com/i.png)"
-    assert parse_markdown_to_mjml(markdown) == parse_markdown_to_mjml(
-        markdown, url_factory=None
-    )
+    assert parse_markdown_to_mjml(markdown) == parse_markdown_to_mjml(markdown, url_factory=None)
 
 
 def test_base_factory_is_identity():
@@ -91,9 +89,7 @@ def test_urls_rewritten_in_every_context():
     )
     actual = parse_markdown_to_mjml(markdown, url_factory=PrefixFactory())
     print(actual)
-    assert "https://x.com/h" not in actual.replace(
-        "https://short.test/?u=https://x.com/h", ""
-    )
+    assert "https://x.com/h" not in actual.replace("https://short.test/?u=https://x.com/h", "")
     for original in ("h", "li", "q", "td"):
         assert f"https://short.test/?u=https://x.com/{original}" in actual
     for original in ("li.png", "td.png", "a.png", "b.png", "j.png"):
@@ -104,9 +100,7 @@ def test_urls_rewritten_in_every_context():
 
 
 def test_button_href_is_rewritten():
-    actual = parse_markdown_to_mjml(
-        "**[Go](https://x.com/go)**", url_factory=PrefixFactory()
-    )
+    actual = parse_markdown_to_mjml("**[Go](https://x.com/go)**", url_factory=PrefixFactory())
     print(actual)
     expected = wrap_mjml_body(
         '<mj-button href="https://short.test/?u=https://x.com/go">Go</mj-button>'
@@ -115,9 +109,7 @@ def test_button_href_is_rewritten():
 
 
 def test_button_href_is_rewritten_in_final_html():
-    html = parse_markdown_to_html(
-        "**[Go](https://x.com/go)**", url_factory=PrefixFactory()
-    )
+    html = parse_markdown_to_html("**[Go](https://x.com/go)**", url_factory=PrefixFactory())
     assert 'href="https://short.test/?u=https://x.com/go"' in html
 
 
@@ -143,9 +135,7 @@ def test_rewritten_url_with_ampersand_is_escaped():
         def rewrite_link(self, url):
             return f"{url}?utm_source=news&utm_medium=email"
 
-    actual = parse_markdown_to_mjml(
-        "[lien](https://x.com/page)", url_factory=UTMFactory()
-    )
+    actual = parse_markdown_to_mjml("[lien](https://x.com/page)", url_factory=UTMFactory())
     print(actual)
     expected = wrap_mjml_body("""\
 <mj-text>
@@ -205,9 +195,7 @@ def test_tagged_link_never_reaches_the_factory():
 
 def test_tagged_image_never_reaches_the_factory():
     spy = SpyFactory()
-    actual = parse_markdown_to_mjml(
-        "![i]({% static 'l.png' %})", url_factory=spy, django_tags=True
-    )
+    actual = parse_markdown_to_mjml("![i]({% static 'l.png' %})", url_factory=spy, django_tags=True)
     print(actual)
     assert spy.images == []
     assert "{% static 'l.png' %}" in actual
@@ -227,9 +215,7 @@ def test_tagged_button_href_never_reaches_the_factory():
     # same pass-ordering invariant as the plain case: the Button inherits
     # the Link href — here, the one that was left alone
     spy = SpyFactory()
-    actual = parse_markdown_to_mjml(
-        "**[Go]({{ url }})**", url_factory=spy, django_tags=True
-    )
+    actual = parse_markdown_to_mjml("**[Go]({{ url }})**", url_factory=spy, django_tags=True)
     print(actual)
     assert spy.links == []
     assert '<mj-button href="{{ url }}">Go</mj-button>' in actual

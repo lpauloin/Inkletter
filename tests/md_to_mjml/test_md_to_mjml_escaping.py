@@ -33,7 +33,8 @@ def test_special_characters_in_heading():
   <h1>Prix &lt; 100 &amp; offres</h1>
 </mj-text>"""
     actual = parse_markdown_to_mjml(markdown_input)
-    expected = wrap_mjml_body(expected_content)
+    # the h1 is plain text, so it also becomes the document title
+    expected = wrap_mjml_body(expected_content, title="Prix < 100 & offres")
     print("actual:")
     print(actual)
     print("expected:")
@@ -149,9 +150,7 @@ def test_entities_stay_literal_in_code():
 
 
 def test_entities_are_decoded_in_alt_and_title():
-    actual = parse_markdown_to_mjml(
-        '![AT&amp;T](https://x.com/i.png "Tom &amp; Jerry")'
-    )
+    actual = parse_markdown_to_mjml('![AT&amp;T](https://x.com/i.png "Tom &amp; Jerry")')
     print(actual)
     expected = wrap_mjml_body(
         '<mj-image src="https://x.com/i.png" alt="AT&amp;T" title="Tom &amp; Jerry"/>'

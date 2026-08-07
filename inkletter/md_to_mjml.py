@@ -57,17 +57,19 @@ def parse_markdown_to_mjml(
     return mask.reveal(mjml)
 
 
-def wrap_mjml_document(body_content):
+def wrap_mjml_document(body_content, title=None):
     """Wrap raw body content (sections) in the default-themed document.
 
     The head and body attributes come from the real Annotation pass on an
-    empty Document: no duplication of the theme rendering.
+    empty Document: no duplication of the theme rendering. `title` is
+    what a document opening with a plain-text h1 gets in its head.
     """
     if isinstance(body_content, str):
         body_content = codeblock_from_string(body_content)
 
     document = Document([])
     Annotation(DEFAULT_THEME).visit(document, scope=ScopeStack())
+    document.annotations["head"]["title"] = title
 
     codegen = Codegen(TagMask())
     with codegen.block_tag("mjml"):
@@ -77,19 +79,13 @@ def wrap_mjml_document(body_content):
     return codegen.get_code()
 
 
-def wrap_mjml_body(content):
-    """Wrap flow content in the default-themed document, one section/column."""
+def wrap_mjml_body(content, title=None):
+    """Same, for flow content that belongs in one section and column."""
     if isinstance(content, str):
         content = codeblock_from_string(content)
 
-    document = Document([])
-    Annotation(DEFAULT_THEME).visit(document, scope=ScopeStack())
-
     codegen = Codegen(TagMask())
-    with codegen.block_tag("mjml"):
-        codegen.emit_head(document.annotations["head"])
-        with codegen.block_tag("mj-body", attrs=document.annotations["body_attrs"]):
-            with codegen.block_tag("mj-section"):
-                with codegen.block_tag("mj-column"):
-                    codegen.current.add_codeblock(content)
-    return codegen.get_code()
+    with codegen.block_tag("mj-section"):
+        with codegen.block_tag("mj-column"):
+            codegen.current.add_codeblock(content)
+    return wrap_mjml_document(codegen.root, title=title)

@@ -71,9 +71,7 @@ def assert_no_component_leak(mjml):
     body = mjml[mjml.find("<mj-body") :]
     for tag in RAW_CONTEXTS:
         for m in re.finditer(rf"<{tag}[^>]*>(.*?)</{tag}>", body, re.S):
-            assert "<mj-" not in m.group(
-                1
-            ), f"MJML component inside {tag}: {m.group(1)!r}"
+            assert "<mj-" not in m.group(1), f"MJML component inside {tag}: {m.group(1)!r}"
 
 
 @pytest.mark.parametrize("markdown", CORPUS)
@@ -119,18 +117,14 @@ def test_text_output_is_clean(markdown):
 
 def with_tags(markdown):
     """The same document, wrapped in flow control and given a variable."""
-    return (
-        f"{{% if show %}}\n\n{markdown}\n\nSigned, {{{{ user.name }}}}\n\n{{% endif %}}"
-    )
+    return f"{{% if show %}}\n\n{markdown}\n\nSigned, {{{{ user.name }}}}\n\n{{% endif %}}"
 
 
 @pytest.mark.parametrize("markdown", CORPUS)
 def test_corpus_is_identical_with_django_tags_on(markdown):
     # the corpus holds no tag, so turning the plugin on must change
     # strictly nothing: opting in is never a behaviour change
-    assert parse_markdown_to_mjml(markdown, django_tags=True) == parse_markdown_to_mjml(
-        markdown
-    )
+    assert parse_markdown_to_mjml(markdown, django_tags=True) == parse_markdown_to_mjml(markdown)
 
 
 @pytest.mark.parametrize("markdown", CORPUS)
@@ -159,3 +153,9 @@ def test_no_leak_with_a_web_font(markdown):
         fonts={"Lora": "https://fonts.example/lora.css"},
     )
     assert_no_component_leak(parse_markdown_to_mjml(markdown, theme=theme))
+
+
+@pytest.mark.parametrize("markdown", CORPUS)
+def test_no_leak_with_a_document_title(markdown):
+    # a title in the head must not disturb the body components
+    assert_no_component_leak(parse_markdown_to_mjml(f"# Corpus document\n\n{markdown}"))

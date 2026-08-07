@@ -108,6 +108,14 @@ Without the flag, nothing changes: it is opt-in.
 See the **[Django template reference](sample/DJANGO.md)** for what is
 supported, the two layout rules, and the limitations.
 
+### Document title
+
+When your Markdown opens with a plain-text `# heading`, it becomes the
+email's `<title>` — the tab of a "view in browser" page, and what a
+screen reader announces. A heading carrying emphasis, a link or an image
+is left alone rather than flattened, and the document simply has no
+title. This is not the subject line: that one you pass when sending.
+
 ## Layout
 
 Layout is driven by plain CommonMark structure — no custom syntax, the same

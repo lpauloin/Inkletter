@@ -137,9 +137,7 @@ def test_md2html_theme_preset(tmp_path):
     md.write_text("A [link](https://x.com)", encoding="utf-8")
     out = tmp_path / "out.html"
 
-    result = CliRunner().invoke(
-        cli, ["md2html", str(md), "-o", str(out), "--theme", "red"]
-    )
+    result = CliRunner().invoke(cli, ["md2html", str(md), "-o", str(out), "--theme", "red"])
 
     assert result.exit_code == 0
     assert "#b91c1c" in out.read_text(encoding="utf-8")  # Red.DARK link color
@@ -223,9 +221,7 @@ def test_md2txt_django_flag(tmp_path):
     result = CliRunner().invoke(cli, ["md2txt", str(md), "--django"])
 
     assert result.exit_code == 0
-    assert result.output == (
-        "Hi {{ customer.name }},\n\n→ Track : {% url 'delivery' %}\n"
-    )
+    assert result.output == ("Hi {{ customer.name }},\n\n→ Track : {% url 'delivery' %}\n")
 
 
 def test_md2mjml_django_flag(tmp_path):

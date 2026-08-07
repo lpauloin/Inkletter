@@ -42,7 +42,8 @@ def test_headings(markdown_input, level, text):
 </mj-text>"""
 
     actual = parse_markdown_to_mjml(markdown_input)
-    expected = wrap_mjml_body(expected_content)
+    # a plain-text h1 also becomes the document title
+    expected = wrap_mjml_body(expected_content, title=text if level == 1 else None)
 
     print("actual:")
     print(actual)
@@ -56,27 +57,19 @@ def test_headings(markdown_input, level, text):
     [
         (
             "# This is a **bold** heading",
-            "<mj-text>\n"
-            "  <h1>This is a <strong>bold</strong> heading</h1>\n"
-            "</mj-text>",
+            "<mj-text>\n" "  <h1>This is a <strong>bold</strong> heading</h1>\n" "</mj-text>",
         ),
         (
             "## This is an *italic* heading",
-            "<mj-text>\n"
-            "  <h2>This is an <em>italic</em> heading</h2>\n"
-            "</mj-text>",
+            "<mj-text>\n" "  <h2>This is an <em>italic</em> heading</h2>\n" "</mj-text>",
         ),
         (
             "### This is a ~~strikethrough~~ heading",
-            "<mj-text>\n"
-            "  <h3>This is a <del>strikethrough</del> heading</h3>\n"
-            "</mj-text>",
+            "<mj-text>\n" "  <h3>This is a <del>strikethrough</del> heading</h3>\n" "</mj-text>",
         ),
         (
             "#### This is a `code` heading",
-            "<mj-text>\n"
-            "  <h4>This is a <code>code</code> heading</h4>\n"
-            "</mj-text>",
+            "<mj-text>\n" "  <h4>This is a <code>code</code> heading</h4>\n" "</mj-text>",
         ),
         (
             "##### This is a [link](https://example.com)",

@@ -64,17 +64,13 @@ def write_output(content: str, output: Path | None) -> Path:
     if output:
         output.write_text(content, encoding="utf-8")
         return output
-    with tempfile.NamedTemporaryFile(
-        "w", suffix=".html", encoding="utf-8", delete=False
-    ) as f:
+    with tempfile.NamedTemporaryFile("w", suffix=".html", encoding="utf-8", delete=False) as f:
         f.write(content)
         return Path(f.name)
 
 
 @cli.command()
-@click.argument(
-    "filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path)
-)
+@click.argument("filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option(
     "-o",
     "--output",
@@ -130,9 +126,7 @@ def preview(
 
 
 @cli.command()
-@click.argument(
-    "filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path)
-)
+@click.argument("filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option(
     "-o",
     "--output",
@@ -169,9 +163,7 @@ def md2mjml(
 
 
 @cli.command()
-@click.argument(
-    "filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path)
-)
+@click.argument("filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option(
     "-o",
     "--output",
@@ -215,9 +207,7 @@ def md2html(
 
 
 @cli.command()
-@click.argument(
-    "filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path)
-)
+@click.argument("filepath", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option(
     "-o",
     "--output",

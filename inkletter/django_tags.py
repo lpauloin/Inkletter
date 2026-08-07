@@ -18,11 +18,6 @@ COMMENT = r"\{#(?:(?!#\}).)*#\}"
 
 TAG = f"(?:{VARIABLE}|{STATEMENT}|{COMMENT})"
 
-# A tag anywhere in the text. Registered before "escape" so it wins over
-# emphasis ({{p*2*x}} stays whole); a code span still wins over it, since
-# its match starts earlier.
-TAG_PATTERN = TAG
-
 # A link or image whose destination holds a tag — the case CommonMark
 # cannot parse (spaces are forbidden there) and that mistune would
 # percent-encode. We match the whole construct and build the token
@@ -80,30 +75,12 @@ def parse_block(block, m, state):
 
 def django_tags(md):
     """The plugin, passed to mistune.create_markdown(plugins=[...])."""
-    md.block.register(
-        "django_statement",
-        BLOCK_PATTERN,
-        parse_block,
-        before="list",
-    )
-    md.inline.register(
-        "django_link",
-        LINK_PATTERN,
-        parse_link,
-        before="link",
-    )
-    md.inline.register(
-        "django_autolink",
-        AUTOLINK_PATTERN,
-        parse_autolink,
-        before="auto_link",
-    )
-    md.inline.register(
-        "django_tag",
-        TAG_PATTERN,
-        parse_tag,
-        before="escape",
-    )
+    md.block.register("django_statement", BLOCK_PATTERN, parse_block, before="list")
+    md.inline.register("django_link", LINK_PATTERN, parse_link, before="link")
+    md.inline.register("django_autolink", AUTOLINK_PATTERN, parse_autolink, before="auto_link")
+    # before "escape" so a tag wins over emphasis ({{p*2*x}} stays whole);
+    # a code span still wins over it, its match starting earlier
+    md.inline.register("django_tag", TAG, parse_tag, before="escape")
 
 
 #: Matches a tag inside a plain string (a URL, an attribute value) —

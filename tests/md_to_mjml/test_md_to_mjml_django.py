@@ -77,18 +77,14 @@ def test_url_statement_in_href_keeps_its_quotes():
 def test_static_tag_in_image_src():
     actual = mjml("![Logo]({% static 'img/logo.png' %})")
     print(actual)
-    expected = wrap_mjml_body(
-        '<mj-image src="{% static \'img/logo.png\' %}" alt="Logo"/>'
-    )
+    expected = wrap_mjml_body('<mj-image src="{% static \'img/logo.png\' %}" alt="Logo"/>')
     assert actual == expected
 
 
 def test_tag_in_the_alt_attribute():
     actual = mjml("![{{ name }} logo](https://x.com/l.png)")
     print(actual)
-    expected = wrap_mjml_body(
-        '<mj-image src="https://x.com/l.png" alt="{{ name }} logo"/>'
-    )
+    expected = wrap_mjml_body('<mj-image src="https://x.com/l.png" alt="{{ name }} logo"/>')
     assert actual == expected
 
 
@@ -214,7 +210,9 @@ def test_tag_in_a_code_span_stays_literal():
 def test_parcel_update_document():
     actual = mjml(PARCEL_UPDATE)
     print(actual)
-    expected = wrap_mjml_body("""\
+    expected = wrap_mjml_body(
+        title="Your parcel is on its way",
+        content="""\
 <mj-text>
   <h1>Your parcel is on its way</h1>
 </mj-text>
@@ -245,7 +243,8 @@ def test_parcel_update_document():
 <mj-text>
   Happy unboxing,<br/>
   The logistics crew.
-</mj-text>""")
+</mj-text>""",
+    )
     assert actual == expected
 
 

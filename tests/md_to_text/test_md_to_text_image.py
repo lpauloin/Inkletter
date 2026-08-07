@@ -14,9 +14,7 @@ def test_image_without_alt_disappears():
 
 
 def test_linked_image_keeps_its_url():
-    actual = parse_markdown_to_text(
-        "[![Logo](https://x.com/l.png)](https://example.com)"
-    )
+    actual = parse_markdown_to_text("[![Logo](https://x.com/l.png)](https://example.com)")
     print(actual)
     assert actual == "Logo <https://example.com>\n"
 

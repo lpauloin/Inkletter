@@ -107,9 +107,7 @@ def test_variables_are_substituted(output):
 def test_quoted_filter_argument_survives(output):
     # if the codegen had escaped the quotes into &#x27;, Django would
     # either raise here or hand back the literal default
-    rendered = render(
-        output, "Hi {{ customer.first_name|default:'there' }},", LEAVE_SAFE
-    )
+    rendered = render(output, "Hi {{ customer.first_name|default:'there' }},", LEAVE_SAFE)
     print(rendered)
     assert "there" in rendered
     assert "&#x27;" not in rendered
@@ -196,9 +194,7 @@ def test_autoescape_off_keeps_text_readable():
 
 
 def test_image_source_resolves():
-    rendered = render(
-        "html", "![Logo]({{ logo_url }})", {"logo_url": "https://x/l.png"}
-    )
+    rendered = render("html", "![Logo]({{ logo_url }})", {"logo_url": "https://x/l.png"})
     print(rendered)
     assert 'src="https://x/l.png"' in rendered
 

@@ -136,9 +136,7 @@ class Theme:
                 # a free table of names, not a fixed set of keys
                 kwargs[group_name] = group_data
                 continue
-            kwargs[group_name] = _build_group(
-                groups[group_name], group_name, group_data
-            )
+            kwargs[group_name] = _build_group(groups[group_name], group_name, group_data)
         return cls(**kwargs)
 
     @classmethod
@@ -159,8 +157,7 @@ class Theme:
             return THEMES[name]
         except KeyError:
             raise ThemeError(
-                f"unknown theme '{name}'; "
-                f"available themes: {', '.join(sorted(THEMES))}"
+                f"unknown theme '{name}'; available themes: {', '.join(sorted(THEMES))}"
             )
 
     def to_dict(self):
@@ -190,8 +187,7 @@ class Theme:
                 f"h1 {{ font-size: {self.headings.h1_size}; }}",
                 f"h2 {{ font-size: {self.headings.h2_size}; }}",
                 f"h3 {{ font-size: {self.headings.h3_size}; }}",
-                f"a {{ color: {self.links.color};"
-                f" text-decoration: {decoration}; }}",
+                f"a {{ color: {self.links.color}; text-decoration: {decoration}; }}",
                 f"blockquote {{ color: {self.quote.color};"
                 f" font-style: {self.quote.font_style};"
                 f" border-left: 3px solid {self.quote.border_color};"

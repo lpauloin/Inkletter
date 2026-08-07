@@ -223,8 +223,7 @@ class TextCodegen(NodeVisitor):
             return
         columns = max(len(line) for line in grid)
         widths = [
-            max(len(line[i]) if i < len(line) else 0 for line in grid)
-            for i in range(columns)
+            max(len(line[i]) if i < len(line) else 0 for line in grid) for i in range(columns)
         ]
 
         def pad(value, width, align):

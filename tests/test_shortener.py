@@ -46,9 +46,7 @@ def test_shorten_calls_the_bitly_api(fake_bitly):
 def test_custom_domain_is_sent(fake_bitly):
     BitlyShortener(token="t", domain="inklet.io").rewrite_link("https://x.com")
 
-    assert json.loads(fake_bitly.requests[0].data.decode("utf-8"))["domain"] == (
-        "inklet.io"
-    )
+    assert json.loads(fake_bitly.requests[0].data.decode("utf-8"))["domain"] == ("inklet.io")
 
 
 def test_images_are_never_shortened(fake_bitly):

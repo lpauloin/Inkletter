@@ -4,7 +4,6 @@ from inkletter.visitors.generic import NodeVisitor
 
 class BlockTextMerger(NodeVisitor):
     def __init__(self, bold_link_is_button=True):
-        self._text_parts = None
         self.bold_link_is_button = bold_link_is_button
 
     def merge_inline_sequences(self, children):
@@ -47,36 +46,49 @@ class BlockTextMerger(NodeVisitor):
             self.visit(child, scope)
 
     def visit_Image(self, node, scope):
+        scope.push(node)
         # The alt may contain formatting nodes; merge them into a single
         # LiteralText since the HTML alt attribute cannot hold markup.
+        # The collector rides the scope, so nesting takes care of itself.
         if isinstance(node.alt_text, list):
-            parts, self._text_parts = self._text_parts, []
+            scope.set("alt_parts", [])
             self.generic_visit(node, scope)
-            node.alt_text = LiteralText("".join(self._text_parts))
-            self._text_parts = parts
+            node.alt_text = LiteralText("".join(scope.get("alt_parts")))
+        scope.pop(node)
+
+    def visit_ImageLink(self, node, scope):
+        scope.push(node)
+        self.generic_visit(node, scope)
+        scope.pop(node)
+
+    def collect_alt(self, scope, text):
+        parts = scope.get("alt_parts")
+        if parts is not None:
+            parts.append(text)
 
     def visit_LiteralText(self, node, scope):
-        if self._text_parts is not None:
-            self._text_parts.append(node.value)
+        self.collect_alt(scope, node.value)
 
     def visit_CodeSpan(self, node, scope):
-        if self._text_parts is not None:
-            self._text_parts.append(node.code)
+        self.collect_alt(scope, node.code)
 
     def visit_TemplateTag(self, node, scope):
-        # an alt is flattened to plain text: without this the tag would
-        # simply vanish from it
-        if self._text_parts is not None:
-            self._text_parts.append(node.raw)
+        # without this the tag would simply vanish from an alt
+        self.collect_alt(scope, node.raw)
 
     def visit_Document(self, node, scope):
-        self.process_blocknode(node, scope)
+        scope.push(node)
+        node.children = self.merge_inline_sequences(node.children)
         promoted = []
         for child in node.children:
-            promoted.extend(self.promote_paragraph(child))
+            # record afresh: each child is promoted on what it holds
+            scope.record_types()
+            self.visit(child, scope)
+            promoted.extend(self.promote_paragraph(child, scope.types()))
         node.children = promoted
+        scope.pop(node)
 
-    def promote_paragraph(self, node):
+    def promote_paragraph(self, node, types):
         """Turn image-only paragraphs into ImageRow(s) and image-beside-text
         paragraphs into MediaObject (top-level layout conventions)."""
         if not isinstance(node, Paragraph):
@@ -85,7 +97,7 @@ class BlockTextMerger(NodeVisitor):
         others = [c for c in node.children if not isinstance(c, (Image, ImageLink))]
         if not images:
             if self.bold_link_is_button:
-                button = self.promote_button(node)
+                button = self.promote_button(node, types)
                 if button is not None:
                     return [button]
             return [node]
@@ -109,7 +121,7 @@ class BlockTextMerger(NodeVisitor):
                 return [MediaObject(images[0], others, side="right")]
         return [node]
 
-    def promote_button(self, node):
+    def promote_button(self, node, types):
         """A paragraph made only of a bold link becomes a Button (CTA)."""
         blocks = [c for c in node.children if not self.is_blank(c)]
         if len(blocks) != 1 or not isinstance(blocks[0], BlockText):
@@ -121,17 +133,13 @@ class BlockTextMerger(NodeVisitor):
         if len(label) != 1 or not isinstance(label[0], Link):
             return None
         link = label[0]
-        # never a button on an image link: the image always wins
-        if self.contains_image(link):
+        # never a button on an image link: the image always wins, even
+        # nested deep inside the label
+        if types & {Image, ImageLink}:
             return None
         # the href may already have been rewritten by the URLRewriter
         # pass, which runs before this merger (see parse_markdown_to_ast)
         return Button(link.children, link.href, link.title)
-
-    def contains_image(self, node):
-        if isinstance(node, (Image, ImageLink)):
-            return True
-        return any(self.contains_image(c) for c in node.get_children() if c is not None)
 
     def is_blank_inline(self, node):
         if isinstance(node, TextTerminal):

@@ -193,7 +193,7 @@ def parse_markdown_to_ast(
     if theme is None:
         theme = DEFAULT_THEME
 
-    BlockTextMerger(bold_link_is_button=bold_link_is_button).visit(ast)
+    BlockTextMerger(bold_link_is_button=bold_link_is_button).visit(ast, scope=ScopeStack())
     Annotation(theme=theme).visit(ast, scope=ScopeStack())
 
     return ast

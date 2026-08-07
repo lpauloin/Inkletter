@@ -2,9 +2,7 @@ from inkletter.md_to_text import parse_markdown_to_text
 
 
 def test_emphasis_markers_are_dropped():
-    actual = parse_markdown_to_text(
-        "Some *emphasis*, some **strong**, some ~~struck~~."
-    )
+    actual = parse_markdown_to_text("Some *emphasis*, some **strong**, some ~~struck~~.")
     print(actual)
     assert actual == "Some emphasis, some strong, some struck.\n"
 

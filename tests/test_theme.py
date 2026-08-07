@@ -135,9 +135,7 @@ def test_fonts_default_to_none_declared():
 
 
 def test_fonts_from_dict():
-    theme = Theme.from_dict(
-        {"text": {"font_family": SERIF_STACK}, "fonts": {"Lora": LORA}}
-    )
+    theme = Theme.from_dict({"text": {"font_family": SERIF_STACK}, "fonts": {"Lora": LORA}})
     assert theme.fonts == (("Lora", LORA),)
 
 
@@ -166,9 +164,7 @@ def test_font_must_be_used_by_the_text_font_family():
 
 def test_font_declared_for_headings_alone_is_refused():
     with pytest.raises(ThemeError, match="rely on the fallback"):
-        Theme.from_dict(
-            {"headings": {"font_family": SERIF_STACK}, "fonts": {"Lora": LORA}}
-        )
+        Theme.from_dict({"headings": {"font_family": SERIF_STACK}, "fonts": {"Lora": LORA}})
 
 
 def test_font_url_must_be_http():
@@ -188,9 +184,7 @@ def test_font_name_cannot_be_empty():
 
 def test_theme_with_fonts_stays_hashable_and_round_trips():
     theme = Theme(text=Text(font_family=SERIF_STACK), fonts={"Lora": LORA})
-    assert hash(theme) == hash(
-        Theme(text=Text(font_family=SERIF_STACK), fonts={"Lora": LORA})
-    )
+    assert hash(theme) == hash(Theme(text=Text(font_family=SERIF_STACK), fonts={"Lora": LORA}))
     assert Theme.from_dict(theme.to_dict()) == theme
 
 
@@ -210,9 +204,7 @@ def test_two_word_font_name_matches_a_quoted_stack():
 
 def test_font_declared_twice_is_refused():
     with pytest.raises(ThemeError, match="declared twice"):
-        Theme(
-            text=Text(font_family=SERIF_STACK), fonts=(("Lora", LORA), ("lora", LORA))
-        )
+        Theme(text=Text(font_family=SERIF_STACK), fonts=(("Lora", LORA), ("lora", LORA)))
 
 
 def test_fonts_from_toml(tmp_path):
