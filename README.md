@@ -107,8 +107,19 @@ table rows, filters with a `|` in a cell, conditionals around anything.
 The converter only ever sees plain Markdown, and the text part can align
 its table columns on the real values.
 
-See the **[Django integration guide](sample/DJANGO.md)** for the full
-snippet, the escaping your user data needs, and why this order.
+Values that are not yours need escaping — in a Markdown document,
+`[Click here](https://evil.tld)` is a working link. `escape_markdown`
+ships for that; wiring it to a template filter is two lines in your own
+app:
+
+```python
+from inkletter import escape_markdown
+
+register.filter("md", escape_markdown)
+```
+
+See the **[Django integration guide](sample/DJANGO.md)** for the setup,
+the full send function, and why this order.
 
 ## Sizing an image
 
