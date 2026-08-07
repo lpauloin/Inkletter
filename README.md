@@ -39,6 +39,8 @@ Python 3.10+ required.
 pip install inkletter
 ```
 
+See the [changelog](CHANGELOG.md) for what each version changed.
+
 Or for development:
 
 ```bash
@@ -91,12 +93,15 @@ Building emails for a Django app? Let Django resolve the template while
 the document is still Markdown, then convert what comes out:
 
 ```python
-from django.template import Context, Template
+from django.template import Context
+from django.template.loader import get_template
+
 from inkletter import parse_markdown_to_html, parse_markdown_to_text
 
-markdown = Template(
-    "{% autoescape off %}" + source + "{% endautoescape %}"
-).render(Context(context))
+# autoescape off: this render produces Markdown, not HTML
+markdown = get_template("emails/welcome.md").template.render(
+    Context(context, autoescape=False)
+)
 
 html = parse_markdown_to_html(markdown)
 text = parse_markdown_to_text(markdown)
@@ -108,14 +113,16 @@ The converter only ever sees plain Markdown, and the text part can align
 its table columns on the real values.
 
 Values that are not yours need escaping — in a Markdown document,
-`[Click here](https://evil.tld)` is a working link. `escape_markdown`
-ships for that; wiring it to a template filter is two lines in your own
-app:
+`[Click here](https://evil.tld)` is a working link, and a server
+response holding ` ``` ` escapes the code block you put it in.
+`escape_markdown` ships for the first; the second is `textwrap.indent`.
+Wiring them to template filters is three lines in your own app:
 
 ```python
 from inkletter import escape_markdown
 
 register.filter("md", escape_markdown)
+register.filter("md_code", lambda value: textwrap.indent(str(value), "    "))
 ```
 
 See the **[Django integration guide](sample/DJANGO.md)** for the setup,
@@ -331,7 +338,6 @@ the CLI does not expose factories.
 - [sample.html](sample/sample.html) — the generated responsive email
 - [sample/themes/](sample/themes/) — the same source rendered with every preset
 - [theme gallery](sample/THEMES.md) — all presets at a glance, desktop and mobile
-- [Django integration guide](sample/DJANGO.md) — rendering Markdown templates in a Django app
 
 ## Contributing
 
