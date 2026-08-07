@@ -25,7 +25,7 @@ and it becomes a **gorgeous, mobile-friendly HTML email** powered by MJML.
 - Layout from plain Markdown structure: side-by-side image rows, image-beside-text
   media objects, and call-to-action buttons from a lone bold link
 - Seven built-in themes, or your own theme in a small TOML file
-- Django template tags kept intact, to use Inkletter as a build step
+- Drops into a Django app: render the Markdown, then convert it
 - Live preview in your browser, with a device simulator (iPhone, iPad, desktop)
 - Clean Python API if you'd rather script it
 - Runs entirely on your machine, no account, no vendor lock-in
@@ -86,27 +86,28 @@ lines, and tables are ASCII-aligned.
 
 ## Django templates
 
-Building emails for a Django app? Pass `--django` and the tags survive
-the conversion, so the output is itself a Django template:
+Building emails for a Django app? Let Django resolve the template while
+the document is still Markdown, then convert what comes out:
 
-```bash
-inkletter md2html welcome_email.md --django -o templates/welcome_email.html
-inkletter md2txt  welcome_email.md --django -o templates/welcome_email.txt
+```python
+from django.template import Context, Template
+from inkletter import parse_markdown_to_html, parse_markdown_to_text
+
+markdown = Template(
+    "{% autoescape off %}" + source + "{% endautoescape %}"
+).render(Context(context))
+
+html = parse_markdown_to_html(markdown)
+text = parse_markdown_to_text(markdown)
 ```
 
-```markdown
-# Welcome aboard, {{ user.first_name }}
+In that order everything works with no special support: loops over
+table rows, filters with a `|` in a cell, conditionals around anything.
+The converter only ever sees plain Markdown, and the text part can align
+its table columns on the real values.
 
-**[Activate your account]({% url 'activate' token %})**
-```
-
-One source, both halves of the `multipart` email, rendered at send time
-with `render_to_string`. Variables, filters, `{% url %}` in links,
-conditionals around whole blocks — all of it comes out untouched.
-Without the flag, nothing changes: it is opt-in.
-
-See the **[Django template reference](sample/DJANGO.md)** for what is
-supported, the two layout rules, and the limitations.
+See the **[Django integration guide](sample/DJANGO.md)** for the full
+snippet, the escaping your user data needs, and why this order.
 
 ### Document title
 
@@ -282,7 +283,7 @@ the CLI does not expose factories.
 - [sample.html](sample/sample.html) — the generated responsive email
 - [sample/themes/](sample/themes/) — the same source rendered with every preset
 - [theme gallery](sample/THEMES.md) — all presets at a glance, desktop and mobile
-- [Django template reference](sample/DJANGO.md) — using Inkletter as a build step for Django emails
+- [Django integration guide](sample/DJANGO.md) — rendering Markdown templates in a Django app
 
 ## Contributing
 

@@ -3,6 +3,7 @@ from inkletter.visitors.generic import NodeVisitor
 
 class TreeVisitor(NodeVisitor):
     def __init__(self):
+        super().__init__()
         self.lines = []
         self._indent = 0
 

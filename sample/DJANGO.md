@@ -1,197 +1,157 @@
-# Django template reference
+# Using Inkletter in a Django app
 
-Inkletter can keep Django template tags intact, so that what it produces
-is itself a Django template. You build the email once, Django fills in
-the data at send time.
+Inkletter knows nothing about Django, and does not need to. The
+integration is an **order**: Django resolves the template while the
+document is still Markdown, then Inkletter converts what comes out.
 
-Pass `--django` on the command line, or `django_tags=True` from Python.
-It is off by default: without it, a stray `{{` in your prose stays a
-stray `{{`.
-
-## Why you need the flag
-
-Markdown and MJML are not neutral about curly braces. Without
-`--django`, a template tag gets destroyed three different ways:
-
-| You write              | You get                      | Why                                               |
-|------------------------|------------------------------|---------------------------------------------------|
-| `[Confirm]({{ url }})` | the raw text, no link at all | a Markdown link destination cannot contain spaces |
-| `[Confirm]({{url}})`   | `href="%7B%7Burl%7D%7D"`     | the parser percent-encodes the braces             |
-| `{% if a < b %}`       | `{% if a &lt; b %}`          | the `<` gets HTML-escaped                         |
-| `{{ price*2*qty }}`    | `{{ price<em>2</em>qty }}`   | the asterisks read as emphasis                    |
-
-With the flag, every tag comes out **byte for byte** as you wrote it.
-
-## Quick start
-
-Write one Markdown source, `welcome_email.md`:
-
-```markdown
-![Logo]({{ logo_url }})
-
-# Welcome aboard, {{ user.first_name }}
-
-Thanks for signing up. One click and you are in.
-
-**[Activate your account]({% url 'activate' token %})**
-
-See you inside,
-The crew.
+```
+Markdown + tags  →  Django  →  plain Markdown  →  Inkletter  →  HTML + text
 ```
 
-Build both halves of the email:
+Everything the data decides is settled before the converter runs, so it
+only ever sees plain Markdown. That is what makes loops, conditionals
+and filters work with no special support at all.
 
-```bash
-inkletter md2html welcome_email.md --django -o templates/welcome_email.html
-inkletter md2txt  welcome_email.md --django -o templates/welcome_email.txt
-```
-
-Then send it the way you always do:
+## The whole integration
 
 ```python
-from django.template.loader import render_to_string
+import re
 
-params = {"user": user, "logo_url": settings.LOGO_URL, "token": token}
-user.email_user(
-    subject="Welcome to Acme",
-    html_message=render_to_string("welcome_email.html", params),
-    message=render_to_string("welcome_email.txt", params),
-)
+from django.core.mail import EmailMultiAlternatives
+from django.template import Context, Template
+from django.template.loader import get_template
+
+from inkletter import parse_markdown_to_html, parse_markdown_to_text
+
+
+def send_markdown_email(template_name, context, subject, to):
+    """Render a Markdown template, convert it, send both parts."""
+    source = get_template(template_name).template.source
+    # autoescape off: this render produces *Markdown*, not HTML, so
+    # escaping for HTML here would put &amp; in front of your reader
+    markdown = Template(
+        "{% autoescape off %}" + source + "{% endautoescape %}"
+    ).render(Context(context))
+
+    message = EmailMultiAlternatives(
+        subject, parse_markdown_to_text(markdown), to=to
+    )
+    message.attach_alternative(parse_markdown_to_html(markdown), "text/html")
+    message.send()
 ```
 
-**Both outputs matter.** `md2html` and `md2txt` produce two templates
-from the same source, rendered with the same context, and sent together
-as `multipart/alternative`. The text half is what keeps you out of spam
-folders and what watches, screen readers and text clients actually show.
-Every example below applies to both.
+Pass a `theme=` to either converter if you do not want the default one.
 
-## What is supported
+## Escape what comes from your users
 
-✅ works · ⚠️ works with a caveat · ❌ not supported
+A value now lands in a **Markdown** document, so a member called `_Bob_`
+reaches the reader in italics, and a folder named `Invoices | Q3` splits
+the table cell it sits in. Django's own escaping guards HTML and helps
+with neither.
 
-### Variables and filters
+Register a filter in your app — `yourapp/templatetags/markdown_safe.py`:
 
-|   |                                                                                                  |
-|---|--------------------------------------------------------------------------------------------------|
-| ✅ | `{{ var }}`, `{{ user.name }}`, `{{ items.0 }}`                                                  |
-| ✅ | filters and their arguments: `{{ name\|title }}`, `{{ date\|date:"d/m/Y" }}`, chained            |
-| ❌ | a closing `}}` inside a quoted filter argument: `{{ x\|default:"a}}b" }}` cuts at the first `}}` |
+```python
+import re
 
-### Tags inside your content
+from django import template
 
-|   |                                                                                            |
-|---|--------------------------------------------------------------------------------------------|
-| ✅ | `{% url 'name' arg %}` as a link destination                                               |
-| ✅ | `{% static 'img/logo.png' %}` as an image source                                           |
-| ✅ | `{% now %}`, `{% firstof %}`, `{% cycle %}`, `{% widthratio %}`, `{% trans %}` and friends |
-| ✅ | `{% if %}…{% endif %}` in the middle of a sentence                                         |
+register = template.Library()
 
-### Flow control around blocks
+# CommonMark lets any ASCII punctuation be backslash-escaped. Escape the
+# whole set: guessing which characters are dangerous in which position
+# is how you miss one. The backslashes disappear at parse time, so the
+# reader of the text part never sees them.
+PUNCTUATION = re.compile(r"([!-/:-@\[-`{-~])")
 
-|    |                                                                                                    |
-|----|----------------------------------------------------------------------------------------------------|
-| ✅  | `{% if %}` / `{% for %}` on their own lines, around paragraphs and buttons                         |
-| ✅  | a loop around a **whole table**                                                                    |
-| ⚠️ | a loop around a **list item**: valid, but each pass makes its own one-item list                    |
-| ❌  | a loop around **table rows**: the row falls out of the table                                       |
-| ❌  | a conditional around a row of images or an image-beside-text block                                 |
-| ⚠️ | a lone statement inside a list, quote or table cell: it stays inline instead of wrapping the block |
 
-### Template structure
+@register.filter(name="md")
+def md(value):
+    """Make a value literal once it lands in a Markdown document."""
+    return PUNCTUATION.sub(r"\\\1", str(value))
+```
 
-|    |                                                                                                              |
-|----|--------------------------------------------------------------------------------------------------------------|
-| ✅  | `{% load i18n %}` at the top                                                                                 |
-| ✅  | `{# comments #}` and `{% comment %}…{% endcomment %}`                                                        |
-| ✅  | `{% verbatim %}`, `{% spaceless %}`, `{% filter %}`, `{% autoescape %}`                                      |
-| ⚠️ | `{% include %}`: passed through, but the included HTML gets none of Inkletter's styling or responsiveness    |
-| ⚠️ | `{% blocktranslate %}`: the extracted msgid will contain the generated HTML — keep the wrapped content plain |
-| ❌  | `{% extends %}`, `{% block %}`: pointless here, the output is already a complete template                    |
-| ❌  | a tag spread over several lines — Django does not allow it either                                            |
+Then put it last in every chain that carries user data:
 
-## Two layout rules
+```django
+{% load markdown_safe %}
 
-### Statements go on their own line
+Hi {{ member.first_name|default:'there'|md }},
+```
 
-A statement alone on its line wraps whole blocks. Inside a sentence, it
-stays inside the paragraph — which is what you want for a short
-conditional.
+Your own words — the ones you wrote in the template — need no filter.
+Only the data does.
 
-```markdown
-{% if trial_ending %}
+## A complete example
 
-Your trial ends on {{ end_date }}.
+```django
+{% load markdown_safe %}# Storage limits are changing
 
-**[Pick a plan]({% url 'plans' %})**
+Hi {{ member.first_name|default:'there'|md }},
 
+| Folder | Keeps for |
+|---|---|
+{% for f in folders %}| {{ f.name|md }} | {{ f.days|default:"no limit"|md }} |
+{% endfor %}
+
+In **{{ grace_days }} days** those folders revert.
+
+{% if paid %}
+Thanks for being on a paid plan.
+{% else %}
+**[See the plans]({% url 'plans' %})**
 {% endif %}
 ```
 
-### Leave a blank line before a closing tag that follows a list
+The HTML part gets a themed table with one row per folder. The text
+part gets the same table, its columns aligned on the **real values**:
 
-This is the one that bites. Markdown's lazy continuation swallows a
-closing tag glued to a list item, and your `{% endfor %}` ends up
-*inside* the last bullet — the template still renders, but the loop
-never closes where you meant it to.
-
-```markdown
-<!-- broken: {% endfor %} is absorbed into the last item -->
-{% for feature in features %}
-
-- {{ feature }}
-  {% endfor %}
-
-<!-- correct -->
-{% for feature in features %}
-
-- {{ feature }}
-
-{% endfor %}
+```
+Folder                   | Keeps for
+-------------------------+----------
+Invoices                 | 90 days
+Contracts                | no limit
+Scanned receipts archive | 365 days
 ```
 
-When in doubt, put a blank line on both sides of every statement line.
+That alignment is the clearest sign the order is right: it can only be
+computed once the data is there.
 
-## Limitations worth knowing
+## Why this order and not the other one
 
-- **A loop cannot repeat table rows.** Markdown parses tables line by
-  line, so a looped row leaves the table and becomes a paragraph. Loop
-  around the whole table instead — that works, and it is what you want
-  in an email anyway.
-- **A conditional cannot wrap a row of images or an image-beside-text
-  block.** Those build their own section, and the conditional would cut
-  through it. Conditionals around paragraphs, buttons, tables, lists and
-  single images are all fine.
-- **`md2mjml --django` gives you a Django template of MJML**, not MJML
-  you can compile straight away: a tag containing `<` is valid Django
-  but not valid XML. Render it with Django first, or just use `md2html`,
-  which compiles before putting the tags back.
-- **Tags in code blocks are left alone by Inkletter** — but Django will
-  still evaluate them at send time. Wrap them in `{% verbatim %}` if you
-  are documenting template syntax.
+Converting first and leaving the tags in the output would give you a
+pair of Django templates you could commit — but the tags would then
+have to survive Markdown, MJML and an XML compiler, and they do not
+survive intact:
 
-## Two Django gotchas
+- a `{% for %}` on its own line **ends** a Markdown table instead of
+  repeating its rows;
+- a filter's `|` **splits** the cell it sits in;
+- a conditional cannot wrap a row of images or an image-beside-text
+  block, because those build their own section and the conditional would
+  cut through it;
+- a closing tag glued to a list item gets swallowed into the item;
+- and the plain-text part cannot align columns it has not seen.
 
-**Turn autoescaping off in the text template.** Django escapes for HTML
-even in a `.txt`, so a customer named `Ben & Jerry` reads as
-`Ben &amp; Jerry` in the plain-text half of your email:
+Resolving first makes all of that disappear, because none of it ever
+reaches the converter.
 
-```markdown
-{% autoescape off %}
+The cost is that Inkletter runs on every send rather than once at build
+time. It is small — a full conversion of a real newsletter, MJML
+compilation included, is a couple of milliseconds — but if you would
+rather not have it in the sending path, convert to `.html`/`.txt` files
+ahead of time and accept that the templating has to stay simple enough
+to survive the trip.
 
-Sent by {{ company }}.
+## Notes
 
-{% endautoescape %}
-```
-
-**Keep `{% blocktranslate %}` content plain.** Whatever is inside gets
-formatted by Inkletter first, so the msgid `makemessages` extracts will
-contain the generated HTML — which your translators will not thank you
-for.
-
-## URL shortening
-
-If you use a [URL factory](../README.md#url-shortening), URLs holding a
-template tag are left alone: they are not resolved yet, so there is
-nothing a shortener could usefully do with them, and calling the API
-would burn quota for a link that cannot work. Plain URLs in the same
-document are still rewritten as usual.
+- **Turn autoescaping off** for the render, as in the snippet. Django
+  escapes for HTML even in a `.txt`, so without it a customer named
+  `Ben & Jerry` reads as `Ben &amp; Jerry`.
+- **`{% blocktranslate %}` content stays plain** — whatever is inside is
+  formatted by Inkletter afterwards, so keep markup out of the msgid.
+- **A `{% verbatim %}` block** is the way to show template syntax in an
+  email without Django evaluating it.
+- **URL shortening** works as usual: by the time a
+  [URL factory](../README.md#url-shortening) sees a link, its tags are
+  already resolved into a real URL.

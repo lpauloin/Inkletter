@@ -4,6 +4,7 @@ from inkletter.visitors.generic import NodeVisitor
 
 class BlockTextMerger(NodeVisitor):
     def __init__(self, bold_link_is_button=True):
+        super().__init__()
         self.bold_link_is_button = bold_link_is_button
 
     def merge_inline_sequences(self, children):
@@ -71,10 +72,6 @@ class BlockTextMerger(NodeVisitor):
 
     def visit_CodeSpan(self, node, scope):
         self.collect_alt(scope, node.code)
-
-    def visit_TemplateTag(self, node, scope):
-        # without this the tag would simply vanish from an alt
-        self.collect_alt(scope, node.raw)
 
     def visit_Document(self, node, scope):
         scope.push(node)

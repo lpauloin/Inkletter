@@ -3,8 +3,6 @@ import html
 import mistune
 
 from inkletter.ast import *
-from inkletter.django_tags import django_tags as django_tags_plugin
-from inkletter.scope import ScopeStack
 from inkletter.theme import DEFAULT_THEME
 from inkletter.visitors.annotation import Annotation
 from inkletter.visitors.merger import BlockTextMerger
@@ -25,12 +23,16 @@ class ASTRenderer(mistune.BaseRenderer):
 
         if attrs:
             if text is not None:
-                return func(text, **attrs)
-            return func(**attrs)
+                node = func(text, **attrs)
+            else:
+                node = func(**attrs)
         else:
             if text is not None:
-                return func(text)
-            return func()
+                node = func(text)
+            else:
+                node = func()
+
+        return node
 
     def render_tokens(self, tokens, state):
         nodes = []
@@ -70,9 +72,6 @@ class ASTRenderer(mistune.BaseRenderer):
     def inline_html(self, html):
         return InlineHtml(html)
 
-    def django_tag(self, raw):
-        return TemplateTag(raw)
-
     def link(self, text, url, title=None):
         # If the text contains an image, we create an ImageLink
         # We extract the image from the text to create a new ImageLink node
@@ -100,9 +99,6 @@ class ASTRenderer(mistune.BaseRenderer):
 
     def block_html(self, html):
         return BlockHtml(html.strip("\n"))
-
-    def django_statement(self, raw):
-        return TemplateStatement(raw)
 
     def thematic_break(self):
         return ThematicBreak()
@@ -169,7 +165,6 @@ def parse_markdown_to_ast(
     bold_link_is_button=True,
     theme=None,
     url_factory=None,
-    django_tags=False,
 ):
     renderer = ASTRenderer()
     plugins = [
@@ -179,21 +174,17 @@ def parse_markdown_to_ast(
         "mistune.plugins.table.table_in_quote",
         "mistune.plugins.task_lists.task_lists",
     ]
-    if django_tags:
-        plugins.append(django_tags_plugin)
     markdown = mistune.create_markdown(renderer=renderer, plugins=plugins)
 
     ast = markdown(markdown_text)
 
     if url_factory is not None:
-        # an URL holding a template tag is unresolved: a factory cannot
-        # shorten it, and the call itself costs (quota, latency)
-        URLRewriter(url_factory, protected=django_tags).visit(ast)
+        URLRewriter(url_factory).visit(ast)
 
     if theme is None:
         theme = DEFAULT_THEME
 
-    BlockTextMerger(bold_link_is_button=bold_link_is_button).visit(ast, scope=ScopeStack())
-    Annotation(theme=theme).visit(ast, scope=ScopeStack())
+    BlockTextMerger(bold_link_is_button=bold_link_is_button).visit(ast)
+    Annotation(theme=theme).visit(ast)
 
     return ast

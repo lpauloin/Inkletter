@@ -15,14 +15,11 @@ class Codegen(NodeVisitor):
     """Emits MJML from the annotated AST. Every styling decision reaches
     it as annotation-provided instructions: no theme in sight."""
 
-    def __init__(self, mask):
+    def __init__(self):
         super().__init__()
         self.root = CodeBlock()
         self.resolver = CodeBlockResolver()
         self.current = self.root
-        # There is always a mask, and the caller owns it: it outlives the
-        # codegen, since revealing happens once the MJML compiler is done.
-        self.mask = mask
 
     def get_code(self):
         return self.resolver.resolve(self.root)
@@ -30,11 +27,7 @@ class Codegen(NodeVisitor):
     @contextmanager
     def block_tag(self, name, attrs=None, self_closing=False, inline=False):
         attrs = attrs or {}
-        # every attribute funnels through here: protecting the values in
-        # one place covers href, src, alt and title at once
-        attrs_str = "".join(
-            f' {k}="{html.escape(self.mask.hide(str(v)), quote=True)}"' for k, v in attrs.items()
-        )
+        attrs_str = "".join(f' {k}="{html.escape(str(v), quote=True)}"' for k, v in attrs.items())
         if self_closing:
             self.current.add_text(f"<{name}{attrs_str}/>")
             if not inline:
@@ -358,13 +351,6 @@ class Codegen(NodeVisitor):
 
     def visit_BlockHtml(self, node, scope):
         self.emit_raw(node, node.value)
-
-    def visit_TemplateStatement(self, node, scope):
-        self.emit_raw(node, self.mask.hide(node.raw))
-
-    def visit_TemplateTag(self, node, scope):
-        with self.ensure_open_text(node):
-            self.current.add_text(self.mask.hide(node.raw))
 
     def add_raw_lines(self, value):
         for line in value.splitlines():

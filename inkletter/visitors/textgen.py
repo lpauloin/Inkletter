@@ -132,13 +132,6 @@ class TextCodegen(NodeVisitor):
     def visit_InlineHtml(self, node, scope):
         pass  # the tags vanish, the surrounding text nodes remain
 
-    def visit_TemplateTag(self, node, scope):
-        # never escaped: Django reads the tag exactly as it was written
-        self.current.add_text(node.raw)
-
-    def visit_TemplateStatement(self, node, scope):
-        self.line(node.raw)
-
     def visit_Emphasis(self, node, scope):
         self.generic_visit(node, scope)
 

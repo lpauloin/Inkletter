@@ -149,14 +149,3 @@ def test_font_url_ampersand_is_escaped_in_the_attribute():
     actual = parse_markdown_to_mjml("Hello", theme=font_theme(fonts={"Lora": swap}))
     print(actual)
     assert 'href="https://fonts.googleapis.com/css2?family=Lora&amp;display=swap"' in actual
-
-
-def test_web_font_and_django_tags_together():
-    html = parse_markdown_to_html(
-        "# {{ title }}\n\ntext",
-        theme=font_theme(fonts={"Lora": LORA}),
-        django_tags=True,
-    )
-    assert "{{ title }}" in html
-    assert "family=Lora" in html
-    assert "inktag" not in html

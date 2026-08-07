@@ -16,10 +16,7 @@ except ModuleNotFoundError:  # Python 3.10
     import tomli as tomllib
 
 from inkletter.colors import WHITE, Blue, Gray, Green, Red, Slate, Yellow
-
-
-class ThemeError(Exception):
-    """Invalid theme definition (unknown key, bad type, unknown preset)."""
+from inkletter.exceptions import ThemeError
 
 
 @dataclass(frozen=True)

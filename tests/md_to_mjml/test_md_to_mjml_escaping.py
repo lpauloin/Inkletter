@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_body
@@ -164,3 +166,52 @@ def test_entity_cannot_smuggle_html():
     print(actual)
     assert "<script>" not in actual
     assert "&lt;script&gt;" in actual
+
+
+# --- Backslash escapes, the ones sample/DJANGO.md tells you to apply ---
+#
+# A value substituted into a Markdown document is Markdown. The guide
+# hands out a filter that backslash-escapes ASCII punctuation, which is
+# only worth anything if those escapes survive the conversion.
+
+PUNCTUATION = re.compile(r"([!-/:-@\[-`{-~])")
+
+
+def md_escape(value):
+    """The escaping helper documented in sample/DJANGO.md."""
+    return PUNCTUATION.sub(r"\\\1", value)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "_Bob_",
+        "**shouting**",
+        "# not a heading",
+        "- not a list item",
+        "[click](https://evil.example)",
+        "back\\slash",
+    ],
+)
+def test_an_escaped_value_stays_literal(value):
+    actual = parse_markdown_to_mjml(f"Value: {md_escape(value)}.")
+    print(actual)
+    assert f"Value: {value}." in actual
+    assert "<em>" not in actual and "<strong>" not in actual
+
+
+def test_an_escaped_value_cannot_inject_html():
+    actual = parse_markdown_to_mjml(f"Value: {md_escape('<script>alert(1)</script>')}.")
+    print(actual)
+    assert "<script>" not in actual
+    assert "alert(1)" in actual
+
+
+def test_an_escaped_pipe_does_not_split_a_cell():
+    # the reason the helper escapes punctuation Gruber never listed: the
+    # pipe belongs to GFM tables, and a value holding one would otherwise
+    # open a column of its own
+    actual = parse_markdown_to_mjml(f"| A | B |\n|---|---|\n| {md_escape('one | two')} | ok |")
+    print(actual)
+    assert actual.count("<td") == 2
+    assert "one | two" in actual

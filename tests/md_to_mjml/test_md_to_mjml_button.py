@@ -6,7 +6,8 @@ from inkletter.md_to_mjml import (
     wrap_mjml_body,
     wrap_mjml_document,
 )
-from inkletter.theme import Buttons, Theme, ThemeError
+from inkletter.exceptions import ThemeError
+from inkletter.theme import Buttons, Theme
 
 URL = "https://exemple.com/go"
 

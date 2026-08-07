@@ -1,7 +1,8 @@
 import pytest
 
 from inkletter.colors import Blue, Slate, WHITE
-from inkletter.theme import THEMES, Links, Text, Theme, ThemeError
+from inkletter.exceptions import ThemeError
+from inkletter.theme import THEMES, Links, Text, Theme
 
 
 def test_default_theme_is_complete():

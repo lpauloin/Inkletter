@@ -11,6 +11,7 @@ class Annotation(NodeVisitor):
     """
 
     def __init__(self, theme):
+        super().__init__()
         self.theme = theme
 
     def visit_Document(self, node, scope):
@@ -304,18 +305,6 @@ class Annotation(NodeVisitor):
     def visit_BlockHtml(self, node, scope):
         scope.push(node)
         self.mark_raw_if_needed(node, scope)
-        scope.pop(node)
-
-    def visit_TemplateStatement(self, node, scope):
-        # flow control wraps whole elements, so it sits in the column
-        # between them: same rule as raw HTML
-        scope.push(node)
-        self.mark_raw_if_needed(node, scope)
-        scope.pop(node)
-
-    def visit_TemplateTag(self, node, scope):
-        scope.push(node)
-        self.mark_text_if_needed(node, scope)
         scope.pop(node)
 
     def visit_ThematicBreak(self, node, scope):

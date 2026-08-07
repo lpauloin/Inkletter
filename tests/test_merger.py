@@ -2,7 +2,7 @@ import mistune
 
 from inkletter.ast import *
 from inkletter.md_to_ast import ASTRenderer
-from inkletter.scope import ScopeStack
+from inkletter.visitors.scope import ScopeStack
 from inkletter.theme import DEFAULT_THEME
 from inkletter.visitors.annotation import Annotation
 from inkletter.visitors.merger import BlockTextMerger
@@ -20,7 +20,7 @@ def generate_ast(markdown_input):
         ],
     )
     ast = markdown(markdown_input)
-    Annotation(DEFAULT_THEME).visit(ast, scope=ScopeStack())
+    Annotation(DEFAULT_THEME).visit(ast)
     print("AST:")
     print_tree(ast)
     return ast
@@ -28,7 +28,7 @@ def generate_ast(markdown_input):
 
 def merge_ast(ast):
     splitter = BlockTextMerger()
-    splitter.visit(ast, scope=ScopeStack())
+    splitter.visit(ast)
     print("AST after splitting:")
     print_tree(ast)
     return ast

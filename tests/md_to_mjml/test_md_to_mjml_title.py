@@ -72,10 +72,6 @@ def test_inline_html_refuses_the_title():
     assert refused("# Hello <b>world</b>")
 
 
-def test_template_tag_refuses_the_title():
-    assert refused("# Hi {{ user.name }}", django_tags=True)
-
-
 def test_a_two_line_setext_heading_refuses_the_title():
     assert refused("Title\nsecond line\n=====")
 
