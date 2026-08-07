@@ -2,7 +2,8 @@ import pytest
 
 from inkletter.colors import Blue, Slate, WHITE
 from inkletter.exceptions import ThemeError
-from inkletter.theme import THEMES, Heading, Headings, Links, Text, Theme
+from inkletter.md_to_mjml import parse_markdown_to_mjml
+from inkletter.theme import LEVELS, THEMES, Heading, Headings, Links, Text, Theme
 
 
 def test_default_theme_is_complete():
@@ -242,7 +243,7 @@ def test_presets_declare_no_web_font():
 
 def test_every_level_has_a_size_and_an_alignment():
     headings = Theme().headings
-    assert [headings.at(n).size for n in range(1, 7)] == [
+    assert [headings.at(n).size for n in LEVELS] == [
         "28px",
         "22px",
         "18px",
@@ -250,20 +251,18 @@ def test_every_level_has_a_size_and_an_alignment():
         "14px",
         "13px",
     ]
-    assert {headings.at(n).align for n in range(1, 7)} == {"left"}
+    assert {headings.at(n).align for n in LEVELS} == {"left"}
 
 
 def test_every_level_is_sized_in_the_css():
     css = Theme().to_css()
     print(css)
-    for number in range(1, 7):
+    for number in LEVELS:
         assert f"h{number} {{ font-size:" in css
 
 
 def test_the_default_emits_no_alignment_at_all():
     # an unchanged theme must render byte for byte as before
-    from inkletter.md_to_mjml import parse_markdown_to_mjml
-
     source = "# Titre\n\nTexte."
     assert parse_markdown_to_mjml(source) == parse_markdown_to_mjml(
         source, theme=Theme(headings=Headings(h1=Heading(size="28px", align="left")))
@@ -273,8 +272,6 @@ def test_the_default_emits_no_alignment_at_all():
 @pytest.mark.parametrize("level", [1, 2, 3])
 @pytest.mark.parametrize("align", ["center", "right"])
 def test_each_level_carries_its_own_alignment(level, align):
-    from inkletter.md_to_mjml import parse_markdown_to_mjml
-
     theme = Theme(headings=Headings(**{f"h{level}": Heading(size="20px", align=align)}))
     actual = parse_markdown_to_mjml(f"{'#' * level} Titre\n\nTexte.", theme=theme)
     print(actual)
@@ -284,8 +281,6 @@ def test_each_level_carries_its_own_alignment(level, align):
 def test_the_other_levels_stay_put():
     # the reason for one object per level: a centred h1 over
     # left-aligned h2s is what a newsletter actually looks like
-    from inkletter.md_to_mjml import parse_markdown_to_mjml
-
     theme = Theme(headings=Headings(h1=Heading(size="28px", align="center")))
     actual = parse_markdown_to_mjml("# Un\n\n## Deux\n\n### Trois", theme=theme)
     print(actual)
@@ -355,3 +350,24 @@ def test_a_mistake_in_a_level_is_refused(data, message):
     with pytest.raises(ThemeError) as error:
         Theme.from_dict({"headings": data})
     assert message in str(error.value)
+
+
+# --- The other two sections that carry an alignment ---
+#
+# They feed the same mj-* align attribute, and until now neither was
+# checked: a typo showed up as an element quietly not moving.
+
+
+@pytest.mark.parametrize("section", ["buttons", "images"])
+@pytest.mark.parametrize("value", ["justify", "middle", "LEFT"])
+def test_every_alignment_in_the_theme_is_checked(section, value):
+    with pytest.raises(ThemeError) as error:
+        Theme.from_dict({section: {"align": value}})
+    assert str(error.value) == (
+        f"align '{value}' in [{section}] is not an alignment; use left, center, right"
+    )
+
+
+def test_the_defaults_they_ship_with_are_valid():
+    assert Theme().buttons.align == "center"
+    assert Theme().images.align == "center"

@@ -35,8 +35,21 @@ class Text:
     color: str = Gray.DARK
 
 
-#: h1 through h6, in order. The one place the range is written down.
+#: h1 through h6, in order. The fields below are the source of truth —
+#: this is what keeps every loop over them in step.
 LEVELS = range(1, 7)
+
+#: What an mj-* align attribute takes. Every section that has one is
+#: checked against it: a value outside the list would not raise on its
+#: own, it would show up as an element quietly not moving.
+ALIGNMENTS = ("left", "center", "right")
+
+
+def _validate_alignment(where, value):
+    if value not in ALIGNMENTS:
+        raise ThemeError(
+            f"align '{value}' in [{where}] is not an alignment; " f"use {', '.join(ALIGNMENTS)}"
+        )
 
 
 @dataclass(frozen=True)
@@ -52,16 +65,16 @@ class Headings:
     font_family: str | None = None  # None inherits Text.font_family
     color: str | None = None  # None inherits Text.color
     font_weight: str = "700"
-    h1: Heading = field(default_factory=lambda: Heading(size="28px"))
-    h2: Heading = field(default_factory=lambda: Heading(size="22px"))
-    h3: Heading = field(default_factory=lambda: Heading(size="18px"))
-    h4: Heading = field(default_factory=lambda: Heading(size="16px"))
-    h5: Heading = field(default_factory=lambda: Heading(size="14px"))
-    h6: Heading = field(default_factory=lambda: Heading(size="13px"))
+    h1: Heading = Heading(size="28px")
+    h2: Heading = Heading(size="22px")
+    h3: Heading = Heading(size="18px")
+    h4: Heading = Heading(size="16px")
+    h5: Heading = Heading(size="14px")
+    h6: Heading = Heading(size="13px")
 
     def __post_init__(self):
         for number in LEVELS:
-            _validate_alignment(number, self.at(number).align)
+            _validate_alignment(f"headings.h{number}", self.at(number).align)
 
     def at(self, number):
         """The settings for one heading level."""
@@ -103,6 +116,9 @@ class Buttons:
     padding: str = "12px 24px"  # mj-button inner-padding
     align: str = "center"
 
+    def __post_init__(self):
+        _validate_alignment("buttons", self.align)
+
 
 @dataclass(frozen=True)
 class Images:
@@ -111,6 +127,9 @@ class Images:
     border_radius: str = "0"
     text_layout: str = "columns"  # media object: "columns" or "stacked"
     media_ratio: str = "30%"  # image column width of a media object
+
+    def __post_init__(self):
+        _validate_alignment("images", self.align)
 
 
 @dataclass(frozen=True)
@@ -202,7 +221,7 @@ class Theme:
             [
                 # blocks each live in their own mj-text (10px padding), so
                 # margins stay at 0 and the rhythm comes from that padding
-                f"h1, h2, h3, h4, h5, h6 {{ font-family: {heading_font};"
+                f"{', '.join(f'h{n}' for n in LEVELS)} {{ font-family: {heading_font};"
                 f" color: {heading_color};"
                 f" font-weight: {self.headings.font_weight};"
                 f" line-height: 1.3; margin: 0; }}",
@@ -268,7 +287,7 @@ def _build_group(group_cls, group_name, group_data, base=None):
             # A subsection, such as [headings.h1]: the same rules one
             # level down, merged onto that level's own default so that
             # naming the alignment does not mean repeating the size.
-            default = group_fields[key].default_factory()
+            default = group_fields[key].default
             values[key] = _build_group(type(default), f"{group_name}.{key}", value, base=default)
             continue
         _check_value(group_fields[key], group_name, key, value)
@@ -297,19 +316,6 @@ def unquote_font_family(font_family):
     what MJML understands. CSS reads them the same either way.
     """
     return ", ".join(_font_names(font_family))
-
-
-#: What mj-text takes, and what a td can carry. Anything else is a typo
-#: that would show up as a heading quietly not moving.
-ALIGNMENTS = ("left", "center", "right")
-
-
-def _validate_alignment(number, value):
-    if value not in ALIGNMENTS:
-        raise ThemeError(
-            f"align '{value}' in [headings.h{number}] is not an alignment; "
-            f"use {', '.join(ALIGNMENTS)}"
-        )
 
 
 def _validate_fonts(fonts, text):

@@ -178,8 +178,8 @@ def test_braces_in_a_paragraph_are_left_alone(ast):
         ("{width=2in}", "'width=2in' is not a length; emails can rely on px and % only"),
         ("{height=10vw}", "'height=10vw' is not a length; emails can rely on px and % only"),
         ("{width=wide}", "'width=wide' is not a length; emails can rely on px and % only"),
-        ("{align=top}", "'align=top' is not an alignment; use left, center or right"),
-        ("{align=LEFT}", "'align=LEFT' is not an alignment; use left, center or right"),
+        ("{align=top}", "'align=top' is not an alignment; use left, center, right"),
+        ("{align=LEFT}", "'align=LEFT' is not an alignment; use left, center, right"),
         ("{width=96px width=50%}", "'width' is set twice"),
     ],
 )

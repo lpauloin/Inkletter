@@ -73,7 +73,7 @@ def check_dimension(key, value):
 
 def check_align(value):
     if value not in ALIGNMENTS:
-        raise MarkupError(f"'align={value}' is not an alignment; use left, center or right")
+        raise MarkupError(f"'align={value}' is not an alignment; use {', '.join(ALIGNMENTS)}")
     return value
 
 
