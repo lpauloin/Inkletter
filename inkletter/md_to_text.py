@@ -7,12 +7,14 @@ def parse_markdown_to_text(
     markdown_text,
     print_ast=False,
     bold_link_is_button=True,
+    link_attributes=True,
     url_factory=None,
 ):
     """The plain-text alternative of the email (multipart/alternative)."""
     ast = parse_markdown_to_ast(
         markdown_text,
         bold_link_is_button=bold_link_is_button,
+        link_attributes=link_attributes,
         url_factory=url_factory,
     )
     if print_ast:

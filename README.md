@@ -25,6 +25,7 @@ and it becomes a **gorgeous, mobile-friendly HTML email** powered by MJML.
 - Layout from plain Markdown structure: side-by-side image rows, image-beside-text
   media objects, and call-to-action buttons from a lone bold link
 - Seven built-in themes, or your own theme in a small TOML file
+- Image sizing with Pandoc's `{width=96px}` attributes
 - Drops into a Django app: render the Markdown, then convert it
 - Live preview in your browser, with a device simulator (iPhone, iPad, desktop)
 - Clean Python API if you'd rather script it
@@ -108,6 +109,31 @@ its table columns on the real values.
 
 See the **[Django integration guide](sample/DJANGO.md)** for the full
 snippet, the escaping your user data needs, and why this order.
+
+## Sizing an image
+
+A logo exported at 2x arrives twice too large unless the document says
+how wide to draw it — and no theme can say it, because the theme does
+not know which image you inserted. Put the facts in braces, Pandoc's
+`link_attributes` syntax:
+
+```markdown
+![Acme](logo@2x.png){width=96px}
+
+![Screenshot](shot.png){width=50% align=left}
+
+[![Acme](logo@2x.png)](https://acme.example){width=96px}
+```
+
+`width`, `height` and `align` — and nothing else. A dimension is a fact
+about the asset; an appearance is a choice of theme, so no CSS property
+is ever accepted here. Lengths take `px` or `%`, a bare number means
+pixels, and alignment is `left`, `center` or `right`.
+
+A block only counts when it is glued to an image, or to a link wrapping
+one. A space before the brace keeps it as text, and so does anything
+that is not an attribute — `{beta}` or `{see below}` travel through
+untouched. Turn the whole thing off with `--no-link-attributes`.
 
 ### Document title
 

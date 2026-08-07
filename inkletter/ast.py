@@ -138,12 +138,34 @@ class BlockHtml(Node):
 # --- Image element ---
 
 
+class Attributes(Node):
+    """What the author wrote in braces after an image.
+
+    Facts about the asset, never appearance: the theme keeps deciding
+    how images look. Not a child of the image — it describes it, it is
+    not part of its content — so no visitor ever walks into it.
+    """
+
+    def __init__(self, width=None, height=None, align=None):
+        super().__init__()
+        self.width = width
+        self.height = height
+        self.align = align
+
+    def __bool__(self):
+        return bool(self.width or self.height or self.align)
+
+    def __repr__(self):
+        return f"Attributes(width='{self.width}', height='{self.height}', align='{self.align}')"
+
+
 class Image(Node):
-    def __init__(self, url, alt_text=None, title=None):
+    def __init__(self, url, alt_text=None, title=None, attributes=None):
         super().__init__()
         self.url = url
         self.alt_text = alt_text
         self.title = title
+        self.attributes = attributes if attributes is not None else Attributes()
 
     def get_children(self):
         if self.alt_text is None:

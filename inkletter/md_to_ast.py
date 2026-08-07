@@ -3,6 +3,7 @@ import html
 import mistune
 
 from inkletter.ast import *
+from inkletter.link_attributes import link_attributes as link_attributes_plugin
 from inkletter.theme import DEFAULT_THEME
 from inkletter.visitors.annotation import Annotation
 from inkletter.visitors.merger import BlockTextMerger
@@ -72,12 +73,16 @@ class ASTRenderer(mistune.BaseRenderer):
     def inline_html(self, html):
         return InlineHtml(html)
 
-    def link(self, text, url, title=None):
+    def link(self, text, url, title=None, ink_attributes=None):
         # If the text contains an image, we create an ImageLink
         # We extract the image from the text to create a new ImageLink node
         # The rest of the text is ignored
         title = html.unescape(title) if title else title
         if img := next((t for t in text if isinstance(t, Image)), None):
+            # a block written after the link decorates the image it wraps,
+            # so both spellings land in the same place
+            if ink_attributes and not img.attributes:
+                img.attributes = Attributes(**ink_attributes)
             return ImageLink(img, url, title)
         else:
             return Link(text, url, title)
@@ -115,14 +120,14 @@ class ASTRenderer(mistune.BaseRenderer):
     def block_quote(self, text):
         return BlockQuote(text)
 
-    def image(self, alt, url, title=None):
+    def image(self, alt, url, title=None, ink_attributes=None):
         # The tokenizer returns a list of inline nodes; the alt may contain
         # formatting, which BlockTextMerger later merges into a single
         # LiteralText since the HTML alt attribute cannot hold markup.
         if alt:
             assert isinstance(alt, list), alt
         title = html.unescape(title) if title else title
-        return Image(url, alt, title)
+        return Image(url, alt, title, attributes=Attributes(**(ink_attributes or {})))
 
     # --- List renderers ---
 
@@ -163,6 +168,7 @@ class ASTRenderer(mistune.BaseRenderer):
 def parse_markdown_to_ast(
     markdown_text,
     bold_link_is_button=True,
+    link_attributes=True,
     theme=None,
     url_factory=None,
 ):
@@ -174,6 +180,9 @@ def parse_markdown_to_ast(
         "mistune.plugins.table.table_in_quote",
         "mistune.plugins.task_lists.task_lists",
     ]
+    if link_attributes:
+        plugins.append(link_attributes_plugin)
+
     markdown = mistune.create_markdown(renderer=renderer, plugins=plugins)
 
     ast = markdown(markdown_text)

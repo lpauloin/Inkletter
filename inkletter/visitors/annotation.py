@@ -85,6 +85,37 @@ class Annotation(NodeVisitor):
         if is_in_list:
             node.annotations["requires_manual_table"] = True
 
+    def apply_author_attributes(self, node):
+        """Fold what the author asked for into the render instructions.
+
+        The theme keeps deciding how images look; the document only
+        says how wide this one is, and where it sits. A manual <img>
+        has no attributes of its own, so its facts go into the style it
+        already carries — and an alignment means nothing there, an
+        image in a run of text sits where the text puts it.
+        """
+        attributes = node.attributes
+        if not attributes:
+            return
+        if node.annotations.get("requires_manual_image"):
+            sizes = [
+                f"{name}: {value};"
+                for name, value in (("width", attributes.width), ("height", attributes.height))
+                if value
+            ]
+            if sizes:
+                node.annotations["image_style"] += " " + " ".join(sizes)
+            return
+        node.annotations["image_size"] = {
+            name: value
+            for name, value in (
+                ("width", attributes.width),
+                ("height", attributes.height),
+                ("align", attributes.align),
+            )
+            if value
+        }
+
     def mark_manual_image_if_needed(self, node, scope):
         # Inside the raw HTML of an mj-text (in_text: headings, quotes,
         # lists, inline formatting), of an mj-table or of an mj-button
@@ -218,13 +249,14 @@ class Annotation(NodeVisitor):
     def visit_Image(self, node, scope):
         scope.push(node)
         self.mark_manual_image_if_needed(node, scope)
+        self.apply_author_attributes(node)
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_ImageLink(self, node, scope):
         scope.push(node)
         self.mark_manual_image_if_needed(node, scope)
-        self.generic_visit(node, scope)
+        self.generic_visit(node, scope)  # reaches node.img -> visit_Image
         scope.pop(node)
 
     def visit_Heading(self, node, scope):

@@ -12,11 +12,13 @@ def parse_markdown_to_mjml(
     print_ast=False,
     theme=None,
     bold_link_is_button=True,
+    link_attributes=True,
     url_factory=None,
 ):
     ast = parse_markdown_to_ast(
         markdown_text,
         bold_link_is_button=bold_link_is_button,
+        link_attributes=link_attributes,
         theme=theme,
         url_factory=url_factory,
     )

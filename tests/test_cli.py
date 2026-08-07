@@ -194,3 +194,33 @@ def test_md2txt_missing_input_fails():
     result = CliRunner().invoke(cli, ["md2txt", "/nonexistent/input.md"])
 
     assert result.exit_code != 0
+
+
+def test_md2mjml_sizes_an_image(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("![Acme](https://x.com/l.png){width=96px}\n", encoding="utf-8")
+
+    result = CliRunner().invoke(cli, ["md2mjml", str(md)])
+
+    assert result.exit_code == 0
+    assert 'width="96px"' in result.output
+
+
+def test_no_link_attributes_leaves_the_braces_alone(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("![Acme](https://x.com/l.png){width=96px}\n", encoding="utf-8")
+
+    result = CliRunner().invoke(cli, ["md2mjml", str(md), "--no-link-attributes"])
+
+    assert result.exit_code == 0
+    assert "{width=96px}" in result.output
+
+
+def test_md2html_reports_a_bad_attribute(tmp_path):
+    md = tmp_path / "in.md"
+    md.write_text("![Acme](https://x.com/l.png){width=96em}\n", encoding="utf-8")
+
+    result = CliRunner().invoke(cli, ["md2html", str(md)])
+
+    assert result.exit_code != 0
+    assert "emails can rely on px and % only" in result.output

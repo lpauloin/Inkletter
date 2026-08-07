@@ -46,6 +46,15 @@ CORPUS = [
     "[![a](https://x.com/a.png)](https://x.com) ![b](https://x.com/b.png)",
     "![J](https://x.com/j.png) Un média-objet avec du texte.",
     "Un média-objet inversé. ![J](https://x.com/j.png)",
+    # image attributes, in every context an image can land in
+    "![a](https://x.com/a.png){width=96px}",
+    "[![a](https://x.com/a.png)](https://x.com){width=50%}",
+    "# Titre ![i](https://x.com/i.png){width=24px}",
+    "> citation ![i](https://x.com/i.png){width=24px}",
+    "- item ![i](https://x.com/i.png){width=24px}",
+    "| A |\n|---|\n| ![i](https://x.com/i.png){width=24px} |",
+    "![a](https://x.com/a.png){width=40px} ![b](https://x.com/b.png){height=20px}",
+    "![J](https://x.com/j.png){width=64px} Un média-objet avec du texte.",
     # the rest of the syntax, mixed
     "Du `code` et **du gras** et un [lien](https://x.com/?a=1&b=2).",
     "```python\nprint('x')\n```",

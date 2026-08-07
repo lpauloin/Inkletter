@@ -219,6 +219,7 @@ class Codegen(NodeVisitor):
             tag = "mj-image"
             if node.annotations.get("image_padding"):
                 attrs["padding"] = node.annotations["image_padding"]
+            attrs.update(node.annotations.get("image_size", {}))
 
         with self.block_tag(tag, attrs=attrs, self_closing=True):
             pass
@@ -247,6 +248,7 @@ class Codegen(NodeVisitor):
                 attrs["title"] = node.img.title
             if node.annotations.get("image_padding"):
                 attrs["padding"] = node.annotations["image_padding"]
+            attrs.update(node.img.annotations.get("image_size", {}))
 
             with self.block_tag("mj-image", attrs=attrs, self_closing=True, inline=True):
                 pass

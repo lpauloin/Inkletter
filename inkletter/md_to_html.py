@@ -11,6 +11,7 @@ def parse_markdown_to_html(
     markdown_text,
     theme=None,
     bold_link_is_button=True,
+    link_attributes=True,
     url_factory=None,
 ):
     return parse_mjml_to_html(
@@ -18,6 +19,7 @@ def parse_markdown_to_html(
             markdown_text,
             theme=theme,
             bold_link_is_button=bold_link_is_button,
+            link_attributes=link_attributes,
             url_factory=url_factory,
         )
     )

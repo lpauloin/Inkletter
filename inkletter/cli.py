@@ -50,6 +50,12 @@ def cli():
 
 def conversion_options(command):
     command = click.option(
+        "--no-link-attributes",
+        "no_link_attributes",
+        is_flag=True,
+        help="Treat {width=96px} after an image as plain text instead of an attribute.",
+    )(command)
+    command = click.option(
         "--no-bold-link-button",
         "no_bold_link_button",
         is_flag=True,
@@ -106,6 +112,7 @@ def preview(
     output: Path | None,
     theme_name: str | None,
     no_bold_link_button: bool,
+    no_link_attributes: bool,
 ):
     """
     Convert a Markdown file into MJML, then into HTML, and preview it in a browser.
@@ -119,6 +126,7 @@ def preview(
             markdown_text,
             theme=theme,
             bold_link_is_button=not no_bold_link_button,
+            link_attributes=not no_link_attributes,
         )
         html_output = parse_mjml_to_html(mjml_code)
 
@@ -148,6 +156,7 @@ def md2mjml(
     output: Path | None,
     theme_name: str | None,
     no_bold_link_button: bool,
+    no_link_attributes: bool,
 ):
     """Convert Markdown to MJML, print it or save it to a file."""
     theme = load_theme(theme_name)
@@ -157,6 +166,7 @@ def md2mjml(
             markdown_text,
             theme=theme,
             bold_link_is_button=not no_bold_link_button,
+            link_attributes=not no_link_attributes,
         )
     except Exception as e:
         raise click.ClickException(str(e))
@@ -189,6 +199,7 @@ def md2html(
     view: bool,
     theme_name: str | None,
     no_bold_link_button: bool,
+    no_link_attributes: bool,
 ):
     """Convert Markdown to HTML, optionally save and open it."""
     theme = load_theme(theme_name)
@@ -198,6 +209,7 @@ def md2html(
             markdown_text,
             theme=theme,
             bold_link_is_button=not no_bold_link_button,
+            link_attributes=not no_link_attributes,
         )
     except Exception as e:
         raise click.ClickException(str(e))
@@ -223,6 +235,7 @@ def md2txt(
     filepath: Path,
     output: Path | None,
     no_bold_link_button: bool,
+    no_link_attributes: bool,
 ):
     """Convert Markdown to the plain-text email alternative."""
     try:
@@ -230,6 +243,7 @@ def md2txt(
         text = parse_markdown_to_text(
             markdown_text,
             bold_link_is_button=not no_bold_link_button,
+            link_attributes=not no_link_attributes,
         )
     except Exception as e:
         raise click.ClickException(str(e))
