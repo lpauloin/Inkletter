@@ -146,6 +146,9 @@ def greet(name):
       h1 { font-size: 28px; }
       h2 { font-size: 22px; }
       h3 { font-size: 18px; }
+      h4 { font-size: 16px; }
+      h5 { font-size: 14px; }
+      h6 { font-size: 13px; }
       a { color: #1d4ed8; text-decoration: underline; }
       p { margin: 0 0 12px; }
       p:last-child { margin-bottom: 0; }
@@ -207,6 +210,9 @@ def test_block_code_with_html():
       h1 { font-size: 28px; }
       h2 { font-size: 22px; }
       h3 { font-size: 18px; }
+      h4 { font-size: 16px; }
+      h5 { font-size: 14px; }
+      h6 { font-size: 13px; }
       a { color: #1d4ed8; text-decoration: underline; }
       p { margin: 0 0 12px; }
       p:last-child { margin-bottom: 0; }

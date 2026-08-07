@@ -1,7 +1,7 @@
 import re
 
 from inkletter.ast import *
-from inkletter.theme import DEFAULT_THEME, split_media_ratio
+from inkletter.theme import split_media_ratio
 from inkletter.visitors.generic import NodeVisitor
 
 #: The href of a hand-written opening anchor, read for the text
@@ -288,6 +288,15 @@ class Annotation(NodeVisitor):
             scope.record_types()
             scope.set("title_parts", [])
         self.mark_text_if_needed(node, scope)
+        # Alignment rides the mj-text attribute rather than the head
+        # CSS: it comes out both as `td align` and as an inlined
+        # text-align, where a `h1 { text-align }` rule would depend on a
+        # <style> block some clients drop. Left is MJML's own default,
+        # so nothing is emitted for it and an unchanged theme renders
+        # byte for byte as before.
+        align = self.theme.headings.at(node.level).align
+        if node.annotations.get("requires_text") and align != "left":
+            node.annotations["text_attrs"] = {"align": align}
         self.generic_visit(node, scope)
         if claims_title:
             # listing what a title may hold rather than what it may not:

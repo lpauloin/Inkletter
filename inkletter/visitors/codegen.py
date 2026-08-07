@@ -68,7 +68,7 @@ class Codegen(NodeVisitor):
     @contextmanager
     def ensure_open_text(self, node, inline=False):
         if node.annotations.get("requires_text"):
-            with self.block_tag("mj-text", inline=inline):
+            with self.block_tag("mj-text", attrs=node.annotations.get("text_attrs"), inline=inline):
                 yield
         else:
             yield

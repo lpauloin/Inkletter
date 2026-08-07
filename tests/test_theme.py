@@ -2,7 +2,7 @@ import pytest
 
 from inkletter.colors import Blue, Slate, WHITE
 from inkletter.exceptions import ThemeError
-from inkletter.theme import THEMES, Links, Text, Theme
+from inkletter.theme import THEMES, Heading, Headings, Links, Text, Theme
 
 
 def test_default_theme_is_complete():
@@ -229,3 +229,129 @@ def test_fonts_must_be_pairs():
 def test_presets_declare_no_web_font():
     # the rendering must not depend on a CDN by default
     assert all(theme.fonts == () for theme in THEMES.values())
+
+
+# --- Heading levels ---
+#
+# One object per level, holding what belongs to that level. Alignment
+# rides the mj-text attribute rather than the head CSS: that comes out
+# as `td align` *and* as an inlined text-align, where an
+# `h1 { text-align }` rule would depend on a <style> block some clients
+# drop. Left is MJML's own default, so nothing is emitted for it.
+
+
+def test_every_level_has_a_size_and_an_alignment():
+    headings = Theme().headings
+    assert [headings.at(n).size for n in range(1, 7)] == [
+        "28px",
+        "22px",
+        "18px",
+        "16px",
+        "14px",
+        "13px",
+    ]
+    assert {headings.at(n).align for n in range(1, 7)} == {"left"}
+
+
+def test_every_level_is_sized_in_the_css():
+    css = Theme().to_css()
+    print(css)
+    for number in range(1, 7):
+        assert f"h{number} {{ font-size:" in css
+
+
+def test_the_default_emits_no_alignment_at_all():
+    # an unchanged theme must render byte for byte as before
+    from inkletter.md_to_mjml import parse_markdown_to_mjml
+
+    source = "# Titre\n\nTexte."
+    assert parse_markdown_to_mjml(source) == parse_markdown_to_mjml(
+        source, theme=Theme(headings=Headings(h1=Heading(size="28px", align="left")))
+    )
+
+
+@pytest.mark.parametrize("level", [1, 2, 3])
+@pytest.mark.parametrize("align", ["center", "right"])
+def test_each_level_carries_its_own_alignment(level, align):
+    from inkletter.md_to_mjml import parse_markdown_to_mjml
+
+    theme = Theme(headings=Headings(**{f"h{level}": Heading(size="20px", align=align)}))
+    actual = parse_markdown_to_mjml(f"{'#' * level} Titre\n\nTexte.", theme=theme)
+    print(actual)
+    assert f'<mj-text align="{align}">\n          <h{level}>' in actual
+
+
+def test_the_other_levels_stay_put():
+    # the reason for one object per level: a centred h1 over
+    # left-aligned h2s is what a newsletter actually looks like
+    from inkletter.md_to_mjml import parse_markdown_to_mjml
+
+    theme = Theme(headings=Headings(h1=Heading(size="28px", align="center")))
+    actual = parse_markdown_to_mjml("# Un\n\n## Deux\n\n### Trois", theme=theme)
+    print(actual)
+    # in the body only: the head declares align="center" for images and
+    # buttons by default, and counting the whole document would measure
+    # those instead
+    body = actual[actual.index("<mj-body") :]
+    assert body.count('align="center"') == 1
+
+
+def test_it_reaches_both_paths_in_the_compiled_html():
+    # the reason for the attribute: Outlook honours the td, everything
+    # else honours the inlined style, and neither needs the head
+    from inkletter.md_to_html import parse_markdown_to_html
+
+    theme = Theme(headings=Headings(h1=Heading(size="28px", align="center")))
+    html = parse_markdown_to_html("# Titre\n\nTexte.", theme=theme)
+    print(html)
+    assert '<td align="center"' in html
+    assert "text-align:center;" in html
+
+
+@pytest.mark.parametrize("value", ["justify", "middle", "LEFT", ""])
+def test_an_alignment_that_is_not_one_is_refused(value):
+    with pytest.raises(ThemeError) as error:
+        Theme(headings=Headings(h2=Heading(size="22px", align=value)))
+    assert str(error.value) == (
+        f"align '{value}' in [headings.h2] is not an alignment; use left, center, right"
+    )
+
+
+# --- The nested section in a theme file ---
+
+
+def test_a_level_is_its_own_toml_section():
+    theme = Theme.from_dict({"headings": {"h1": {"size": "32px", "align": "center"}}})
+    assert theme.headings.at(1) == Heading(size="32px", align="center")
+
+
+def test_a_partial_level_keeps_the_rest_of_its_defaults():
+    # [headings.h1] align = "center" must not have to repeat the size
+    theme = Theme.from_dict({"headings": {"h1": {"align": "center"}}})
+    assert theme.headings.at(1) == Heading(size="28px", align="center")
+    assert theme.headings.at(2) == Heading(size="22px", align="left")
+
+
+def test_a_level_sits_beside_the_flat_keys():
+    theme = Theme.from_dict({"headings": {"font_weight": "600", "h1": {"align": "right"}}})
+    assert theme.headings.font_weight == "600"
+    assert theme.headings.at(1).align == "right"
+
+
+def test_it_survives_a_round_trip_through_toml():
+    theme = Theme.from_dict({"headings": {"h1": {"align": "center"}}})
+    assert Theme.from_dict(theme.to_dict()) == theme
+
+
+@pytest.mark.parametrize(
+    "data, message",
+    [
+        ({"h7": {}}, "unknown key 'h7' in [headings]"),
+        ({"h1": {"taille": "2px"}}, "unknown key 'taille' in [headings.h1]"),
+        ({"h1": {"size": 12}}, "key 'size' in [headings.h1] must be a str"),
+    ],
+)
+def test_a_mistake_in_a_level_is_refused(data, message):
+    with pytest.raises(ThemeError) as error:
+        Theme.from_dict({"headings": data})
+    assert message in str(error.value)

@@ -235,7 +235,7 @@ underline = false
 |--------------|----------------------------------------------------------------------------------------------------------|
 | `[layout]`   | `width`, `background_color`, `content_background_color`, `section_padding`                               |
 | `[text]`     | `font_family`, `font_size`, `line_height`, `color`                                                       |
-| `[headings]` | `font_family`, `color`, `font_weight`, `h1_size`, `h2_size`, `h3_size`                                   |
+| `[headings]` | `font_family`, `color`, `font_weight`, and one `[headings.hN]` subsection per level (`size`, `align`)   |
 | `[links]`    | `color`, `underline`                                                                                     |
 | `[code]`     | `font_family`, `background_color`, `color`                                                               |
 | `[quote]`    | `color`, `border_color`, `font_style`                                                                    |
@@ -244,7 +244,18 @@ underline = false
 | `[images]`   | `align`, `row_gap`, `border_radius`, `text_layout`, `media_ratio`                                        |
 | `[buttons]`  | `background_color` (inherits `links.color`), `color`, `border_radius`, `font_weight`, `padding`, `align` |
 
-Any unknown section or key fails loudly, with the list of valid ones.
+Each heading level is its own subsection, so a centred headline over
+left-aligned subheadings — the shape most newsletters take — is two
+lines:
+
+```toml
+[headings.h1]
+align = "center"
+```
+
+Only what you name changes: `h1` keeps its default size, and `h2` to
+`h6` keep everything. Any unknown section or key fails loudly, with the
+list of valid ones.
 
 ### Web fonts
 

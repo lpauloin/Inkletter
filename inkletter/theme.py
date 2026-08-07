@@ -35,14 +35,37 @@ class Text:
     color: str = Gray.DARK
 
 
+#: h1 through h6, in order. The one place the range is written down.
+LEVELS = range(1, 7)
+
+
+@dataclass(frozen=True)
+class Heading:
+    """One heading level: how big it is, and where it sits."""
+
+    size: str
+    align: str = "left"
+
+
 @dataclass(frozen=True)
 class Headings:
     font_family: str | None = None  # None inherits Text.font_family
     color: str | None = None  # None inherits Text.color
     font_weight: str = "700"
-    h1_size: str = "28px"
-    h2_size: str = "22px"
-    h3_size: str = "18px"
+    h1: Heading = field(default_factory=lambda: Heading(size="28px"))
+    h2: Heading = field(default_factory=lambda: Heading(size="22px"))
+    h3: Heading = field(default_factory=lambda: Heading(size="18px"))
+    h4: Heading = field(default_factory=lambda: Heading(size="16px"))
+    h5: Heading = field(default_factory=lambda: Heading(size="14px"))
+    h6: Heading = field(default_factory=lambda: Heading(size="13px"))
+
+    def __post_init__(self):
+        for number in LEVELS:
+            _validate_alignment(number, self.at(number).align)
+
+    def at(self, number):
+        """The settings for one heading level."""
+        return getattr(self, f"h{number}")
 
 
 @dataclass(frozen=True)
@@ -183,9 +206,10 @@ class Theme:
                 f" color: {heading_color};"
                 f" font-weight: {self.headings.font_weight};"
                 f" line-height: 1.3; margin: 0; }}",
-                f"h1 {{ font-size: {self.headings.h1_size}; }}",
-                f"h2 {{ font-size: {self.headings.h2_size}; }}",
-                f"h3 {{ font-size: {self.headings.h3_size}; }}",
+                *[
+                    f"h{number} {{ font-size: {self.headings.at(number).size}; }}"
+                    for number in LEVELS
+                ],
                 f"a {{ color: {self.links.color}; text-decoration: {decoration}; }}",
                 # a p only ever appears nested — in a quote, a list item,
                 # a cell — where no mj-text padding separates it from
@@ -213,23 +237,43 @@ class Theme:
         )
 
 
-def _build_group(group_cls, group_name, group_data):
+def _check_value(field, group_name, key, value):
+    """A value must have the shape of the field it fills."""
+    default = field.default
+    if isinstance(default, bool):
+        if not isinstance(value, bool):
+            raise ThemeError(f"key '{key}' in [{group_name}] must be a bool")
+    elif not isinstance(value, str) and not (default is None and value is None):
+        raise ThemeError(f"key '{key}' in [{group_name}] must be a str")
+
+
+def _build_group(group_cls, group_name, group_data, base=None):
+    """One section of a theme, built from its mapping.
+
+    With a `base`, the mapping is merged onto it rather than standing
+    on its own — which is what lets a subsection name one key and
+    inherit the rest.
+    """
     if not isinstance(group_data, dict):
         raise ThemeError(f"section '[{group_name}]' must be a mapping")
     group_fields = {f.name: f for f in fields(group_cls)}
+    values = {}
     for key, value in group_data.items():
         if key not in group_fields:
             raise ThemeError(
                 f"unknown key '{key}' in [{group_name}]; "
                 f"valid keys: {', '.join(sorted(group_fields))}"
             )
-        default = group_fields[key].default
-        if isinstance(default, bool):
-            if not isinstance(value, bool):
-                raise ThemeError(f"key '{key}' in [{group_name}] must be a bool")
-        elif not isinstance(value, str) and not (default is None and value is None):
-            raise ThemeError(f"key '{key}' in [{group_name}] must be a str")
-    return group_cls(**group_data)
+        if isinstance(value, dict):
+            # A subsection, such as [headings.h1]: the same rules one
+            # level down, merged onto that level's own default so that
+            # naming the alignment does not mean repeating the size.
+            default = group_fields[key].default_factory()
+            values[key] = _build_group(type(default), f"{group_name}.{key}", value, base=default)
+            continue
+        _check_value(group_fields[key], group_name, key, value)
+        values[key] = value
+    return replace(base, **values) if base is not None else group_cls(**values)
 
 
 def _font_names(font_family):
@@ -253,6 +297,19 @@ def unquote_font_family(font_family):
     what MJML understands. CSS reads them the same either way.
     """
     return ", ".join(_font_names(font_family))
+
+
+#: What mj-text takes, and what a td can carry. Anything else is a typo
+#: that would show up as a heading quietly not moving.
+ALIGNMENTS = ("left", "center", "right")
+
+
+def _validate_alignment(number, value):
+    if value not in ALIGNMENTS:
+        raise ThemeError(
+            f"align '{value}' in [headings.h{number}] is not an alignment; "
+            f"use {', '.join(ALIGNMENTS)}"
+        )
 
 
 def _validate_fonts(fonts, text):
