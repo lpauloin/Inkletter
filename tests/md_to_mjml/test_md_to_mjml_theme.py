@@ -1,3 +1,5 @@
+import pytest
+
 from inkletter.md_to_html import parse_markdown_to_html
 from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_body
 from inkletter.theme import Layout, Links, Text, Theme
@@ -149,3 +151,40 @@ def test_font_url_ampersand_is_escaped_in_the_attribute():
     actual = parse_markdown_to_mjml("Hello", theme=font_theme(fonts={"Lora": swap}))
     print(actual)
     assert 'href="https://fonts.googleapis.com/css2?family=Lora&amp;display=swap"' in actual
+
+
+# --- A quoted font family must still load ---
+#
+# MJML only hooks an mj-font to a component whose font-family names it
+# literally. The validation compared unquoted names, so it said yes to a
+# stack that could never work: the mj-font was in the head and the font
+# never loaded. The two now agree, on the unquoted form.
+
+
+@pytest.mark.parametrize(
+    "family",
+    [
+        "Lora, Georgia, serif",
+        '"Lora", Georgia, serif',
+        "'Lora', Georgia, serif",
+        '"Lora" , Georgia , serif',
+    ],
+)
+def test_a_font_loads_however_the_family_is_written(family):
+    theme = Theme(text=Text(font_family=family), fonts={"Lora": LORA})
+    html = parse_markdown_to_html("Hello", theme=theme)
+    print(html)
+    assert LORA in html
+
+
+def test_the_family_reaches_the_attribute_unquoted():
+    theme = Theme(text=Text(font_family='"Lora", Georgia, serif'), fonts={"Lora": LORA})
+    actual = parse_markdown_to_mjml("Hello", theme=theme)
+    print(actual)
+    assert 'font-family="Lora, Georgia, serif"' in actual
+    assert "&quot;" not in actual
+
+
+def test_the_theme_keeps_the_normalised_family():
+    theme = Theme(text=Text(font_family="'Helvetica Neue', Arial, sans-serif"))
+    assert theme.text.font_family == "Helvetica Neue, Arial, sans-serif"

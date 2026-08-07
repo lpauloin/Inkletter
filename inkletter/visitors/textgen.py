@@ -130,7 +130,12 @@ class TextCodegen(NodeVisitor):
         self.current.add_text(node.code)
 
     def visit_InlineHtml(self, node, scope):
-        pass  # the tags vanish, the surrounding text nodes remain
+        # the tags vanish, the surrounding text nodes remain — except a
+        # closing anchor, which spells out the URL its opening tag
+        # carried, exactly as a Markdown link does
+        href = node.annotations.get("anchor_href")
+        if href:
+            self.current.add_text(f" <{href}>")
 
     def visit_Emphasis(self, node, scope):
         self.generic_visit(node, scope)

@@ -162,7 +162,11 @@ class Codegen(NodeVisitor):
                 self.add_raw_lines(head["css"])
 
     def visit_Paragraph(self, node, scope):
-        self.generic_visit(node, scope)
+        if node.annotations.get("requires_paragraph_tag"):
+            with self.block_tag("p", inline=True):
+                self.generic_visit(node, scope)
+        else:
+            self.generic_visit(node, scope)
 
     def visit_Heading(self, node, scope):
         with self.ensure_open_text(node):

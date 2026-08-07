@@ -90,6 +90,8 @@ Let's make this launch unforgettable!
       h2 { font-size: 22px; }
       h3 { font-size: 18px; }
       a { color: #1d4ed8; text-decoration: underline; }
+      p { margin: 0 0 12px; }
+      p:last-child { margin-bottom: 0; }
       blockquote { color: #6b7280; font-style: italic; border-left: 3px solid #e5e7eb; margin: 0; padding: 2px 0 2px 14px; }
       code { font-family: Menlo, Consolas, monospace; background-color: #f9fafb; color: #111827; padding: 2px 4px; border-radius: 3px; }
       pre { font-family: Menlo, Consolas, monospace; background-color: #f9fafb; color: #111827; margin: 0; padding: 12px; border-radius: 6px; overflow-x: auto; }
@@ -218,7 +220,7 @@ Let's make this launch unforgettable!
         </mj-text>
         <mj-text>
           <blockquote>
-            "<strong>Revolutionize your workflow</strong> — Meet the MegaWidget 5000."<em>"Faster, smarter, better. The tool you didn't know you needed."</em>
+            <p>"<strong>Revolutionize your workflow</strong> — Meet the MegaWidget 5000."</p><p><em>"Faster, smarter, better. The tool you didn't know you needed."</em></p>
           </blockquote>
         </mj-text>
         <mj-divider border-color="#e5e7eb" border-width="1px"/>

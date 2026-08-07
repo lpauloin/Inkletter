@@ -7,7 +7,7 @@ from a dict (`Theme.from_dict`), from a partial TOML file
 paths produce the same kind of object.
 """
 
-from dataclasses import asdict, dataclass, field, fields
+from dataclasses import asdict, dataclass, field, fields, replace
 from pathlib import Path
 
 try:
@@ -115,7 +115,9 @@ class Theme:
     fonts: tuple[tuple[str, str], ...] = field(default_factory=tuple)
 
     def __post_init__(self):
-        object.__setattr__(self, "fonts", _validate_fonts(self.fonts, self.text))
+        text = replace(self.text, font_family=unquote_font_family(self.text.font_family))
+        object.__setattr__(self, "text", text)
+        object.__setattr__(self, "fonts", _validate_fonts(self.fonts, text))
 
     @classmethod
     def from_dict(cls, data):
@@ -185,6 +187,11 @@ class Theme:
                 f"h2 {{ font-size: {self.headings.h2_size}; }}",
                 f"h3 {{ font-size: {self.headings.h3_size}; }}",
                 f"a {{ color: {self.links.color}; text-decoration: {decoration}; }}",
+                # a p only ever appears nested — in a quote, a list item,
+                # a cell — where no mj-text padding separates it from
+                # its neighbour, so it carries the gap itself
+                "p { margin: 0 0 12px; }",
+                "p:last-child { margin-bottom: 0; }",
                 f"blockquote {{ color: {self.quote.color};"
                 f" font-style: {self.quote.font_style};"
                 f" border-left: 3px solid {self.quote.border_color};"
@@ -225,9 +232,27 @@ def _build_group(group_cls, group_name, group_data):
     return group_cls(**group_data)
 
 
+def _font_names(font_family):
+    """The font names of a CSS stack, unquoted, in order."""
+    return [name.strip().strip("\"'") for name in font_family.split(",")]
+
+
 def _font_stack(font_family):
-    """The font names of a CSS stack, lowercased and unquoted."""
-    return {name.strip().strip("\"'").lower() for name in font_family.split(",")}
+    """The same names, lowercased, for comparison."""
+    return {name.lower() for name in _font_names(font_family)}
+
+
+def unquote_font_family(font_family):
+    """The stack with its quotes removed.
+
+    MJML only hooks an mj-font to a component whose font-family names it
+    *literally*: `font-family: "Lora", …` never loads the Lora that
+    `mj-font name="Lora"` declares, even though the file is in the head.
+    The validation below compares unquoted names, so it would say yes to
+    a stack that cannot work — the two have to agree, and unquoted is
+    what MJML understands. CSS reads them the same either way.
+    """
+    return ", ".join(_font_names(font_family))
 
 
 def _validate_fonts(fonts, text):

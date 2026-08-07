@@ -1,6 +1,12 @@
+import re
+
 from inkletter.ast import *
 from inkletter.theme import DEFAULT_THEME, split_media_ratio
 from inkletter.visitors.generic import NodeVisitor
+
+#: The href of a hand-written opening anchor, read for the text
+#: output only — the HTML half passes the tag through untouched.
+ANCHOR_HREF = re.compile(r'<a\s[^>]*\bhref\s*=\s*["\']([^"\']*)["\']', re.I)
 
 
 class Annotation(NodeVisitor):
@@ -156,12 +162,23 @@ class Annotation(NodeVisitor):
 
     def visit_Paragraph(self, node, scope):
         scope.push(node)
+        # At flow level each paragraph gets its own mj-text, and the
+        # padding between them is what separates them. Inside a
+        # raw-HTML context — a quote, a list item, a cell — there is no
+        # such padding, so the paragraph must carry its own tag or it
+        # runs into its neighbour.
+        node.annotations["requires_paragraph_tag"] = (
+            scope.get("in_text", False)
+            or scope.get("is_in_table_cell", False)
+            or scope.get("is_in_list_item", False)
+        )
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_BlockText(self, node, scope):
         scope.push(node)
         self.mark_text_if_needed(node, scope)
+        self.mark_inline_anchors(node)
         self.generic_visit(node, scope)
         scope.pop(node)
 
@@ -323,6 +340,26 @@ class Annotation(NodeVisitor):
         scope.push(node)
         self.mark_text_if_needed(node, scope)
         scope.pop(node)
+
+    def mark_inline_anchors(self, node):
+        """Hand a closing </a> the URL its opening tag carried.
+
+        The text output has no tags to show, so a hand-written <a>
+        would lose its URL where a Markdown link keeps it — silently,
+        in the half meant to stay readable everywhere. Pairing an
+        opening tag with its closing one is a matter between siblings,
+        so it belongs here rather than in a codegen.
+        """
+        pending = []
+        for child in node.children:
+            if not isinstance(child, InlineHtml):
+                continue
+            value = child.value.strip()
+            opening = ANCHOR_HREF.match(value)
+            if opening:
+                pending.append(opening.group(1))
+            elif value.lower() == "</a>" and pending:
+                child.annotations["anchor_href"] = pending.pop()
 
     def mark_raw_if_needed(self, node, scope):
         # Outside of any raw-HTML context (mj-text content, table, list item),

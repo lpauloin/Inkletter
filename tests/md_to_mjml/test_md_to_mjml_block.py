@@ -93,7 +93,7 @@ def test_blockquote():
     expected_content = """\
 <mj-text>
   <blockquote>
-    This is a quote.
+    <p>This is a quote.</p>
   </blockquote>
 </mj-text>"""
 
@@ -147,6 +147,8 @@ def greet(name):
       h2 { font-size: 22px; }
       h3 { font-size: 18px; }
       a { color: #1d4ed8; text-decoration: underline; }
+      p { margin: 0 0 12px; }
+      p:last-child { margin-bottom: 0; }
       blockquote { color: #6b7280; font-style: italic; border-left: 3px solid #e5e7eb; margin: 0; padding: 2px 0 2px 14px; }
       code { font-family: Menlo, Consolas, monospace; background-color: #f9fafb; color: #111827; padding: 2px 4px; border-radius: 3px; }
       pre { font-family: Menlo, Consolas, monospace; background-color: #f9fafb; color: #111827; margin: 0; padding: 12px; border-radius: 6px; overflow-x: auto; }
@@ -206,6 +208,8 @@ def test_block_code_with_html():
       h2 { font-size: 22px; }
       h3 { font-size: 18px; }
       a { color: #1d4ed8; text-decoration: underline; }
+      p { margin: 0 0 12px; }
+      p:last-child { margin-bottom: 0; }
       blockquote { color: #6b7280; font-style: italic; border-left: 3px solid #e5e7eb; margin: 0; padding: 2px 0 2px 14px; }
       code { font-family: Menlo, Consolas, monospace; background-color: #f9fafb; color: #111827; padding: 2px 4px; border-radius: 3px; }
       pre { font-family: Menlo, Consolas, monospace; background-color: #f9fafb; color: #111827; margin: 0; padding: 12px; border-radius: 6px; overflow-x: auto; }
@@ -259,3 +263,49 @@ def test_soft_break_is_a_visible_line_break_by_design():
     print("expected:")
     print(expected)
     assert actual == expected
+
+
+# --- Paragraph separation inside a raw-HTML context ---
+#
+# At flow level each paragraph gets its own mj-text and the padding
+# between them separates them. Nested, there is no such padding, so the
+# paragraph carries its own tag — without it the two run together in
+# HTML while the text half separates them correctly.
+
+
+def test_two_paragraphs_in_a_quote_stay_apart():
+    actual = parse_markdown_to_mjml("> Un.\n>\n> Deux.")
+    print(actual)
+    expected = wrap_mjml_body(
+        "<mj-text>\n  <blockquote>\n    <p>Un.</p><p>Deux.</p>\n  </blockquote>\n</mj-text>"
+    )
+    assert actual == expected
+
+
+def test_two_paragraphs_in_a_list_item_stay_apart():
+    actual = parse_markdown_to_mjml("- Un.\n\n  Deux.")
+    print(actual)
+    assert "<p>Un.</p><p>Deux.</p>" in actual
+
+
+def test_a_flow_paragraph_carries_no_tag():
+    # its mj-text is the separation; a <p> there would add a margin
+    # nothing asked for
+    actual = parse_markdown_to_mjml("Un.\n\nDeux.")
+    print(actual)
+    assert "<p>" not in actual
+    assert actual.count("<mj-text>") == 2
+
+
+def test_the_two_halves_agree_on_quoted_paragraphs():
+    # the bug this guards: the text half was right and the HTML wrong,
+    # so the same email said two different things
+    from inkletter.md_to_text import parse_markdown_to_text
+
+    source = "> Un.\n>\n> Deux."
+    html = parse_markdown_to_mjml(source)
+    text = parse_markdown_to_text(source)
+    print(html)
+    print(text)
+    assert "Un.</p><p>Deux." in html
+    assert "> Un.\n>\n> Deux." in text

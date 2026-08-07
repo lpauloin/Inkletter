@@ -88,9 +88,9 @@ def test_image_in_blockquote():
     expected_content = """\
 <mj-text>
   <blockquote>
-    <img src="https://picsum.photos/600/300" alt="Quote Icon" style="max-width: 100%; height: auto;"/>
+    <p><img src="https://picsum.photos/600/300" alt="Quote Icon" style="max-width: 100%; height: auto;"/>
     Citation<br/>
-    Du grand citateur
+    Du grand citateur</p>
   </blockquote>
 </mj-text>"""
 
