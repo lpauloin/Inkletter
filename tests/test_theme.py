@@ -153,8 +153,10 @@ def test_several_fonts_keep_their_declared_order():
 
 
 def test_font_name_matching_ignores_case_and_quotes():
+    """The declaration is found however it is written, and comes back spelled
+    the way the stack writes it — which is what MJML matches on."""
     theme = Theme(text=Text(font_family="'lora', Georgia"), fonts={"Lora": LORA})
-    assert theme.fonts == (("Lora", LORA),)
+    assert theme.fonts == (("'lora'", LORA),)
 
 
 def test_font_must_be_used_by_the_text_font_family():
@@ -199,9 +201,13 @@ def test_font_url_with_query_parameters():
 
 def test_two_word_font_name_matches_a_quoted_stack():
     url = "https://fonts.example/pt.css"
-    for stack in ['"PT Serif", Georgia', "'PT Serif', Georgia", "PT Serif, Georgia"]:
+    for stack, declared in [
+        ('"PT Serif", Georgia', '"PT Serif"'),
+        ("'PT Serif', Georgia", "'PT Serif'"),
+        ("PT Serif, Georgia", "PT Serif"),
+    ]:
         theme = Theme(text=Text(font_family=stack), fonts={"PT Serif": url})
-        assert theme.fonts == (("PT Serif", url),)
+        assert theme.fonts == ((declared, url),)
 
 
 def test_font_declared_twice_is_refused():

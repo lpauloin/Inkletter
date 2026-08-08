@@ -177,14 +177,29 @@ def test_a_font_loads_however_the_family_is_written(family):
     assert LORA in html
 
 
-def test_the_family_reaches_the_attribute_unquoted():
+def test_the_family_reaches_the_attribute_as_written():
     theme = Theme(text=Text(font_family='"Lora", Georgia, serif'), fonts={"Lora": LORA})
     actual = parse_markdown_to_mjml("Hello", theme=theme)
     print(actual)
-    assert 'font-family="Lora, Georgia, serif"' in actual
-    assert "&quot;" not in actual
+    assert 'font-family="&quot;Lora&quot;, Georgia, serif"' in actual
+    assert 'name="&quot;Lora&quot;"' in actual
 
 
-def test_the_theme_keeps_the_normalised_family():
+def test_a_family_holding_a_digit_keeps_its_quotes():
+    """Unquoted, "Source Sans 3" is an invalid CSS identifier and a browser
+    drops the whole declaration — measured: Chrome falls all the way back to
+    Times, not even to the next font in the stack."""
+    url = "https://fonts.example/source.css"
+    theme = Theme(
+        text=Text(font_family='"Source Sans 3", Helvetica, sans-serif'),
+        fonts={"Source Sans 3": url},
+    )
+    html = parse_markdown_to_html("Hello", theme=theme)
+    print(html)
+    assert url in html
+    assert "font-family:&quot;Source Sans 3&quot;, Helvetica, sans-serif" in html
+
+
+def test_the_theme_keeps_the_family_as_written():
     theme = Theme(text=Text(font_family="'Helvetica Neue', Arial, sans-serif"))
-    assert theme.text.font_family == "Helvetica Neue, Arial, sans-serif"
+    assert theme.text.font_family == "'Helvetica Neue', Arial, sans-serif"

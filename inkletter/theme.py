@@ -157,9 +157,7 @@ class Theme:
     fonts: tuple[tuple[str, str], ...] = field(default_factory=tuple)
 
     def __post_init__(self):
-        text = replace(self.text, font_family=unquote_font_family(self.text.font_family))
-        object.__setattr__(self, "text", text)
-        object.__setattr__(self, "fonts", _validate_fonts(self.fonts, text))
+        object.__setattr__(self, "fonts", _validate_fonts(self.fonts, self.text))
 
     @classmethod
     def from_dict(cls, data):
@@ -295,9 +293,14 @@ def _build_group(group_cls, group_name, group_data, base=None):
     return replace(base, **values) if base is not None else group_cls(**values)
 
 
+def _font_tokens(font_family):
+    """The names of a CSS stack, as written, in order."""
+    return [name.strip() for name in font_family.split(",")]
+
+
 def _font_names(font_family):
     """The font names of a CSS stack, unquoted, in order."""
-    return [name.strip().strip("\"'") for name in font_family.split(",")]
+    return [name.strip("\"'") for name in _font_tokens(font_family)]
 
 
 def _font_stack(font_family):
@@ -305,17 +308,22 @@ def _font_stack(font_family):
     return {name.lower() for name in _font_names(font_family)}
 
 
-def unquote_font_family(font_family):
-    """The stack with its quotes removed.
+def _as_written(name, font_family):
+    """How the stack spells `name`, quotes and all.
 
     MJML only hooks an mj-font to a component whose font-family names it
-    *literally*: `font-family: "Lora", …` never loads the Lora that
-    `mj-font name="Lora"` declares, even though the file is in the head.
-    The validation below compares unquoted names, so it would say yes to
-    a stack that cannot work — the two have to agree, and unquoted is
-    what MJML understands. CSS reads them the same either way.
+    *literally*, quotes included: `mj-font name="Lora"` never loads the
+    font a stack spells `"Lora"`. Declaring the name the way the stack
+    writes it makes the two agree without touching the stack — which
+    must keep its quotes, since a family holding a digit ("Source Sans
+    3") is an invalid CSS identifier without them, and a browser drops
+    the whole declaration rather than that one name.
     """
-    return ", ".join(_font_names(font_family))
+    key = name.strip().strip("\"'").lower()
+    for token in _font_tokens(font_family):
+        if token.strip("\"'").lower() == key:
+            return token
+    return name
 
 
 def _validate_fonts(fonts, text):
@@ -332,6 +340,7 @@ def _validate_fonts(fonts, text):
 
     used = _font_stack(text.font_family)
     seen = set()
+    declared = []
     for pair in fonts:
         if not isinstance(pair, tuple) or len(pair) != 2:
             raise ThemeError("[fonts] must map a font name to a URL")
@@ -356,7 +365,8 @@ def _validate_fonts(fonts, text):
                 "attribute, so add it there to load it, or drop the "
                 "declaration and rely on the fallback"
             )
-    return fonts
+        declared.append((_as_written(name, text.font_family), href))
+    return tuple(declared)
 
 
 def split_media_ratio(ratio):
