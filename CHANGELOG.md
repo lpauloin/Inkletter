@@ -4,6 +4,28 @@ Newest first. [Semantic versioning](https://semver.org): a major bump
 means a document, a theme file or a call that used to work no longer
 does.
 
+## 2.2.0 — 2026-08-08
+
+### Changed
+
+- A percentage is no longer accepted as an image dimension. `mj-image`
+  sizes in pixels, so `{width=50%}` passed validation and was then
+  dropped, rendering at the full column width — the shape of error this
+  syntax exists to avoid. A document using it now fails loudly instead,
+  which is why this is not a major bump: nothing that worked stopped
+  working, a wrong render became a refusal.
+
+### Fixed
+
+- **A width was ignored on a phone.** `fluid-on-mobile` was set on every
+  image, and its whole purpose is to go full width *even though a width
+  is set* — so a 72px logo arrived at the full column width on the
+  screens that carry most opens. Measured, an image without a width
+  renders the same with or without it: the attribute only ever undoes a
+  width, so it is now set only under `--no-link-attributes`, where no
+  image can carry one and such a document keeps its output byte for
+  byte.
+
 ## 2.1.0 — 2026-08-08
 
 ### Fixed

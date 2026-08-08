@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "inkletter"
-version = "2.1.0"
+version = "2.2.0"
 description = "Markdown to MJML/HTML converter and previewer"
 authors = [
     { name = "Laurent Pauloin", email = "laurent.pauloin@gmail.com" }
