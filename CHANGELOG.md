@@ -4,6 +4,23 @@ Newest first. [Semantic versioning](https://semver.org): a major bump
 means a document, a theme file or a call that used to work no longer
 does.
 
+## 2.1.0 — 2026-08-08
+
+### Fixed
+
+- **A web font whose family needs quotes never applied.** The stack was
+  normalised by stripping its quotes so the `mj-font` name would match,
+  which works until a family name is not a valid CSS identifier — a
+  digit is enough. Measured in Chrome: `font-family: Source Sans 3,
+  Helvetica, sans-serif` is dropped whole and the reader gets *Times*,
+  not even the next font in the stack. The stack is now left exactly as
+  written, and the `mj-font` is declared with the spelling the stack
+  uses, so the two agree without either being rewritten.
+
+  `Theme.fonts` consequently reports each name as the stack spells it —
+  `("'lora'", url)` for a stack of `'lora', Georgia` — rather than
+  unquoted.
+
 ## 2.0.0 — 2026-08-07
 
 A year of work that was never installable. `1.1.0` was a version number
