@@ -16,9 +16,10 @@ class Annotation(NodeVisitor):
     There is always a theme.
     """
 
-    def __init__(self, theme):
+    def __init__(self, theme, link_attributes=True):
         super().__init__()
         self.theme = theme
+        self.link_attributes = link_attributes
 
     def visit_Document(self, node, scope):
         scope.push(node)
@@ -26,10 +27,15 @@ class Annotation(NodeVisitor):
         # None when it turns out not to be usable as a title
         scope.set("document_title", [])
         theme = self.theme
-        image_attrs = {
-            "fluid-on-mobile": "true",
-            "align": theme.images.align,
-        }
+        image_attrs = {"align": theme.images.align}
+        if not self.link_attributes:
+            # fluid-on-mobile goes full width *even though a width is
+            # set* — its only effect is to undo one. An image without a
+            # width already follows its column, so the attribute is a
+            # no-op there and this default is kept for one reason: a
+            # document converted with --no-link-attributes, where no
+            # image can carry a width, renders exactly as it did before.
+            image_attrs["fluid-on-mobile"] = "true"
         if theme.images.border_radius not in ("0", "0px"):
             image_attrs["border-radius"] = theme.images.border_radius
         node.annotations["head"] = {

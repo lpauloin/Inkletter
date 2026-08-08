@@ -223,4 +223,4 @@ def test_md2html_reports_a_bad_attribute(tmp_path):
     result = CliRunner().invoke(cli, ["md2html", str(md)])
 
     assert result.exit_code != 0
-    assert "emails can rely on px and % only" in result.output
+    assert "mj-image sizes in px only" in result.output

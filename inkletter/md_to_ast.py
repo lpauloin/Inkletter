@@ -194,6 +194,6 @@ def parse_markdown_to_ast(
         theme = DEFAULT_THEME
 
     BlockTextMerger(bold_link_is_button=bold_link_is_button).visit(ast)
-    Annotation(theme=theme).visit(ast)
+    Annotation(theme=theme, link_attributes=link_attributes).visit(ast)
 
     return ast

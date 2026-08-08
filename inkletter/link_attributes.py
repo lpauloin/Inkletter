@@ -27,10 +27,13 @@ KEYS = ("width", "height", "align")
 #: top/middle/bottom, which are vertical-align and have no equivalent.
 ALIGNMENTS = ("left", "center", "right")
 
-#: px and % only. Pandoc also takes cm/mm/in — physical units mean
-#: nothing on a screen — and mistune takes em/rem/vw/vh, unreliable in
-#: Outlook. A bare number means px, as in Pandoc.
-DIMENSION = re.compile(r"(\d+(?:\.\d+)?)(px|%)?$")
+#: px only. Pandoc also takes cm/mm/in — physical units mean nothing on
+#: a screen — and mistune takes em/rem/vw/vh, unreliable in Outlook. A
+#: percentage is refused rather than quietly dropped: mj-image sizes in
+#: pixels, so `width=50%` came out at the full column width, which is
+#: the shape of error this syntax exists to avoid. A bare number means
+#: px, as in Pandoc.
+DIMENSION = re.compile(r"(\d+(?:\.\d+)?)(px)?$")
 
 #: A brace block on one line. Matched loosely on purpose: what is
 #: inside decides whether it is an attribute block at all.
@@ -66,7 +69,7 @@ def check_dimension(key, value):
     """A width or a height, normalised — a bare number means px."""
     match = DIMENSION.fullmatch(value)
     if not match:
-        raise MarkupError(f"'{key}={value}' is not a length; emails can rely on px and % only")
+        raise MarkupError(f"'{key}={value}' is not a length; mj-image sizes in px only")
     number, unit = match.groups()
     return f"{number}{unit or 'px'}"
 

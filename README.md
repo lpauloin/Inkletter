@@ -138,15 +138,18 @@ not know which image you inserted. Put the facts in braces, Pandoc's
 ```markdown
 ![Acme](logo@2x.png){width=96px}
 
-![Screenshot](shot.png){width=50% align=left}
+![Screenshot](shot.png){width=320px align=left}
 
 [![Acme](logo@2x.png)](https://acme.example){width=96px}
 ```
 
 `width`, `height` and `align` — and nothing else. A dimension is a fact
 about the asset; an appearance is a choice of theme, so no CSS property
-is ever accepted here. Lengths take `px` or `%`, a bare number means
-pixels, and alignment is `left`, `center` or `right`.
+is ever accepted here. Lengths are in `px`, a bare number means pixels,
+and alignment is `left`, `center` or `right`.
+
+A width holds on a phone too — an image without one follows its column
+either way, so nothing is made responsive by ignoring it.
 
 A block only counts when it is glued to an image, or to a link wrapping
 one. A space before the brace keeps it as text, and so does anything

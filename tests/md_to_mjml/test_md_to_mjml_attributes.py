@@ -33,10 +33,10 @@ def test_the_three_together():
 
 
 def test_a_linked_image_keeps_its_width():
-    actual = parse_markdown_to_mjml("[![Acme](https://x.com/l.png)](https://x.com){width=50%}")
+    actual = parse_markdown_to_mjml("[![Acme](https://x.com/l.png)](https://x.com){width=320px}")
     print(actual)
     expected = wrap_mjml_body(
-        '<mj-image src="https://x.com/l.png" href="https://x.com" alt="Acme" width="50%"/>'
+        '<mj-image src="https://x.com/l.png" href="https://x.com" alt="Acme" width="320px"/>'
     )
     assert actual == expected
 
@@ -85,12 +85,33 @@ def test_the_width_reaches_the_compiled_html():
     assert 'width="96"' in html
 
 
+def test_a_width_holds_on_mobile():
+    """fluid-on-mobile goes full width *even though a width is set*, so the
+    old head default undid, on a phone, the one thing the author asked for.
+    An image without a width follows its column either way."""
+    assert "fluid-on-mobile" not in parse_markdown_to_mjml(
+        "![Acme](https://x.com/l.png){width=96px}"
+    )
+    html = parse_markdown_to_html("![Acme](https://x.com/l.png){width=96px}")
+    # the rule always sits in the head <style>; what matters is that no
+    # element carries the class that would trigger it
+    assert 'class="mj-full-width-mobile"' not in html
+
+
+def test_images_stay_fluid_without_the_attribute_syntax():
+    """With --no-link-attributes no image can carry a width, so the default
+    is kept and such a document renders exactly as it did before."""
+    actual = parse_markdown_to_mjml("![Acme](https://x.com/l.png)", link_attributes=False)
+    print(actual)
+    assert '<mj-image align="center" fluid-on-mobile="true"/>' in actual
+
+
 # --- The text half ---
 
 
 ATTRIBUTED = [
     "![Acme](https://x.com/l.png){width=96px}",
-    "[![Acme](https://x.com/l.png)](https://x.com){width=50%}",
+    "[![Acme](https://x.com/l.png)](https://x.com){width=320px}",
     "![a](https://x.com/a.png){width=40px} ![b](https://x.com/b.png){height=20px}",
     "![a](https://x.com/a.png){align=left} and some text beside it.",
     "# Title ![i](https://x.com/i.png){width=24px}",

@@ -57,15 +57,15 @@ def test_attributes_reach_an_image_behind_a_link(ast):
 def test_both_spellings_of_a_linked_image_agree(ast):
     # the block glued to the image or to the link that wraps it: the
     # width ends up in the same place either way
-    on_image = ast("[![a](i.png){width=50%}](https://x.com)")
-    on_link = ast("[![a](i.png)](https://x.com){width=50%}")
-    assert sizing(on_image) == sizing(on_link) == ("50%", None, None)
+    on_image = ast("[![a](i.png){width=320px}](https://x.com)")
+    on_link = ast("[![a](i.png)](https://x.com){width=320px}")
+    assert sizing(on_image) == sizing(on_link) == ("320px", None, None)
 
 
 def test_a_label_holding_text_too_still_works(ast):
-    doc = ast("[![a](i.png) and words](https://x.com){width=50%}")
+    doc = ast("[![a](i.png) and words](https://x.com){width=320px}")
     print_tree(doc)
-    assert sizing(doc) == ("50%", None, None)
+    assert sizing(doc) == ("320px", None, None)
 
 
 def test_a_text_link_is_not_a_target(ast):
@@ -107,7 +107,7 @@ def test_an_image_without_a_block_carries_an_empty_value(ast):
         ("{width=96px}", ("96px", None, None)),
         ("{width=96}", ("96px", None, None)),  # a bare number means px
         ("{width=12.5px}", ("12.5px", None, None)),
-        ("{width=50%}", ("50%", None, None)),
+        ("{width=320px}", ("320px", None, None)),
         ("{height=40px}", (None, "40px", None)),
         ("{align=left}", (None, None, "left")),
         ("{align=center}", (None, None, "center")),
@@ -174,13 +174,13 @@ def test_braces_in_a_paragraph_are_left_alone(ast):
             "unknown image attribute 'style'; the theme decides how images "
             "look. Attributes carry facts about the asset: width, height, align.",
         ),
-        ("{width=96em}", "'width=96em' is not a length; emails can rely on px and % only"),
-        ("{width=2in}", "'width=2in' is not a length; emails can rely on px and % only"),
-        ("{height=10vw}", "'height=10vw' is not a length; emails can rely on px and % only"),
-        ("{width=wide}", "'width=wide' is not a length; emails can rely on px and % only"),
+        ("{width=96em}", "'width=96em' is not a length; mj-image sizes in px only"),
+        ("{width=2in}", "'width=2in' is not a length; mj-image sizes in px only"),
+        ("{height=10vw}", "'height=10vw' is not a length; mj-image sizes in px only"),
+        ("{width=wide}", "'width=wide' is not a length; mj-image sizes in px only"),
         ("{align=top}", "'align=top' is not an alignment; use left, center, right"),
         ("{align=LEFT}", "'align=LEFT' is not an alignment; use left, center, right"),
-        ("{width=96px width=50%}", "'width' is set twice"),
+        ("{width=96px width=48px}", "'width' is set twice"),
     ],
 )
 def test_refused_blocks(ast, block, message):

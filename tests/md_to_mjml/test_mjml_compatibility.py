@@ -48,7 +48,7 @@ CORPUS = [
     "Un média-objet inversé. ![J](https://x.com/j.png)",
     # image attributes, in every context an image can land in
     "![a](https://x.com/a.png){width=96px}",
-    "[![a](https://x.com/a.png)](https://x.com){width=50%}",
+    "[![a](https://x.com/a.png)](https://x.com){width=320px}",
     "# Titre ![i](https://x.com/i.png){width=24px}",
     "> citation ![i](https://x.com/i.png){width=24px}",
     "- item ![i](https://x.com/i.png){width=24px}",
