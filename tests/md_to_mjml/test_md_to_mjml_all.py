@@ -1,4 +1,4 @@
-from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_body
+from inkletter.md_to_mjml import parse_markdown_to_mjml
 
 
 def test_md_generation_full_syntax(ast):

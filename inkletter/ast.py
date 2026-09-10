@@ -74,6 +74,32 @@ class StrikeThrough(TextBlock):
         return "StrikeThrough()"
 
 
+# What tells a mention from a link: the target names an entity rather than
+# an address. Everything under `urn:li:` is one — an organization, a person.
+MENTION_SCHEME = "urn:li:"
+
+
+class Mention(TextBlock):
+    """Someone named in the text, with the entity's URN as its target.
+
+    Its own node rather than a Link with an odd href, and that is what
+    protects it: visitors dispatch on the exact class name, so a URL
+    rewriter that shortens every link never sees a mention, and cannot
+    replace an entity's URN with a dead address.
+
+    The children carry the name as it is to be displayed — the one the
+    destination matches on, case included — with no leading marker: the
+    marker belongs to whichever rendering needs one.
+    """
+
+    def __init__(self, text, urn):
+        super().__init__(text)
+        self.urn = urn
+
+    def __repr__(self):
+        return f"Mention(urn='{self.urn}')"
+
+
 class Link(TextBlock):
     def __init__(self, text, href, title=None):
         super().__init__(text)

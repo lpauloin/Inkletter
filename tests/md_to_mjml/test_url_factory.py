@@ -8,7 +8,7 @@ from inkletter.shortener import URLFactory
 class PrefixFactory(URLFactory):
     """Test factory rewriting both kinds with distinct prefixes."""
 
-    def rewrite_link(self, url):
+    def rewrite_link(self, url, is_button=False, is_bold=False):
         return f"https://short.test/?u={url}"
 
     def rewrite_image(self, url):
@@ -16,7 +16,7 @@ class PrefixFactory(URLFactory):
 
 
 class LinkOnlyFactory(URLFactory):
-    def rewrite_link(self, url):
+    def rewrite_link(self, url, is_button=False, is_bold=False):
         return f"https://short.test/?u={url}"
 
 
@@ -132,7 +132,7 @@ def test_bold_link_without_button_is_rewritten_too():
 
 def test_rewritten_url_with_ampersand_is_escaped():
     class UTMFactory(URLFactory):
-        def rewrite_link(self, url):
+        def rewrite_link(self, url, is_button=False, is_bold=False):
             return f"{url}?utm_source=news&utm_medium=email"
 
     actual = parse_markdown_to_mjml("[lien](https://x.com/page)", url_factory=UTMFactory())
@@ -149,7 +149,7 @@ def test_rewritten_url_with_ampersand_is_escaped():
 
 def test_non_str_return_raises_a_named_typeerror():
     class Broken(URLFactory):
-        def rewrite_link(self, url):
+        def rewrite_link(self, url, is_button=False, is_bold=False):
             return None
 
     with pytest.raises(TypeError, match=r"Broken\.rewrite_link returned None"):
@@ -158,7 +158,7 @@ def test_non_str_return_raises_a_named_typeerror():
 
 def test_factory_exceptions_propagate():
     class Failing(URLFactory):
-        def rewrite_link(self, url):
+        def rewrite_link(self, url, is_button=False, is_bold=False):
             raise RuntimeError("quota exceeded")
 
     with pytest.raises(RuntimeError, match="quota exceeded"):
@@ -176,10 +176,88 @@ class SpyFactory(URLFactory):
         self.links = []
         self.images = []
 
-    def rewrite_link(self, url):
+    def rewrite_link(self, url, is_button=False, is_bold=False):
         self.links.append(url)
         return f"https://short.test/?u={url}"
 
     def rewrite_image(self, url):
         self.images.append(url)
         return f"https://img.test/?u={url}"
+
+
+# --- What a factory is never handed ---
+#
+# A target that names something rather than locating it would be destroyed
+# by a rewrite: an entity URN becomes a dead link, a mailto: a broken one.
+# A path without a scheme is an address all the same — a local image a
+# factory uploads — and goes through.
+
+
+def test_a_mailto_is_left_alone():
+    spy = SpyFactory()
+    parse_markdown_to_mjml("[écrire](mailto:jean@exemple.fr)", url_factory=spy)
+    print(spy.links)
+    assert spy.links == []
+
+
+def test_a_tel_is_left_alone():
+    spy = SpyFactory()
+    parse_markdown_to_mjml("[appeler](tel:+33100000000)", url_factory=spy)
+    print(spy.links)
+    assert spy.links == []
+
+
+def test_a_relative_image_path_is_offered():
+    spy = SpyFactory()
+    parse_markdown_to_mjml("![logo](img/logo.png)", url_factory=spy)
+    print(spy.images)
+    assert spy.images == ["img/logo.png"]
+
+
+# --- A button is offered as a button ---
+#
+# The rewrite runs last, once the annotation pass has said in the node
+# which link is the button, and passes that along with the URL: the one
+# thing the document says about a link that a factory may want to know.
+
+
+class Telling(URLFactory):
+    def __init__(self):
+        self.seen = []
+
+    def rewrite_link(self, url, is_button=False, is_bold=False):
+        self.seen.append((url, is_button, is_bold))
+        return url
+
+
+def test_a_button_is_offered_as_one():
+    factory = Telling()
+    parse_markdown_to_mjml(
+        "Voir [ici](https://a.test) d'abord.\n\n**[Réserver](https://b.test)**", url_factory=factory
+    )
+    print(factory.seen)
+    assert factory.seen == [("https://a.test", False, False), ("https://b.test", True, False)]
+
+
+def test_a_bold_link_that_is_not_a_button_is_offered_as_bold():
+    # inside a list it stays a bold link, and the factory is told so
+    factory = Telling()
+    parse_markdown_to_mjml("- **[Réserver](https://b.test)**", url_factory=factory)
+    assert factory.seen == [("https://b.test", False, True)]
+
+
+def test_without_buttons_a_bold_link_is_offered_as_bold():
+    # the LinkedIn output builds its tree this way: no button anywhere,
+    # and the bold is what tells the call to action apart
+    factory = Telling()
+    parse_markdown_to_mjml(
+        "**[Réserver](https://b.test)**", url_factory=factory, bold_link_is_button=False
+    )
+    assert factory.seen == [("https://b.test", False, True)]
+
+
+def test_a_factory_that_does_not_care_shortens_buttons_like_links():
+    spy = SpyFactory()
+    parse_markdown_to_mjml("**[Réserver](https://b.test)**", url_factory=spy)
+    print(spy.links)
+    assert spy.links == ["https://b.test"]

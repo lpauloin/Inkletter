@@ -104,7 +104,7 @@ def test_no_leak_with_url_factory(markdown):
     from inkletter.shortener import URLFactory
 
     class Prefix(URLFactory):
-        def rewrite_link(self, url):
+        def rewrite_link(self, url, is_button=False, is_bold=False):
             return f"https://short.test/?u={url}"
 
     assert_no_component_leak(parse_markdown_to_mjml(markdown, url_factory=Prefix()))

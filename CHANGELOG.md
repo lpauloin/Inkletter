@@ -4,6 +4,62 @@ Newest first. [Semantic versioning](https://semver.org): a major bump
 means a document, a theme file or a call that used to work no longer
 does.
 
+## 3.0.0 — 2026-09-10
+
+### Changed
+
+- **`URLFactory.rewrite_link` takes `is_button` and `is_bold`** — what
+  the document says about the link: the button (a lone bold link, where
+  buttons exist), and bold text around it (how an output without
+  buttons, the LinkedIn one, still tells the call to action apart). A
+  factory written against 2.x with `def rewrite_link(self, url)` no
+  longer works: add the parameters. `rewrite_image` is unchanged. This is the major bump, and the reason for it — the one
+  thing the document says about a link that a factory may want to know
+  now travels with the URL, rather than through a second method or a
+  result to read back.
+- The URL rewrite now runs last, after the annotation pass, so that a
+  button is one by the time its URL is offered.
+- The line machinery weighs what it lays out: `TextElement` may carry
+  a `cost`, `Indent` may carry any prefix (a quote's `> ` is one), and
+  `CodeBlockResolver(measure=…)` sums each line in the caller's unit as
+  it resolves — `length` beside the text. The LinkedIn output is the
+  plain-text one with a feed's choices and a price on every fragment.
+- A trimming pass right after parsing: a break inside a link's label, a
+  mention's name or a table cell becomes a space, and the whitespace at
+  either end goes. No output rendered them otherwise; the tree now says
+  so itself.
+
+### Added
+
+- **A LinkedIn output**: `parse_markdown_to_linkedin(markdown)` renders
+  the same document as a post and returns its text. See the README for
+  the three choices it makes (mentions, formatting, counting) and for
+  why a first comment is a second document rather than a section of
+  this one. Images are not supported there: one written in the document
+  is left as written.
+- `LengthError`, raised when the rendered post is over `max_length`
+  (4000 by default, the transport limit). Nothing is ever truncated: a
+  post cut mid-sentence without warning is worse than one that refuses
+  to leave. It carries the length counted and the limit.
+- `URLFactory.link_length`, the width of the links a factory produces
+  when it is fixed. The LinkedIn output prices every link at it, so a
+  post is counted for what will be published before the short links
+  exist.
+- `inkletter.counting`, holding the unit the platform counts in — UTF-16
+  code units —, that ceiling, and what each kind of fragment costs:
+  ordinary text weighs what it says, a mention weighs the name it
+  displays rather than the marker carrying it, and a link weighs the
+  short link it will become. The text is NFC-normalized first: a
+  decomposed accent counts as two units on the platform and shows as one
+  letter.
+
+### Fixed
+
+- A URL factory is no longer handed targets that name something rather
+  than locating it — `mailto:`, `tel:`, and the `urn:` of a mention,
+  which a shortener would have turned into a dead link. A path without
+  a scheme, such as a local image, still reaches the factory.
+
 ## 2.2.0 — 2026-08-08
 
 ### Changed

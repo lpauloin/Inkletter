@@ -26,8 +26,7 @@ def test_the_three_together():
     )
     print(actual)
     expected = wrap_mjml_body(
-        '<mj-image src="https://x.com/l.png" alt="Acme"'
-        ' width="96px" height="40px" align="left"/>'
+        '<mj-image src="https://x.com/l.png" alt="Acme" width="96px" height="40px" align="left"/>'
     )
     assert actual == expected
 

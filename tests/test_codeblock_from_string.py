@@ -1,4 +1,4 @@
-from inkletter.codeblock import codeblock_from_string, CodeBlockResolver
+from inkletter.codeblock import CodeBlockResolver, codeblock_from_string
 
 
 def resolve_block(block, indent_size=2):

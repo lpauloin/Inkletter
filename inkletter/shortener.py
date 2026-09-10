@@ -12,8 +12,24 @@ from urllib.request import Request, urlopen
 class URLFactory:
     """Rewrites every URL of the document. The defaults keep them as-is."""
 
-    def rewrite_link(self, url):
-        """Click URLs: links, image links, buttons."""
+    # The width of the links this factory produces, when it is fixed —
+    # a shortener's codes are all the same length. The LinkedIn output
+    # prices every link at it instead of at the address written in the
+    # document, so that a post is counted for what will be published even
+    # before the short links exist. Left as None, each address counts for
+    # what it says.
+    link_length = None
+
+    def rewrite_link(self, url, is_button=False, is_bold=False):
+        """Click URLs: links, image links, buttons.
+
+        What the document says about a link travels with it: `is_button`
+        when the link is the button — a bold link alone in its paragraph,
+        where buttons exist — and `is_bold` when it sits inside bold text,
+        which is how an output without buttons still tells the call to
+        action from a link cited in passing. A shortener that does not
+        care ignores both.
+        """
         return url
 
     def rewrite_image(self, url):
@@ -36,7 +52,7 @@ class BitlyShortener(URLFactory):
         self.domain = domain
         self._cache = {}
 
-    def rewrite_link(self, url):
+    def rewrite_link(self, url, is_button=False, is_bold=False):
         if url not in self._cache:
             self._cache[url] = self.shorten(url)
         return self._cache[url]

@@ -82,7 +82,9 @@ She will own the rendering platform.
 """
     actual = parse_markdown_to_text(markdown_input)
     print(actual)
-    assert actual == """\
+    assert (
+        actual
+        == """\
 The Inkletter Times
 ===================
 
@@ -151,3 +153,4 @@ She will own the rendering platform.
 
 → Read the full story : https://example.com/story
 """
+    )

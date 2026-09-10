@@ -10,6 +10,13 @@ class CodeElement:
 
 # Concrete element classes
 class Indent(CodeElement):
+    """One more prefix on every line that follows, until the matching
+    Dedent: the indentation spaces by default, but a quote's `> ` just as
+    well — a prefix is a prefix."""
+
+    def __init__(self, prefix=None):
+        self.prefix = prefix
+
     def accept(self, visitor):
         return visitor.visit_indent(self)
 
@@ -25,9 +32,18 @@ class Newline(CodeElement):
 
 
 class TextElement(CodeElement):
-    def __init__(self, text, indented=True):
+    """A run of text, and what it costs where cost is counted.
+
+    `cost` is None for text that costs its own characters — nearly all of
+    it. It is set where the two differ, so that a resolver sums prices
+    declared at the moment of writing rather than re-reading the finished
+    string.
+    """
+
+    def __init__(self, text, indented=True, cost=None):
         self.text = text
         self.indented = indented
+        self.cost = cost
 
     def accept(self, visitor):
         return visitor.visit_text(self)
@@ -38,14 +54,14 @@ class CodeBlock(CodeElement):
     def __init__(self):
         self.elements = []
 
-    def add_indent(self):
-        self.elements.append(Indent())
+    def add_indent(self, prefix=None):
+        self.elements.append(Indent(prefix))
 
     def add_dedent(self):
         self.elements.append(Dedent())
 
-    def add_text(self, text, indented=True):
-        self.elements.append(TextElement(text, indented=indented))
+    def add_text(self, text, indented=True, cost=None):
+        self.elements.append(TextElement(text, indented=indented, cost=cost))
 
     def add_newline(self):
         self.elements.append(Newline())
@@ -59,44 +75,74 @@ class CodeBlock(CodeElement):
 
 # Visitor to resolve the CodeBlock to a string
 class CodeBlockResolver:
-    def __init__(self, indent_size=INDENT_SIZE, starting_indent=0):
-        self.indent_size = indent_size
+    """Resolves a block to text, and weighs it on the way.
+
+    Every line costs its prefixes, its fragments — what they declared, or
+    `measure` of what they say — and the break that ends it. `measure` is
+    the caller's unit, `len` unless told otherwise: nothing here knows
+    what any platform counts. Trailing whitespace goes from every line,
+    from plain text only — what is priced never ends with any.
+    """
+
+    def __init__(self, indent_size=INDENT_SIZE, starting_indent=0, measure=len):
+        self.indent = " " * indent_size
         self.starting_indent = starting_indent
-        self.current_indent = starting_indent
-        self.lines = []
-        self.current_line = None
+        self.measure = measure
+        self.reset()
+
+    def reset(self):
+        self.prefixes = [self.indent] * self.starting_indent
+        self.lines = []  # (text, cost), one per line
+        self.parts = None  # the line being built, [(text, cost)], or None
 
     def visit_indent(self, node):
-        self.current_indent += 1
+        self.prefixes.append(self.indent if node.prefix is None else node.prefix)
 
     def visit_dedent(self, node):
-        if self.current_indent == 0:
+        if len(self.prefixes) <= self.starting_indent:
             raise ValueError("Cannot dedent below zero")
-        self.current_indent -= 1
+        self.prefixes.pop()
 
     def visit_newline(self, node):
-        self.lines.append(self.current_line or "")
-        self.current_line = None
+        if self.parts is None:
+            self.parts = [("".join(self.prefixes), None)]
+        self.close_line()
 
     def visit_text(self, node):
-        if self.current_line is None:
-            self.current_line = (
-                " " * (self.current_indent * self.indent_size) if node.indented else ""
-            )
-        self.current_line += node.text
+        if self.parts is None:
+            self.parts = [("".join(self.prefixes) if node.indented else "", None)]
+        self.parts.append((node.text, node.cost))
 
     def visit_codeblock(self, node):
         for element in node.elements:
             element.accept(self)
 
+    def close_line(self):
+        parts = self.parts
+        while parts and parts[-1][1] is None and not parts[-1][0].rstrip():
+            parts.pop()
+        if parts and parts[-1][1] is None:
+            parts[-1] = (parts[-1][0].rstrip(), None)
+        text = "".join(text for text, _ in parts)
+        cost = sum(self.measure(text) if cost is None else cost for text, cost in parts)
+        self.lines.append((text, cost))
+        self.parts = None
+
     def resolve(self, node):
-        self.current_indent = self.starting_indent
-        self.lines = []
-        self.current_line = None
+        self.reset()
         node.accept(self)
-        if self.current_line is not None:
-            self.lines.append(self.current_line)
-        return NEWLINE.join(l.rstrip() for l in self.lines)
+        if self.parts is not None:
+            self.close_line()
+        return NEWLINE.join(text for text, _ in self.lines)
+
+    @property
+    def length(self):
+        """What the resolved text weighs once its trailing blank lines are
+        gone — the weight of `resolve(...).rstrip()`."""
+        lines = self.lines[:]
+        while lines and not lines[-1][0]:
+            lines.pop()
+        return sum(cost for _, cost in lines) + max(len(lines) - 1, 0)
 
 
 def codeblock_from_string(content: str, indent_size: int = 2) -> CodeBlock:

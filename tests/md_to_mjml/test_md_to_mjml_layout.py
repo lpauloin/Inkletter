@@ -1,8 +1,8 @@
 import pytest
 
+from inkletter.exceptions import ThemeError
 from inkletter.md_to_html import parse_markdown_to_html
 from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_document
-from inkletter.exceptions import ThemeError
 from inkletter.theme import Images, Theme, split_media_ratio
 
 # --- Image rows ---

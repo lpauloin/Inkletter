@@ -1,12 +1,12 @@
 import pytest
 
+from inkletter.exceptions import ThemeError
 from inkletter.md_to_html import parse_markdown_to_html
 from inkletter.md_to_mjml import (
     parse_markdown_to_mjml,
     wrap_mjml_body,
     wrap_mjml_document,
 )
-from inkletter.exceptions import ThemeError
 from inkletter.theme import Buttons, Theme
 
 URL = "https://exemple.com/go"
@@ -170,7 +170,9 @@ def test_bold_link_is_button_off_with_theme():
     actual = parse_markdown_to_mjml(f"**[Go]({URL})**", theme=Theme(), bold_link_is_button=False)
     print(actual)
     body = actual[actual.find("<mj-body") :]
-    assert body == f"""\
+    assert (
+        body
+        == f"""\
 <mj-body width="600px" background-color="#f9fafb">
     <mj-section>
       <mj-column>
@@ -181,6 +183,7 @@ def test_bold_link_is_button_off_with_theme():
     </mj-section>
   </mj-body>
 </mjml>"""
+    )
 
 
 # --- End to end (the final HTML is too large to snapshot) ---

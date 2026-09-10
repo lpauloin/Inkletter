@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "inkletter"
-version = "2.2.0"
+version = "3.0.0"
 description = "Markdown to MJML/HTML converter and previewer"
 authors = [
     { name = "Laurent Pauloin", email = "laurent.pauloin@gmail.com" }
@@ -18,12 +18,33 @@ dependencies = [
     "tomli==2.2.1; python_version < '3.11'"
 ]
 
-[tool.black]
-# The output only has to run on the oldest Python we support: listing
-# the newer ones adds nothing, and made Black format for a version the
-# interpreter running it could not parse back for its safety check.
-target-version = ["py310"]
+[dependency-groups]
+dev = [
+    "pytest>=9",
+    "ruff>=0.16",
+]
+
+[tool.ruff]
 line-length = 100
+# The published package must run on the oldest Python we support, so lint
+# and format against that floor rather than against whichever interpreter
+# happens to run the tools.
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = [
+    # Every visitor opens with `from inkletter.ast import *`, and that is
+    # the point: a visitor names the node types it handles and nothing
+    # else, so the file reads as a list of cases rather than as an import
+    # block. Flagging each of the 350-odd uses says nothing new.
+    "F403",
+    "F405",
+    # The formatter owns line length, and it splits what can be split.
+    # What is left is comments and URLs it cannot break — exactly what
+    # Black left long before this migration.
+    "E501",
+]
 
 [project.scripts]
 inkletter = "inkletter.cli:cli"

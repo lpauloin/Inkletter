@@ -7,6 +7,7 @@ from inkletter.link_attributes import link_attributes as link_attributes_plugin
 from inkletter.theme import DEFAULT_THEME
 from inkletter.visitors.annotation import Annotation
 from inkletter.visitors.merger import BlockTextMerger
+from inkletter.visitors.trimmer import Trimmer
 from inkletter.visitors.urls import URLRewriter
 
 
@@ -78,6 +79,11 @@ class ASTRenderer(mistune.BaseRenderer):
         # We extract the image from the text to create a new ImageLink node
         # The rest of the text is ignored
         title = html.unescape(title) if title else title
+        # A link whose target is an entity URN is a mention, and becomes its
+        # own node here rather than being recognised again by every visitor
+        # that walks past one.
+        if url.startswith(MENTION_SCHEME):
+            return Mention(text, url)
         if img := next((t for t in text if isinstance(t, Image)), None):
             # a block written after the link decorates the image it wraps,
             # so both spellings land in the same place
@@ -171,6 +177,7 @@ def parse_markdown_to_ast(
     link_attributes=True,
     theme=None,
     url_factory=None,
+    autolink=False,
 ):
     renderer = ASTRenderer()
     plugins = [
@@ -182,18 +189,27 @@ def parse_markdown_to_ast(
     ]
     if link_attributes:
         plugins.append(link_attributes_plugin)
+    if autolink:
+        # A bare address is text to CommonMark, so nothing downstream sees
+        # it as a link: not the URL factory that would shorten it, not the
+        # counter that would charge it. Off by default, since an email
+        # keeps whatever the author typed.
+        plugins.append("mistune.plugins.url.url")
 
     markdown = mistune.create_markdown(renderer=renderer, plugins=plugins)
 
     ast = markdown(markdown_text)
-
-    if url_factory is not None:
-        URLRewriter(url_factory).visit(ast)
+    # what is laid out on one line — a label, a name, a cell — is one
+    Trimmer().visit(ast)
 
     if theme is None:
         theme = DEFAULT_THEME
 
     BlockTextMerger(bold_link_is_button=bold_link_is_button).visit(ast)
     Annotation(theme=theme, link_attributes=link_attributes).visit(ast)
+    # Last, once every node says what it is: the factory is offered a
+    # button's URL as a button's.
+    if url_factory is not None:
+        URLRewriter(url_factory).visit(ast)
 
     return ast

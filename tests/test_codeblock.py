@@ -120,3 +120,60 @@ def test_error_on_invalid_dedent():
 
     with pytest.raises(ValueError, match="Cannot dedent below zero"):
         resolver.resolve(cb)
+
+
+# --- Weighing ---
+#
+# The resolver sums a cost as it lays the lines out: what a fragment
+# declared, or `measure` of what it says — `len` unless told otherwise.
+
+
+def test_the_weight_is_the_length_by_default():
+    block = CodeBlock()
+    block.add_text("hello")
+    block.add_newline()
+    block.add_indent()
+    block.add_text("world")
+    resolver = CodeBlockResolver()
+    assert resolver.resolve(block) == "hello\n  world"
+    assert resolver.length == len("hello\n  world")
+
+
+def test_a_declared_cost_replaces_the_measure():
+    block = CodeBlock()
+    block.add_text("a ")
+    block.add_text("@[long marker|Acme]", cost=4)
+    resolver = CodeBlockResolver()
+    assert resolver.resolve(block) == "a @[long marker|Acme]"
+    assert resolver.length == 2 + 4
+
+
+def test_the_measure_is_the_caller_s_unit():
+    block = CodeBlock()
+    block.add_text("👋")
+    resolver = CodeBlockResolver(measure=lambda text: len(text.encode("utf-16-le")) // 2)
+    resolver.resolve(block)
+    assert resolver.length == 2
+
+
+def test_a_prefix_is_any_string():
+    block = CodeBlock()
+    block.add_indent("> ")
+    block.add_text("quoted")
+    block.add_newline()
+    block.add_newline()
+    block.add_text("still")
+    block.add_dedent()
+    resolver = CodeBlockResolver()
+    assert resolver.resolve(block) == "> quoted\n>\n> still"
+    assert resolver.length == len("> quoted\n>\n> still")
+
+
+def test_trailing_whitespace_costs_nothing():
+    block = CodeBlock()
+    block.add_text("text   ")
+    block.add_newline()
+    block.add_newline()
+    resolver = CodeBlockResolver()
+    assert resolver.resolve(block) == "text\n"
+    assert resolver.length == len("text")

@@ -2,10 +2,10 @@ import mistune
 
 from inkletter.ast import *
 from inkletter.md_to_ast import ASTRenderer
-from inkletter.visitors.scope import ScopeStack
 from inkletter.theme import DEFAULT_THEME
 from inkletter.visitors.annotation import Annotation
 from inkletter.visitors.merger import BlockTextMerger
+from inkletter.visitors.scope import ScopeStack
 from inkletter.visitors.tree import print_tree
 
 

@@ -234,6 +234,9 @@ class Annotation(NodeVisitor):
 
     def visit_Button(self, node, scope):
         scope.push(node)
+        # The one link of the document that is the ask, said in the node
+        # for whoever handles URLs after this pass.
+        node.annotations["button"] = True
         # The label is a raw-HTML-inline context: no mj-text inside,
         # no MJML component of any kind.
         scope.set("is_in_button", True)
@@ -278,6 +281,7 @@ class Annotation(NodeVisitor):
 
     def visit_ImageLink(self, node, scope):
         scope.push(node)
+        node.annotations["bold"] = scope.get("is_in_strong", False)
         self.mark_manual_image_if_needed(node, scope)
         self.generic_visit(node, scope)  # reaches node.img -> visit_Image
         scope.pop(node)
@@ -329,6 +333,7 @@ class Annotation(NodeVisitor):
 
     def visit_Strong(self, node, scope):
         scope.push(node)
+        scope.set("is_in_strong", True)
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
@@ -341,6 +346,9 @@ class Annotation(NodeVisitor):
 
     def visit_Link(self, node, scope):
         scope.push(node)
+        # Said in the node for whoever handles URLs after this pass: a
+        # link inside bold text is the ask where no button exists.
+        node.annotations["bold"] = scope.get("is_in_strong", False)
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)

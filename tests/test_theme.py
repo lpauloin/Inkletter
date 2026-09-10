@@ -1,6 +1,6 @@
 import pytest
 
-from inkletter.colors import Blue, Slate, WHITE
+from inkletter.colors import WHITE, Blue, Slate
 from inkletter.exceptions import ThemeError
 from inkletter.md_to_mjml import parse_markdown_to_mjml
 from inkletter.theme import LEVELS, THEMES, Heading, Headings, Links, Text, Theme

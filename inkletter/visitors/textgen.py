@@ -10,21 +10,25 @@ from inkletter.codeblock import (
 from inkletter.visitors.generic import NodeVisitor
 
 DIVIDER = "-" * 40
+BULLET = "- "
 
 
 class TextCodegen(NodeVisitor):
     """Renders the normalized AST as the plain-text email alternative.
 
-    Sibling of the MJML Codegen, built on the same CodeBlock machinery.
-    Themes and annotations do not apply: plain text has no styling. A
-    fragment that must be reshaped before landing in the output (quoted
-    lines, padded table cells, an underline as wide as its title) is
-    visited into a nested CodeBlock, resolved to text, transformed, then
-    written to the current block.
+    Sibling of the MJML Codegen, built on the same CodeBlock machinery,
+    and the base of the LinkedIn output, which keeps its lines and
+    changes its choices. Themes and annotations do not apply: plain text
+    has no styling. A fragment that needs a width before landing in the
+    output (padded table cells, an underline as wide as its title) is
+    visited into a nested CodeBlock, resolved to text, shaped, then
+    written to the current block; a quote needs none, its marker being a
+    line prefix the resolver puts there.
     """
 
-    def __init__(self):
+    def __init__(self, bullet=BULLET):
         super().__init__()
+        self.bullet = bullet
         self.root = CodeBlock()
         self.resolver = CodeBlockResolver()
         self.current = self.root
@@ -33,9 +37,14 @@ class TextCodegen(NodeVisitor):
         text = self.resolver.resolve(self.root)
         return text + "\n" if text else ""
 
+    def write(self, text):
+        """Every piece of text goes through here, so that an output built
+        on this one can say something about what it writes."""
+        self.current.add_text(text)
+
     def line(self, text=""):
         if text:
-            self.current.add_text(text)
+            self.write(text)
         self.current.add_newline()
 
     def close_line(self):
@@ -103,10 +112,11 @@ class TextCodegen(NodeVisitor):
             self.line("-" * width)
 
     def visit_BlockQuote(self, node, scope):
-        with self.nested() as block:
-            self.emit_blocks(node.children, scope)
-        for line in self.resolver.resolve(block).splitlines():
-            self.line(("> " + line).rstrip())
+        # the marker is a prefix on every line of the quote, blank ones
+        # included — the resolver puts it there, no string goes round
+        self.current.add_indent("> ")
+        self.emit_blocks(node.children, scope)
+        self.current.add_dedent()
 
     def visit_BlockCode(self, node, scope):
         for line in node.code.splitlines():
@@ -124,10 +134,10 @@ class TextCodegen(NodeVisitor):
     # --- Inline ---
 
     def visit_LiteralText(self, node, scope):
-        self.current.add_text(node.value)
+        self.write(node.value)
 
     def visit_CodeSpan(self, node, scope):
-        self.current.add_text(node.code)
+        self.write(node.code)
 
     def visit_InlineHtml(self, node, scope):
         # the tags vanish, the surrounding text nodes remain — except a
@@ -135,7 +145,7 @@ class TextCodegen(NodeVisitor):
         # carried, exactly as a Markdown link does
         href = node.annotations.get("anchor_href")
         if href:
-            self.current.add_text(f" <{href}>")
+            self.write(f" <{href}>")
 
     def visit_Emphasis(self, node, scope):
         self.generic_visit(node, scope)
@@ -149,9 +159,9 @@ class TextCodegen(NodeVisitor):
     def visit_Link(self, node, scope):
         label = self.resolve_inline(node.children, scope)
         if not label or label == node.href:
-            self.current.add_text(node.href)
+            self.write(node.href)
         else:
-            self.current.add_text(f"{label} <{node.href}>")
+            self.write(f"{label} <{node.href}>")
 
     def visit_LineBreak(self, node, scope):
         self.line()
@@ -198,8 +208,8 @@ class TextCodegen(NodeVisitor):
                 marker = f"{number}. "
                 number += 1
             else:
-                marker = "- "
-            self.current.add_text(marker)
+                marker = self.bullet
+            self.write(marker)
             self.current.add_indent()
             for child in item.children:
                 self.visit(child, scope)

@@ -48,13 +48,9 @@ def send_markdown_email(template_name, context, subject, to):
     # autoescape off: this render produces *Markdown*, not HTML, so
     # escaping for HTML here would put &amp; in front of your reader.
     # Escaping belongs on the values — that is what |md is for.
-    markdown = get_template(template_name).template.render(
-        Context(context, autoescape=False)
-    )
+    markdown = get_template(template_name).template.render(Context(context, autoescape=False))
 
-    message = EmailMultiAlternatives(
-        subject, parse_markdown_to_text(markdown), to=to
-    )
+    message = EmailMultiAlternatives(subject, parse_markdown_to_text(markdown), to=to)
     message.attach_alternative(parse_markdown_to_html(markdown), "text/html")
     message.send()
 ```

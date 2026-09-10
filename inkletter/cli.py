@@ -1,16 +1,16 @@
-from pathlib import Path
 import html
 import json
 import re
 import tempfile
 import webbrowser
+from pathlib import Path
 
 import click
 
+from inkletter.exceptions import ThemeError
 from inkletter.md_to_html import parse_markdown_to_html, parse_mjml_to_html
 from inkletter.md_to_mjml import parse_markdown_to_mjml
 from inkletter.md_to_text import parse_markdown_to_text
-from inkletter.exceptions import ThemeError
 from inkletter.theme import THEMES, Theme
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -84,7 +84,7 @@ def load_theme(theme_name: str | None) -> Theme:
             return Theme.from_toml(path)
         return Theme.named(theme_name)
     except ThemeError as e:
-        raise click.ClickException(str(e))
+        raise click.ClickException(str(e)) from e
 
 
 def write_output(content: str, output: Path | None) -> Path:
@@ -132,7 +132,7 @@ def preview(
 
         rendered = render_preview(markdown_text, mjml_code, html_output)
     except Exception as e:
-        raise click.ClickException(str(e))
+        raise click.ClickException(str(e)) from e
 
     out_path = write_output(rendered, output)
 
@@ -169,7 +169,7 @@ def md2mjml(
             link_attributes=not no_link_attributes,
         )
     except Exception as e:
-        raise click.ClickException(str(e))
+        raise click.ClickException(str(e)) from e
 
     if output:
         output.write_text(mjml_code, encoding="utf-8")
@@ -212,7 +212,7 @@ def md2html(
             link_attributes=not no_link_attributes,
         )
     except Exception as e:
-        raise click.ClickException(str(e))
+        raise click.ClickException(str(e)) from e
 
     out_path = write_output(html_output, output)
 
@@ -246,7 +246,7 @@ def md2txt(
             link_attributes=not no_link_attributes,
         )
     except Exception as e:
-        raise click.ClickException(str(e))
+        raise click.ClickException(str(e)) from e
 
     if output:
         output.write_text(text, encoding="utf-8")

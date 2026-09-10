@@ -22,6 +22,8 @@ and it becomes a **gorgeous, mobile-friendly HTML email** powered by MJML.
 ## Features
 
 - Markdown to MJML or to final responsive HTML, in one command
+- The same Markdown rendered as a LinkedIn post — mentions, short-link
+  aware counting, and a refusal rather than a truncation
 - Layout from plain Markdown structure: side-by-side image rows, image-beside-text
   media objects, and call-to-action buttons from a lone bold link
 - Seven built-in themes, or your own theme in a small TOML file
@@ -46,7 +48,7 @@ Or for development:
 ```bash
 git clone https://github.com/lpauloin/Inkletter.git
 cd Inkletter
-pip install -e .
+uv sync
 ```
 
 ## Usage
@@ -87,6 +89,88 @@ deliverability, and a readable email everywhere. Headings are underlined,
 links become `label <url>`, buttons become `→ label : url` call-to-action
 lines, and tables are ASCII-aligned.
 
+## LinkedIn posts
+
+The same Markdown, rendered as a post — a feed has no rich formatting, so
+a post is text, and everything else is what a feed does differently:
+
+```python
+from inkletter import parse_markdown_to_linkedin
+
+text = parse_markdown_to_linkedin(markdown, url_factory=my_shortener)
+```
+
+One document in, one string out. Nothing is invented on top of
+CommonMark:
+
+| In the Markdown          | In the post                                   |
+|--------------------------|-----------------------------------------------|
+| a link                   | `label : https://…` — no angle brackets       |
+| a bare address           | itself, once: it is a link like any other     |
+| `# heading`              | its text on its own line, no underline        |
+| `- item`                 | `• item`, since list markup is refused        |
+| `1. item`                | its number, as written                        |
+| a bold link on its own   | `label : url` — a feed draws no button; the   |
+|                          | factory is told it was bold                   |
+| a table                  | one line per row, cells joined by `—`         |
+| `---`                    | a blank line: a feed draws no rule            |
+| `**bold**` `*italic*`    | the words alone (see below)                   |
+| an image                 | left exactly as written — not supported       |
+
+### Three choices, so you know what to expect
+
+**A mention is a link whose target is the URN**, which is the only thing
+that identifies an entity — a name alone mentions nobody:
+
+```markdown
+Merci à [Acme](urn:li:organization:12345678) !
+```
+
+It goes out as `@[urn:li:organization:12345678|Acme]`, the form a
+publishing API resolves into a real, blue, clickable mention. That is the
+single form Inkletter emits: LinkedIn's own read-back notation
+`@[Name](urn:…)` is *not* it — written into a post it goes inert and makes
+the rest of the text escape itself. A name is passed through untouched,
+because the match is exact and case-sensitive. A name containing `|` or
+`]` cannot be expressed — they delimit the marker and nothing escapes them
+— so that one goes out as `@Name`, plain text.
+
+**Formatting is removed, not faked** — unless you ask. The platform has no
+bold, italic or strikethrough, so by default the words go out plain.
+`unicode_styling=True` substitutes mathematical look-alikes instead. They
+are text, not formatting: a screen reader spells them out letter by
+letter, the platform's search does not match them, and each letter costs
+two characters rather than one. Hence opt-in. A mention or an address
+inside a styled run is never substituted, or it would stop resolving.
+
+**Length is counted the way the platform counts it**, in UTF-16 code
+units — an emoji costs 2, a skin tone 4, a Unicode bold letter 2 — on a
+text whose accents are composed first (the platform counts a decomposed
+`é` as two and shows one), declared fragment by fragment as the document
+is written rather than measured on the finished string: only the render
+knows that a mention weighs the name it displays instead of the marker
+carrying it. A URL factory that sets `link_length` prices every link at
+that width instead of at the address written in the document — your
+shortener produces links of one fixed size, and they do not exist yet
+when the text is counted.
+
+Over the ceiling, nothing is truncated — `parse_markdown_to_linkedin`
+raises `LengthError`, which carries the length it counted and the limit,
+since a post cut mid-sentence without warning is worse than one that
+refuses to leave. The default is 4000, the transport limit; pass your own
+`max_length=`, or `max_length=None` to never refuse.
+
+### A first comment is a second document
+
+Write it in its own file, render it with a second call, and publish it
+where it belongs. Inkletter has no notion of a first comment: it renders
+one document into one text, and a `---` in your source stays a horizontal
+rule rather than quietly deciding what gets published.
+
+```python
+comment = parse_markdown_to_linkedin(footnotes, max_length=1250)
+```
+
 ## Django templates
 
 Building emails for a Django app? Let Django resolve the template while
@@ -99,9 +183,7 @@ from django.template.loader import get_template
 from inkletter import parse_markdown_to_html, parse_markdown_to_text
 
 # autoescape off: this render produces Markdown, not HTML
-markdown = get_template("emails/welcome.md").template.render(
-    Context(context, autoescape=False)
-)
+markdown = get_template("emails/welcome.md").template.render(Context(context, autoescape=False))
 
 html = parse_markdown_to_html(markdown)
 text = parse_markdown_to_text(markdown)
@@ -319,21 +401,40 @@ html = parse_markdown_to_html(markdown, url_factory=BitlyShortener(token="..."))
 
 Or write your own: subclass `URLFactory` and override only what concerns
 you — `rewrite_link` for click URLs (links, image links, buttons),
-`rewrite_image` for image sources. A shortener that only overrides
-`rewrite_link` never touches images, by simple inheritance:
+`rewrite_image` for image sources. `rewrite_link` also receives what
+the document says about the link: `is_button` for the one that is a
+button — a lone bold link, the call to action — and `is_bold` for a
+link inside bold text; a shortener that does not care ignores both. A shortener
+that only overrides `rewrite_link` never touches images, by simple
+inheritance:
 
 ```python
 from inkletter.shortener import URLFactory
 
 
 class UTMTagger(URLFactory):
-    def rewrite_link(self, url):
-        return f"{url}?utm_source=newsletter&utm_medium=email"
+    def rewrite_link(self, url, is_button=False, is_bold=False):
+        medium = "cta" if is_button else "email"
+        return f"{url}?utm_source=newsletter&utm_medium={medium}"
+```
+
+A factory whose links are all the same width can say so, and the LinkedIn
+output will count every link at that width rather than at the address the
+document carries:
+
+```python
+class MyShortener(URLFactory):
+    link_length = len("https://exa.mp/r/abc123")
 ```
 
 `BitlyShortener` shortens each distinct URL once (in-memory cache), and
 exceptions raised by a factory propagate untouched. Python API only —
 the CLI does not expose factories.
+
+A factory is only ever handed an address: a target that *names* something
+rather than locating it — an entity URN, a `mailto:`, a `tel:` — never
+reaches it, because rewriting one destroys it. A path with no scheme at
+all is an address like any other, so a local image still goes through.
 
 ## Samples
 
@@ -348,11 +449,15 @@ French or not, you are welcome to contribute.
 Fork it, branch it, test it, PR it — with love.
 
 ```bash
-pip install -r requirements-test.txt
-pytest
+uv sync
+uv run ruff check .
+uv run ruff format --check .
+uv run pytest
 ```
 
-Every push and pull request runs through the GitHub Actions CI on Python 3.10 to 3.13.
+Those are the three the CI runs, in that order, on Python 3.10 to 3.13 —
+every push and every pull request. Run them as written rather than an
+equivalent: a command of your own has a different scope.
 
 ## License
 

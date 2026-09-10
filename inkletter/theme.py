@@ -48,7 +48,7 @@ ALIGNMENTS = ("left", "center", "right")
 def _validate_alignment(where, value):
     if value not in ALIGNMENTS:
         raise ThemeError(
-            f"align '{value}' in [{where}] is not an alignment; " f"use {', '.join(ALIGNMENTS)}"
+            f"align '{value}' in [{where}] is not an alignment; use {', '.join(ALIGNMENTS)}"
         )
 
 
@@ -168,8 +168,7 @@ class Theme:
         for group_name, group_data in data.items():
             if group_name not in groups:
                 raise ThemeError(
-                    f"unknown section '[{group_name}]'; "
-                    f"valid sections: {', '.join(sorted(groups))}"
+                    f"unknown section '[{group_name}]'; valid sections: {', '.join(sorted(groups))}"
                 )
             if group_name == "fonts":
                 # a free table of names, not a fixed set of keys
@@ -184,10 +183,10 @@ class Theme:
         try:
             with path.open("rb") as f:
                 data = tomllib.load(f)
-        except FileNotFoundError:
-            raise ThemeError(f"theme file not found: {path}")
-        except tomllib.TOMLDecodeError as e:
-            raise ThemeError(f"invalid TOML in {path}: {e}")
+        except FileNotFoundError as error:
+            raise ThemeError(f"theme file not found: {path}") from error
+        except tomllib.TOMLDecodeError as error:
+            raise ThemeError(f"invalid TOML in {path}: {error}") from error
         return cls.from_dict(data)
 
     @classmethod
@@ -197,7 +196,7 @@ class Theme:
         except KeyError:
             raise ThemeError(
                 f"unknown theme '{name}'; available themes: {', '.join(sorted(THEMES))}"
-            )
+            ) from None
 
     def to_dict(self):
         return asdict(self)

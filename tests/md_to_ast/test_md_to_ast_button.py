@@ -71,7 +71,7 @@ def test_bold_with_link_and_text_inside_stays_a_paragraph(ast):
 
 
 def test_bold_image_link_is_never_a_button(ast):
-    doc = ast(f"![i](https://x.com/i.png)")
+    doc = ast("![i](https://x.com/i.png)")
     doc = ast(f"**[![i](https://x.com/i.png)]({URL})**")
     print_tree(doc)
     para = doc.children[0]

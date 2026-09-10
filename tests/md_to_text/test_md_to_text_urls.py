@@ -3,7 +3,7 @@ from inkletter.shortener import URLFactory
 
 
 class PrefixFactory(URLFactory):
-    def rewrite_link(self, url):
+    def rewrite_link(self, url, is_button=False, is_bold=False):
         return f"https://short.test/?u={url}"
 
 

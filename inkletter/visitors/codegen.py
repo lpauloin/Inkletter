@@ -1,6 +1,6 @@
+import html
 from contextlib import contextmanager
 from itertools import groupby
-import html
 
 from inkletter.ast import *
 from inkletter.codeblock import (

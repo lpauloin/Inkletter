@@ -141,7 +141,7 @@ def test_task_list_nested_1(ast):
         "Checked sub list Item 1",
         "Checked sub list Item 2",
     ]
-    for item, expected_text in zip(nested_list_1.elements, expected_sub_items_1):
+    for item, expected_text in zip(nested_list_1.elements, expected_sub_items_1, strict=True):
         assert isinstance(item, ListItem)
         inner_block = item.children[0]
         assert isinstance(inner_block, BlockText)
@@ -167,7 +167,7 @@ def test_task_list_nested_1(ast):
         "Not checked sub list Item 1",
         "Not checked sub list Item 2",
     ]
-    for item, expected_text in zip(nested_list_2.elements, expected_sub_items_2):
+    for item, expected_text in zip(nested_list_2.elements, expected_sub_items_2, strict=True):
         assert isinstance(item, ListItem)
         inner_block = item.children[0]
         assert isinstance(inner_block, BlockText)

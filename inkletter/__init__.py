@@ -3,8 +3,9 @@
 from importlib.metadata import PackageNotFoundError, version
 
 from inkletter.escaping import escape_markdown
-from inkletter.exceptions import ThemeError
+from inkletter.exceptions import LengthError, ThemeError
 from inkletter.md_to_html import parse_markdown_to_html, parse_mjml_to_html
+from inkletter.md_to_linkedin import parse_markdown_to_linkedin
 from inkletter.md_to_mjml import parse_markdown_to_mjml
 from inkletter.md_to_text import parse_markdown_to_text
 from inkletter.shortener import BitlyShortener, URLFactory
@@ -20,9 +21,11 @@ __all__ = [
     "parse_markdown_to_mjml",
     "parse_markdown_to_html",
     "parse_markdown_to_text",
+    "parse_markdown_to_linkedin",
     "parse_mjml_to_html",
     "Theme",
     "ThemeError",
+    "LengthError",
     "THEMES",
     "URLFactory",
     "BitlyShortener",

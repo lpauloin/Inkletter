@@ -44,7 +44,9 @@ def test_divider_carries_theme_attributes_inline():
     actual = parse_markdown_to_mjml("---", theme=theme)
     print(actual)
     body = actual[actual.find("<mj-body") :]
-    assert body == """\
+    assert (
+        body
+        == """\
 <mj-body width="600px" background-color="#f9fafb">
     <mj-section>
       <mj-column>
@@ -53,6 +55,7 @@ def test_divider_carries_theme_attributes_inline():
     </mj-section>
   </mj-body>
 </mjml>"""
+    )
 
 
 def test_unthemed_divider_uses_the_default_theme():

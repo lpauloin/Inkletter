@@ -27,7 +27,7 @@ class ScopeStack:
             raise RuntimeError("Scope underflow")
         top = self.stack.pop()
         if top["node"] != node:
-            raise RuntimeError("Scope mismatch: expected %s, got %s" % (top["node"], node))
+            raise RuntimeError(f"Scope mismatch: expected {top['node']}, got {node}")
         return top
 
     def set(self, key, value):

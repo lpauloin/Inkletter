@@ -14,14 +14,9 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          pip install -e .
-          pip install -r requirements-test.txt
-      - name: Check formatting
-        run: black --check inkletter tests
-      - name: Run tests
-        run: pytest
+      - uses: astral-sh/setup-uv@v3
+      - run: uv python install ${{ matrix.python-version }}
+      - run: uv sync --python ${{ matrix.python-version }}
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest -q
