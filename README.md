@@ -106,7 +106,10 @@ CommonMark:
 | In the Markdown          | In the post                                   |
 |--------------------------|-----------------------------------------------|
 | a link                   | `label : https://…` — no angle brackets       |
-| a bare address           | itself, once: it is a link like any other     |
+| a bare address           | itself, once: it is a link like any other —   |
+|                          | never ending on `*`, `_` or `~`, so bold      |
+|                          | around it stays bold; a final `)` is its own  |
+|                          | only when it closes one inside                |
 | `# heading`              | its text on its own line, no underline        |
 | `- item`                 | `• item`, since list markup is refused        |
 | `1. item`                | its number, as written                        |
@@ -115,6 +118,7 @@ CommonMark:
 | a table                  | one line per row, cells joined by `—`         |
 | `---`                    | a blank line: a feed draws no rule            |
 | `**bold**` `*italic*`    | the words alone (see below)                   |
+| `#tag`                   | as written, never in look-alikes              |
 | an image                 | left exactly as written — not supported       |
 
 ### Three choices, so you know what to expect
@@ -140,8 +144,20 @@ bold, italic or strikethrough, so by default the words go out plain.
 `unicode_styling=True` substitutes mathematical look-alikes instead. They
 are text, not formatting: a screen reader spells them out letter by
 letter, the platform's search does not match them, and each letter costs
-two characters rather than one. Hence opt-in. A mention or an address
-inside a styled run is never substituted, or it would stop resolving.
+two characters rather than one. Hence opt-in. Bold and italic together
+take the bold italic look-alikes (`***mot***` is 𝙢𝙤𝙩, whichever style is
+outside), and strikethrough adds its stroke on top. A mention or an
+address inside a styled run is never substituted, or it would stop
+resolving; neither is a hashtag, which in look-alikes would be another
+tag, nor the label of a bold link on its own — a call to action is a
+line of text — nor an emoji, which a stroke would break.
+
+**A hashtag is read as one, before the marks inside it.** `#` at the start
+of a word, then letters, digits or underscores with a letter among them:
+`#2026` stays a number, `C#` a language, `#équipe_rh` one tag rather than a
+name with an italic in it — and `# heading`, space and all, is a heading as
+it always was. Every output writes it as written; an email may colour it
+(`[hashtags]` in the theme).
 
 **Length is counted the way the platform counts it**, in UTF-16 code
 units — an emoji costs 2, a skin tone 4, a Unicode bold letter 2 — on a
@@ -329,6 +345,7 @@ underline = false
 | `[text]`     | `font_family`, `font_size`, `line_height`, `color`                                                       |
 | `[headings]` | `font_family`, `color`, `font_weight`, and one `[headings.hN]` subsection per level (`size`, `align`)   |
 | `[links]`    | `color`, `underline`                                                                                     |
+| `[hashtags]` | `color` — unset, a `#tag` is text like the words around it                                               |
 | `[code]`     | `font_family`, `background_color`, `color`                                                               |
 | `[quote]`    | `color`, `border_color`, `font_style`                                                                    |
 | `[divider]`  | `color`, `width`                                                                                         |

@@ -82,6 +82,17 @@ class Annotation(NodeVisitor):
         node.annotations["head"]["title"] = found[0] if found else None
         scope.pop(node)
 
+    def add_style(self, scope, style):
+        """Bold, italic, strikethrough: the styles in force below, carried
+        down to every text they cover."""
+        scope.set("styles", scope.get("styles", frozenset()) | {style})
+
+    def mark_styles(self, node, scope):
+        # a mention's name is never dressed: it is what the platform matches
+        styles = scope.get("styles")
+        if styles and not scope.get("is_in_mention"):
+            node.annotations["styles"] = styles
+
     def mark_text_if_needed(self, node, scope):
         if (
             not scope.get("in_text", False)
@@ -321,12 +332,14 @@ class Annotation(NodeVisitor):
         parts = scope.get("title_parts")
         if parts is not None:
             parts.append(node.value)
+        self.mark_styles(node, scope)
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_Emphasis(self, node, scope):
         scope.push(node)
+        self.add_style(scope, "italic")
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
@@ -334,17 +347,32 @@ class Annotation(NodeVisitor):
     def visit_Strong(self, node, scope):
         scope.push(node)
         scope.set("is_in_strong", True)
+        # The ask — a link alone in bold, where no button exists — still
+        # says it was bold, for the URL factory, but its words keep their
+        # own letters: on a feed a call to action is a line of text.
+        if node.ask is None:
+            self.add_style(scope, "bold")
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_StrikeThrough(self, node, scope):
         scope.push(node)
+        self.add_style(scope, "strikethrough")
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
 
-    def visit_Link(self, node, scope):
+    def visit_UrlLink(self, node, scope):
+        self.link(node, scope)
+
+    def visit_MailLink(self, node, scope):
+        self.link(node, scope)
+
+    def visit_TelLink(self, node, scope):
+        self.link(node, scope)
+
+    def link(self, node, scope):
         scope.push(node)
         # Said in the node for whoever handles URLs after this pass: a
         # link inside bold text is the ask where no button exists.
@@ -353,8 +381,26 @@ class Annotation(NodeVisitor):
         self.generic_visit(node, scope)
         scope.pop(node)
 
+    def visit_Mention(self, node, scope):
+        scope.push(node)
+        scope.set("is_in_mention", True)
+        self.mark_text_if_needed(node, scope)
+        self.generic_visit(node, scope)
+        scope.pop(node)
+
+    def visit_Hashtag(self, node, scope):
+        scope.push(node)
+        # The mail may set it apart, when its theme says so; the feed never
+        # touches it — in look-alikes a tag would be another tag.
+        color = self.theme.hashtags.color
+        if color:
+            node.annotations["hashtag_style"] = f"color: {color};"
+        self.mark_text_if_needed(node, scope)
+        scope.pop(node)
+
     def visit_CodeSpan(self, node, scope):
         scope.push(node)
+        self.mark_styles(node, scope)
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)

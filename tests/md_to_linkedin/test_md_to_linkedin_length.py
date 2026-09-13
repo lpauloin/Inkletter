@@ -180,3 +180,9 @@ def test_no_ceiling_at_all_hands_the_decision_back():
 
 def test_nothing_is_ever_truncated():
     assert parse_markdown_to_linkedin("x" * 4000) == "x" * 4000
+
+
+def test_an_address_and_a_number_cost_their_characters(measured):
+    # words, not links: nothing is shortened, nothing is priced otherwise
+    assert measured("[nous](mailto:a@b.fr)") == len("nous : a@b.fr")
+    assert measured("[là](tel:+331)") == len("là : +331")

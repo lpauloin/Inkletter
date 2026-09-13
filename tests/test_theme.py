@@ -12,6 +12,7 @@ def test_default_theme_is_complete():
     assert theme.text.font_size == "14px"
     assert theme.links.underline is True
     assert theme.headings.color is None  # inherits text color
+    assert theme.hashtags.color is None  # a hashtag is text like its neighbours
 
 
 def test_theme_by_class():
@@ -377,3 +378,8 @@ def test_every_alignment_in_the_theme_is_checked(section, value):
 def test_the_defaults_they_ship_with_are_valid():
     assert Theme().buttons.align == "center"
     assert Theme().images.align == "center"
+
+
+def test_hashtags_section_from_dict():
+    theme = Theme.from_dict({"hashtags": {"color": "#0a66c2"}})
+    assert theme.hashtags.color == "#0a66c2"

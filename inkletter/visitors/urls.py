@@ -1,9 +1,8 @@
-import re
-
 from inkletter.visitors.generic import NodeVisitor
 
-REWRITABLE_SCHEMES = ("http://", "https://")
-SCHEME = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.\-]*:")
+# What locates something on the web, and may be shortened or uploaded: a
+# web address, or a path relative to one — no scheme at all.
+REWRITABLE_SCHEMES = ("http", "https", "")
 
 
 class URLRewriter(NodeVisitor):
@@ -24,7 +23,7 @@ class URLRewriter(NodeVisitor):
         super().__init__()
         self.factory = factory
 
-    def visit_Link(self, node, scope):
+    def visit_UrlLink(self, node, scope):
         self.rewrite_href(node)
         self.generic_visit(node, scope)
 
@@ -37,19 +36,19 @@ class URLRewriter(NodeVisitor):
         self.generic_visit(node, scope)
 
     @staticmethod
-    def is_an_address(url):
+    def is_an_address(node):
         """What a factory may be handed: a web address, or a path relative
         to one — a local image a factory uploads has no scheme at all.
         Anything else names something rather than locating it, and
         rewriting it would destroy it."""
-        return url.startswith(REWRITABLE_SCHEMES) or not SCHEME.match(url)
+        return node.scheme in REWRITABLE_SCHEMES
 
     def visit_Image(self, node, scope):
-        if self.is_an_address(node.url):
+        if self.is_an_address(node):
             node.url = self.checked("rewrite_image", node.url, self.factory.rewrite_image(node.url))
 
     def rewrite_href(self, node):
-        if self.is_an_address(node.href):
+        if self.is_an_address(node):
             rewritten = self.factory.rewrite_link(
                 node.href,
                 is_button=node.annotations.get("button", False),

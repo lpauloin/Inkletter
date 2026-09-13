@@ -13,7 +13,13 @@ from inkletter.visitors.generic import NodeVisitor
 
 
 class Trimmer(NodeVisitor):
-    def visit_Link(self, node, scope):
+    def visit_UrlLink(self, node, scope):
+        self.trim(node, scope)
+
+    def visit_MailLink(self, node, scope):
+        self.trim(node, scope)
+
+    def visit_TelLink(self, node, scope):
         self.trim(node, scope)
 
     def visit_Mention(self, node, scope):

@@ -4,6 +4,7 @@ import mistune
 
 from inkletter.ast import *
 from inkletter.link_attributes import link_attributes as link_attributes_plugin
+from inkletter.plugins import bare_url_plugin, hashtag_plugin
 from inkletter.theme import DEFAULT_THEME
 from inkletter.visitors.annotation import Annotation
 from inkletter.visitors.merger import BlockTextMerger
@@ -12,6 +13,15 @@ from inkletter.visitors.urls import URLRewriter
 
 
 class ASTRenderer(mistune.BaseRenderer):
+    # The target's scheme says what a link is: the node each one becomes,
+    # and a plain Link for the rest — addresses, relative paths, whatever
+    # else. The same idea as a visitor dispatching on a class: a scheme
+    # added later gets its node here, once, rather than a test in every
+    # visitor.
+    LINKS_BY_SCHEME = {"urn": Mention, "mailto": MailLink, "tel": TelLink}
+    # what a scheme names is a class of its own; anything else is an address
+    DEFAULT_LINK = UrlLink
+
     def render_token(self, token, state):
         func = self._get_method(token["type"])
         attrs = token.get("attrs")
@@ -53,6 +63,9 @@ class ASTRenderer(mistune.BaseRenderer):
 
     # --- Inline renderers ---
 
+    def hashtag(self, name):
+        return Hashtag(name)
+
     def text(self, value):
         # CommonMark decodes HTML entities everywhere but in code:
         # mistune hands the raw text over, unescape it here (the codegen
@@ -79,11 +92,12 @@ class ASTRenderer(mistune.BaseRenderer):
         # We extract the image from the text to create a new ImageLink node
         # The rest of the text is ignored
         title = html.unescape(title) if title else title
-        # A link whose target is an entity URN is a mention, and becomes its
-        # own node here rather than being recognised again by every visitor
-        # that walks past one.
-        if url.startswith(MENTION_SCHEME):
-            return Mention(text, url)
+        # What the target's scheme names — an entity, for a URN — becomes
+        # its own node here, once, rather than being recognised again by
+        # every visitor that walks past a link.
+        node = self.LINKS_BY_SCHEME.get(Link.scheme_of(url))
+        if node:
+            return node(text, url, title)
         if img := next((t for t in text if isinstance(t, Image)), None):
             # a block written after the link decorates the image it wraps,
             # so both spellings land in the same place
@@ -91,7 +105,7 @@ class ASTRenderer(mistune.BaseRenderer):
                 img.attributes = Attributes(**ink_attributes)
             return ImageLink(img, url, title)
         else:
-            return Link(text, url, title)
+            return self.DEFAULT_LINK(text, url, title)
 
     # --- Block renderers ---
 
@@ -177,10 +191,14 @@ def parse_markdown_to_ast(
     link_attributes=True,
     theme=None,
     url_factory=None,
-    autolink=False,
 ):
     renderer = ASTRenderer()
     plugins = [
+        # A bare address is text to CommonMark, and a link to every reader:
+        # read as one, so the URL factory shortens it and the counter
+        # charges it like any other.
+        bare_url_plugin,
+        hashtag_plugin,
         "mistune.plugins.formatting.strikethrough",
         "mistune.plugins.table.table",
         "mistune.plugins.table.table_in_list",
@@ -189,13 +207,6 @@ def parse_markdown_to_ast(
     ]
     if link_attributes:
         plugins.append(link_attributes_plugin)
-    if autolink:
-        # A bare address is text to CommonMark, so nothing downstream sees
-        # it as a link: not the URL factory that would shorten it, not the
-        # counter that would charge it. Off by default, since an email
-        # keeps whatever the author typed.
-        plugins.append("mistune.plugins.url.url")
-
     markdown = mistune.create_markdown(renderer=renderer, plugins=plugins)
 
     ast = markdown(markdown_text)

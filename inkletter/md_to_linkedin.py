@@ -40,7 +40,6 @@ def parse_markdown_to_linkedin(
         markdown_text,
         bold_link_is_button=False,
         url_factory=url_factory,
-        autolink=True,
     )
     text, length = LinkedinCodegen(
         unicode_styling=unicode_styling,

@@ -103,3 +103,54 @@ def test_a_padded_mention_name_is_trimmed():
     actual = parse_markdown_to_linkedin("[ Acme ](urn:li:organization:1)")
     print(actual)
     assert actual == "@[urn:li:organization:1|Acme]"
+
+
+# --- Where a feed cannot write or dial, the address and the number are words ---
+
+
+def test_a_mail_link_shows_its_address_not_its_scheme():
+    assert (
+        parse_markdown_to_linkedin("[Écrivez-nous](mailto:bonjour@exemple.fr)")
+        == "Écrivez-nous : bonjour@exemple.fr"
+    )
+
+
+def test_a_bare_address_between_brackets_shows_once():
+    assert (
+        parse_markdown_to_linkedin("Contact : <bonjour@exemple.fr>")
+        == "Contact : bonjour@exemple.fr"
+    )
+
+
+def test_a_mail_link_labelled_with_its_address_shows_once():
+    assert (
+        parse_markdown_to_linkedin("[bonjour@exemple.fr](mailto:bonjour@exemple.fr)")
+        == "bonjour@exemple.fr"
+    )
+
+
+def test_a_tel_link_shows_its_number():
+    assert (
+        parse_markdown_to_linkedin("[Appelez-nous](tel:+33100000000)")
+        == "Appelez-nous : +33100000000"
+    )
+
+
+def test_a_mail_link_in_bold_takes_the_look_alikes_on_its_words_only():
+    actual = parse_markdown_to_linkedin(
+        "**[Écrivez](mailto:bonjour@exemple.fr) vite**", unicode_styling=True
+    )
+    assert actual == "É𝗰𝗿𝗶𝘃𝗲𝘇 : bonjour@exemple.fr 𝘃𝗶𝘁𝗲"
+
+
+# --- A label is read as words, whatever it is made of ---
+
+
+def test_a_label_holding_code_reads_as_its_text():
+    actual = parse_markdown_to_linkedin("[la commande `inkletter`](https://exemple.fr)")
+    assert actual == "la commande inkletter : https://exemple.fr"
+
+
+def test_a_hand_written_anchor_spells_out_its_address():
+    actual = parse_markdown_to_linkedin('Voir <a href="https://exemple.fr">le site</a> ici.')
+    assert actual == "Voir le site : https://exemple.fr ici."

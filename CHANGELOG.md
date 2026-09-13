@@ -4,6 +4,43 @@ Newest first. [Semantic versioning](https://semver.org): a major bump
 means a document, a theme file or a call that used to work no longer
 does.
 
+## 3.1.0 — 2026-09-13
+
+### Changed
+
+- **`Link` is abstract.** A tree holds `UrlLink`, `MailLink`, `TelLink`
+  and `Mention`, chosen by the target's scheme (`ASTRenderer.LINKS_BY_SCHEME`);
+  a `urn:` of any namespace is a mention. A visitor's `visit_Link` no
+  longer runs: name `visit_UrlLink` and the other kinds it means.
+  Documents, themes and the public calls are untouched.
+- **A bare address is a link in every output**, and the `autolink`
+  parameter of `parse_markdown_to_ast` is gone. An email links it, a URL
+  factory shortens it, one alone in bold is a button.
+
+### Added
+
+- **`Hashtag(name)`**, a node read at parse time: `#équipe_rh` is one tag,
+  never an italic. `#2026` and `C#` are text; `# heading` is a heading.
+  Written as is everywhere; an email may colour it (`[hashtags] color`).
+- **`Link.scheme`, `Image.scheme`, `ImageLink.scheme`**, read with
+  `urllib.parse`; `MailLink.address`, `TelLink.number`.
+- **`styles` on every text and code span**: the styles in force around
+  it, set by the annotation. The label of a lone bold link carries none.
+
+### Fixed
+
+- **Bold and italic together** take the bold italic look-alikes, in any
+  nesting; strikethrough adds its stroke on top.
+- **A hashtag is never substituted**: `**#marketing**` stays `#marketing`.
+- **A lone bold link keeps its own letters**: on a feed a call to action
+  is a line of text.
+- **Strikethrough leaves an emoji whole.**
+- **A feed writes `mailto:` and `tel:` as the address and the number**,
+  and `<bonjour@exemple.fr>` once rather than twice.
+- **A bare address** never ends on `*`, `_` or `~`, and keeps a final `)`
+  only when it closes one of its own — `**https://exemple.fr**` is bold,
+  `(see http://a.fr/b)` keeps the sentence's parenthesis.
+
 ## 3.0.0 — 2026-09-10
 
 ### Changed

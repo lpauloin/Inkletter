@@ -19,13 +19,13 @@ The tree arrives trimmed (`Trimmer`, a pass of `parse_markdown_to_ast`):
 whatever is laid out on one line — a label, a name, a cell — already is.
 """
 
+import unicodedata
 from string import ascii_letters
 
 from inkletter.ast import *
 from inkletter.codeblock import CodeBlockResolver
 from inkletter.counting import cost_of_link, cost_of_mention, cost_of_text
 from inkletter.visitors.textgen import TextCodegen
-from inkletter.visitors.urls import REWRITABLE_SCHEMES
 
 BULLET = "• "
 CELL_SEPARATOR = " — "
@@ -40,18 +40,56 @@ MARKER_DELIMITERS = ("|", "]")
 # are text, not formatting: a screen reader spells them out letter by
 # letter and the platform's search does not match them, which is why they
 # are opt-in rather than a default.
-BOLD = str.maketrans(
-    ascii_letters, "".join(map(chr, [*range(0x1D5EE, 0x1D608), *range(0x1D5D4, 0x1D5EE)]))
-)
-ITALIC = str.maketrans(
-    ascii_letters, "".join(map(chr, [*range(0x1D622, 0x1D63C), *range(0x1D608, 0x1D622)]))
-)
-STRIKE = "̶"
-STYLES = {
-    "bold": lambda text: text.translate(BOLD),
-    "italic": lambda text: text.translate(ITALIC),
-    "strikethrough": lambda text: "".join(c + STRIKE for c in text),
+#
+# | Styles in force  | Letters become                           |
+# |------------------|------------------------------------------|
+# | bold             | 𝗺𝗼𝘁 sans-serif bold                       |
+# | italic           | 𝘮𝘰𝘵 sans-serif italic                     |
+# | bold and italic  | 𝙢𝙤𝙩 sans-serif bold italic — one table,   |
+# |                  | whichever is outside: a second table     |
+# |                  | would find no ASCII letter left to map   |
+# | strikethrough    | a combining stroke after each letter,    |
+# |                  | digit, sign or space — never an emoji —  |
+# |                  | on top of the letters' own look-alike    |
+#
+# Only unaccented ASCII letters have a look-alike; accents and digits stay
+# as they are.
+
+
+def lookalikes(lower, upper):
+    return str.maketrans(
+        ascii_letters, "".join(map(chr, [*range(lower, lower + 26), *range(upper, upper + 26)]))
+    )
+
+
+LETTERS = {
+    frozenset({"bold"}): lookalikes(0x1D5EE, 0x1D5D4),
+    frozenset({"italic"}): lookalikes(0x1D622, 0x1D608),
+    frozenset({"bold", "italic"}): lookalikes(0x1D656, 0x1D63C),
 }
+STRIKE = "\u0336"
+# What the stroke goes after: letters, digits, punctuation, spaces and the
+# like. Not an emoji, nor what an emoji is built of — a joiner, a variation
+# selector, a skin tone — where a stroke breaks the picture instead of
+# crossing it out.
+STRUCK_CATEGORIES = ("L", "N", "P", "Zs", "Sc", "Sm")
+
+
+def strike(text):
+    return "".join(
+        char + STRIKE if unicodedata.category(char).startswith(STRUCK_CATEGORIES) else char
+        for char in text
+    )
+
+
+def substitute(text, styles):
+    """`text` in the look-alikes of `styles`."""
+    letters = LETTERS.get(frozenset(styles) & {"bold", "italic"})
+    if letters:
+        text = text.translate(letters)
+    if "strikethrough" in styles:
+        text = strike(text)
+    return text
 
 
 class LinkedinCodegen(TextCodegen):
@@ -70,16 +108,21 @@ class LinkedinCodegen(TextCodegen):
         self.resolver = CodeBlockResolver(measure=cost_of_text)
         self.unicode_styling = unicode_styling
         self.link_length = link_length
-        self.styles = []  # the styles in force around what is written
 
     def write(self, text, cost=None):
-        """Plain text takes the styles in force, when substitutes are
-        wanted, and costs what it says; what is priced — a marker, an
-        address — is left alone, or it would stop resolving."""
-        if cost is None and self.unicode_styling:
-            for style in self.styles:
-                text = STYLES[style](text)
+        """Text costs what it says, unless it is priced — a marker, an
+        address."""
         self.current.add_text(text, cost=cost)
+
+    def write_styled(self, text, annotations):
+        """The author's words, in the look-alikes of the styles the
+        annotation says are in force around them, when substitutes are
+        wanted. Only words: a marker or an address is never styled, or it
+        would stop resolving."""
+        styles = annotations.get("styles")
+        if self.unicode_styling and styles:
+            text = substitute(text, styles)
+        self.write(text)
 
     def write_link(self, url):
         """The address in full — readable, and the one thing an author can
@@ -136,35 +179,45 @@ class LinkedinCodegen(TextCodegen):
             return self.write(f"@{name}")
         self.write(f"@[{node.urn}|{name}]", cost_of_mention(name))
 
-    def visit_Link(self, node, scope):
+    def visit_UrlLink(self, node, scope):
         """`label : url`, and the url alone when the label is one too — a
         bare address the author typed, which the parser encapsulates and a
         factory may have shortened since, so the two halves no longer
         match. No angle brackets either: a feed shows them, it does not
         read them."""
         label = self.plain_text(node)
-        if label and label != node.href and not label.startswith(REWRITABLE_SCHEMES):
+        if label and label != node.href and Link.scheme_of(label) not in ("http", "https"):
             self.generic_visit(node, scope)
             self.write(LABEL_SEPARATOR)
         self.write_link(node.href)
 
-    def styled(self, node, scope, style):
-        """The platform shows no formatting, so the choice is between losing
-        it and paying for a look-alike that costs two units a letter and
-        reads as gibberish aloud: the style is put in force around the
-        children, and `write` applies it to plain text only."""
-        self.styles.append(style)
-        self.generic_visit(node, scope)
-        self.styles.pop()
+    def visit_MailLink(self, node, scope):
+        self.named(node, node.address, scope)
 
-    def visit_Strong(self, node, scope):
-        self.styled(node, scope, "bold")
+    def visit_TelLink(self, node, scope):
+        self.named(node, node.number, scope)
 
-    def visit_Emphasis(self, node, scope):
-        self.styled(node, scope, "italic")
+    def named(self, node, target, scope):
+        """`label : target`, and the target alone when the label is it, or
+        the whole `mailto:`/`tel:` the parser wrote for a bare one — a feed
+        dials nothing and drafts nothing, so what it shows is the address
+        or the number, as words."""
+        label = self.plain_text(node)
+        if label and label not in (target, node.href):
+            self.generic_visit(node, scope)
+            self.write(LABEL_SEPARATOR)
+        self.write(target)
 
-    def visit_StrikeThrough(self, node, scope):
-        self.styled(node, scope, "strikethrough")
+    def visit_LiteralText(self, node, scope):
+        self.write_styled(node.value, node.annotations)
+
+    def visit_Hashtag(self, node, scope):
+        # As written, whatever style is in force: in look-alikes it would be
+        # another tag than the author's.
+        self.write(f"#{node.name}")
+
+    def visit_CodeSpan(self, node, scope):
+        self.write_styled(node.code, node.annotations)
 
     # --- Images are not supported: written, they stay as written ---
 

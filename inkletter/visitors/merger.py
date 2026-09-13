@@ -123,13 +123,12 @@ class BlockTextMerger(NodeVisitor):
         blocks = [c for c in node.children if not self.is_blank(c)]
         if len(blocks) != 1 or not isinstance(blocks[0], BlockText):
             return None
-        inlines = [c for c in blocks[0].children if not self.is_blank_inline(c)]
+        inlines = [c for c in blocks[0].children if not c.is_blank()]
         if len(inlines) != 1 or not isinstance(inlines[0], Strong):
             return None
-        label = [c for c in inlines[0].children if not self.is_blank_inline(c)]
-        if len(label) != 1 or not isinstance(label[0], Link):
+        link = inlines[0].ask
+        if link is None:
             return None
-        link = label[0]
         # never a button on an image link: the image always wins, even
         # nested deep inside the label
         if types & {Image, ImageLink}:
@@ -138,15 +137,10 @@ class BlockTextMerger(NodeVisitor):
         # pass, which runs before this merger (see parse_markdown_to_ast)
         return Button(link.children, link.href, link.title)
 
-    def is_blank_inline(self, node):
-        if isinstance(node, TextTerminal):
-            return True
-        return isinstance(node, LiteralText) and not node.value.strip()
-
     def is_blank(self, node):
         if not isinstance(node, BlockText):
             return False
-        return all(self.is_blank_inline(c) for c in node.children)
+        return all(c.is_blank() for c in node.children)
 
     def strip_edge(self, blocks, leading):
         """Trim the whitespace left over next to the extracted image."""

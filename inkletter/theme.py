@@ -88,6 +88,13 @@ class Links:
 
 
 @dataclass(frozen=True)
+class Hashtags:
+    # None: a hashtag is text like the words around it. A colour sets it
+    # apart, the way a feed draws one.
+    color: str | None = None
+
+
+@dataclass(frozen=True)
 class Code:
     font_family: str = "Menlo, Consolas, monospace"
     background_color: str = Gray.LIGHTEST
@@ -146,6 +153,7 @@ class Theme:
     text: Text = field(default_factory=Text)
     headings: Headings = field(default_factory=Headings)
     links: Links = field(default_factory=Links)
+    hashtags: Hashtags = field(default_factory=Hashtags)
     code: Code = field(default_factory=Code)
     quote: Quote = field(default_factory=Quote)
     divider: Divider = field(default_factory=Divider)

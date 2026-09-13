@@ -236,3 +236,60 @@ def test_link_with_bold_and_italic_text():
     print("expected:")
     print(expected)
     assert actual == expected
+
+
+# --- Hashtags ---
+
+
+def test_a_hashtag_is_text_unless_the_theme_colours_it():
+    actual = parse_markdown_to_mjml("Nos #chiffres et #équipe_rh.")
+    assert wrap_mjml_body("<mj-text>\n  Nos #chiffres et #équipe_rh.\n</mj-text>") == actual
+
+
+def test_a_themed_hashtag_is_set_apart_inline():
+    from inkletter.theme import Hashtags, Theme
+
+    theme = Theme(hashtags=Hashtags(color="#0a66c2"))
+    actual = parse_markdown_to_mjml("Un **#tag**.", theme=theme)
+    expected = wrap_mjml_body(
+        '<mj-text>\n  Un <strong><span style="color: #0a66c2;">#tag</span></strong>.\n</mj-text>'
+    )
+    assert actual == expected
+
+
+def test_a_hashtag_alone_still_opens_its_text_block():
+    actual = parse_markdown_to_mjml("#tag")
+    assert wrap_mjml_body("<mj-text>\n  #tag\n</mj-text>") == actual
+
+
+# --- A bare address is a link ---
+
+
+def test_a_bare_address_is_an_anchor():
+    actual = parse_markdown_to_mjml("Voir https://exemple.fr/page.")
+    expected = wrap_mjml_body(
+        '<mj-text>\n  Voir <a href="https://exemple.fr/page">https://exemple.fr/page</a>.\n</mj-text>'
+    )
+    assert actual == expected
+
+
+def test_a_bare_address_alone_in_bold_is_a_button():
+    actual = parse_markdown_to_mjml("**https://exemple.fr**")
+    assert '<mj-button href="https://exemple.fr"' in actual
+
+
+# --- An address and a number are anchors a mail client can act on ---
+
+
+def test_a_mail_link_is_an_anchor():
+    actual = parse_markdown_to_mjml("[Écrivez-nous](mailto:bonjour@exemple.fr)")
+    expected = wrap_mjml_body(
+        '<mj-text>\n  <a href="mailto:bonjour@exemple.fr">Écrivez-nous</a>\n</mj-text>'
+    )
+    assert actual == expected
+
+
+def test_a_lone_bold_mail_link_is_a_button():
+    assert '<mj-button href="mailto:a@b.fr"' in parse_markdown_to_mjml(
+        "**[Écrivez-nous](mailto:a@b.fr)**"
+    )

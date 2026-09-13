@@ -1,9 +1,16 @@
+from urllib.parse import urlsplit
+
+
 class Node:
     def __init__(self):
         self.annotations = {}
 
     def get_children(self):
         return []
+
+    def is_blank(self):
+        """Nothing to read: a break, or text made of whitespace."""
+        return False
 
     def __repr__(self):
         return f"{self.__class__.__name__}()"
@@ -37,6 +44,9 @@ class LiteralText(Text):
         super().__init__()
         self.value = value
 
+    def is_blank(self):
+        return not self.value.strip()
+
     def __repr__(self):
         return f"LiteralText('{self.value}')"
 
@@ -48,6 +58,22 @@ class CodeSpan(Text):
 
     def __repr__(self):
         return f"CodeSpan(code='{self.code}')"
+
+
+class Hashtag(Text):
+    """A `#tag` in the text: `#` at the start of a word, then letters, digits
+    or underscores, one letter at least — so `#2026` is a number and `C#` a
+    language, and a `# ` with its space is a heading long before the text is
+    read. Its own node, read before any mark inside it could be one:
+    `#équipe_rh` is one tag, not a name with an italic in it. The name is
+    kept without the `#`, which each rendering writes."""
+
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+
+    def __repr__(self):
+        return f"Hashtag(name='{self.name}')"
 
 
 class InlineHtml(Text):
@@ -65,6 +91,16 @@ class Emphasis(TextBlock):
 
 
 class Strong(TextBlock):
+    @property
+    def ask(self):
+        """The one link this bold wraps, blanks aside — the call to action,
+        which a lone bold link is — and None when it wraps anything else.
+        A mention does not qualify: it names someone, it asks nothing."""
+        inner = [child for child in self.children if not child.is_blank()]
+        if len(inner) == 1 and isinstance(inner[0], Link) and not isinstance(inner[0], Mention):
+            return inner[0]
+        return None
+
     def __repr__(self):
         return "Strong()"
 
@@ -74,40 +110,96 @@ class StrikeThrough(TextBlock):
         return "StrikeThrough()"
 
 
-# What tells a mention from a link: the target names an entity rather than
-# an address. Everything under `urn:li:` is one — an organization, a person.
-MENTION_SCHEME = "urn:li:"
+class Link(TextBlock):
+    """What a link is, whatever it points at: a label, a target, a title.
+    Never a node of the tree itself — a target's scheme says which of the
+    classes below it is, and a visitor names the one it renders."""
+
+    def __init__(self, text, href, title=None):
+        super().__init__(text)
+        self.href = href
+        self.title = title
+
+    @staticmethod
+    def scheme_of(target):
+        """The scheme a target starts with, lower-cased — `https`,
+        `mailto`, `urn` — and `""` for a path relative to nothing, or for
+        a target the standard splitter refuses (an unclosed IPv6 bracket,
+        say): what it is not, at least, is an address."""
+        try:
+            return urlsplit(target).scheme.lower()
+        except ValueError:
+            return ""
+
+    # Each kind says its scheme; only an address has to read it off its
+    # target, which may be `http`, `https` or none at all.
+    scheme = None
+
+    def __repr__(self):
+        return f"{type(self).__name__}(href='{self.href}', title='{self.title}')"
 
 
-class Mention(TextBlock):
-    """Someone named in the text, with the entity's URN as its target.
+class UrlLink(Link):
+    """An address — `http`, `https`, or a path relative to one — that a
+    reader follows and a factory may shorten."""
 
-    Its own node rather than a Link with an odd href, and that is what
-    protects it: visitors dispatch on the exact class name, so a URL
-    rewriter that shortens every link never sees a mention, and cannot
-    replace an entity's URN with a dead address.
+    @property
+    def scheme(self):
+        # read off the href each time: a factory may rewrite it
+        return self.scheme_of(self.href)
+
+
+class Mention(Link):
+    """Someone named in the text, with the entity's URN as its target —
+    `urn:li:organization:…`, `urn:li:person:…`: what the `urn` scheme
+    names in a document is an entity to mention.
+
+    A link by nature, and its own class so that each rendering says what
+    it does with one — a marker on a feed, the name alone in a mail — and
+    so that a URL factory, which is shown addresses alone, never replaces
+    the URN with a dead one. Nor is a mention a call to action, however
+    bold.
 
     The children carry the name as it is to be displayed — the one the
     destination matches on, case included — with no leading marker: the
     marker belongs to whichever rendering needs one.
     """
 
-    def __init__(self, text, urn):
-        super().__init__(text)
-        self.urn = urn
+    scheme = "urn"
+
+    @property
+    def urn(self):
+        return self.href
 
     def __repr__(self):
         return f"Mention(urn='{self.urn}')"
 
 
-class Link(TextBlock):
-    def __init__(self, text, href, title=None):
-        super().__init__(text)
-        self.href = href
-        self.title = title
+class MailLink(Link):
+    """`mailto:` — an address to write to. A mail client draws it as any
+    link; a feed, which has none, shows the address itself."""
+
+    scheme = "mailto"
+
+    @property
+    def address(self):
+        return urlsplit(self.href).path
 
     def __repr__(self):
-        return f"Link(href='{self.href}', title='{self.title}')"
+        return f"MailLink(address='{self.address}')"
+
+
+class TelLink(Link):
+    """`tel:` — a number to call, shown as such where nothing can dial."""
+
+    scheme = "tel"
+
+    @property
+    def number(self):
+        return urlsplit(self.href).path
+
+    def __repr__(self):
+        return f"TelLink(number='{self.number}')"
 
 
 # --- Block elements ---
@@ -193,6 +285,10 @@ class Image(Node):
         self.title = title
         self.attributes = attributes if attributes is not None else Attributes()
 
+    @property
+    def scheme(self):
+        return Link.scheme_of(self.url)
+
     def get_children(self):
         if self.alt_text is None:
             return []
@@ -210,6 +306,10 @@ class ImageLink(Node):
         self.img = img
         self.href = href
         self.title = title
+
+    @property
+    def scheme(self):
+        return Link.scheme_of(self.href)
 
     def get_children(self):
         return [self.img]
@@ -235,6 +335,10 @@ class Button(BlockNode):
         super().__init__(children)
         self.href = href
         self.title = title
+
+    @property
+    def scheme(self):
+        return Link.scheme_of(self.href)
 
     def __repr__(self):
         return f"Button(href='{self.href}', title='{self.title}')"
@@ -266,6 +370,9 @@ class Terminal(Node):
 
 
 class TextTerminal(Text, Terminal):
+    def is_blank(self):
+        return True
+
     pass
 
 

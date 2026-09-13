@@ -335,7 +335,16 @@ class Codegen(NodeVisitor):
             with self.block_tag("del", inline=True):
                 self.generic_visit(node, scope)
 
-    def visit_Link(self, node, scope):
+    def visit_UrlLink(self, node, scope):
+        self.anchor(node, scope)
+
+    def visit_MailLink(self, node, scope):
+        self.anchor(node, scope)
+
+    def visit_TelLink(self, node, scope):
+        self.anchor(node, scope)
+
+    def anchor(self, node, scope):
         with self.ensure_open_text(node):
             attrs = {"href": node.href}
             if node.title:
@@ -362,6 +371,15 @@ class Codegen(NodeVisitor):
         for line in value.splitlines():
             self.current.add_text(line)
             self.current.add_newline()
+
+    def visit_Hashtag(self, node, scope):
+        with self.ensure_open_text(node):
+            style = node.annotations.get("hashtag_style")
+            if style:
+                with self.block_tag("span", attrs={"style": style}, inline=True):
+                    self.current.add_text(f"#{node.name}")
+            else:
+                self.current.add_text(f"#{node.name}")
 
     def visit_CodeSpan(self, node, scope):
         with self.ensure_open_text(node):

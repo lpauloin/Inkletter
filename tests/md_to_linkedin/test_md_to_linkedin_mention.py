@@ -65,8 +65,8 @@ class Shortener(URLFactory):
 
 
 def test_a_shortener_cannot_replace_an_urn_with_a_dead_link():
-    # dispatch is on the exact class name, so visit_Link never sees a
-    # Mention — and the factory is asked nothing about it either
+    # the rewriter names UrlLink alone, so it never sees a Mention — and
+    # the factory is asked nothing about it either
     actual = parse_markdown_to_linkedin(
         f"{ACME} et [le site](https://exemple.fr)", url_factory=Shortener()
     )

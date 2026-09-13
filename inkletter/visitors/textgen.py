@@ -139,6 +139,9 @@ class TextCodegen(NodeVisitor):
     def visit_CodeSpan(self, node, scope):
         self.write(node.code)
 
+    def visit_Hashtag(self, node, scope):
+        self.write(f"#{node.name}")
+
     def visit_InlineHtml(self, node, scope):
         # the tags vanish, the surrounding text nodes remain — except a
         # closing anchor, which spells out the URL its opening tag
@@ -156,10 +159,25 @@ class TextCodegen(NodeVisitor):
     def visit_StrikeThrough(self, node, scope):
         self.generic_visit(node, scope)
 
-    def visit_Link(self, node, scope):
+    def visit_UrlLink(self, node, scope):
         label = self.resolve_inline(node.children, scope)
         if not label or label == node.href:
             self.write(node.href)
+        else:
+            self.write(f"{label} <{node.href}>")
+
+    def visit_MailLink(self, node, scope):
+        self.named(node, node.address, scope)
+
+    def visit_TelLink(self, node, scope):
+        self.named(node, node.number, scope)
+
+    def named(self, node, target, scope):
+        # the address or the number alone when the label is it — a bare
+        # `<bonjour@exemple.fr>` — rather than twice, once with its scheme
+        label = self.resolve_inline(node.children, scope)
+        if not label or label in (target, node.href):
+            self.write(target)
         else:
             self.write(f"{label} <{node.href}>")
 
@@ -194,8 +212,9 @@ class TextCodegen(NodeVisitor):
         self.emit_blocks(node.children, scope)
 
     def visit_Button(self, node, scope):
-        label = self.resolve_inline(node.children, scope).replace("\n", " ")
-        self.line(f"→ {label.strip()} : {node.href}")
+        label = self.resolve_inline(node.children, scope).replace("\n", " ").strip()
+        # a bare address made a button reads as the address, once
+        self.line(f"→ {node.href}" if label == node.href else f"→ {label} : {node.href}")
 
     # --- Lists ---
 
