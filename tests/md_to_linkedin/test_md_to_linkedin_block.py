@@ -103,3 +103,48 @@ def test_trailing_whitespace_is_trimmed():
     # the platform trims before counting, so keeping it would make our
     # count disagree with theirs
     assert parse_markdown_to_linkedin("Du texte.  \n\n\n") == "Du texte."
+
+
+# --- The blank lines an author left ---
+
+
+def test_a_run_of_blank_lines_is_kept_line_for_line():
+    # Markdown reads a run as one paragraph break; a feed is sent what was
+    # typed, and an author who spaces their lines out means it
+    assert parse_markdown_to_linkedin("Un\n\nDeux") == "Un\n\nDeux"
+    assert parse_markdown_to_linkedin("Un\n\n\nDeux") == "Un\n\n\nDeux"
+    assert parse_markdown_to_linkedin("Un\n\n\n\n\nDeux") == "Un\n\n\n\n\nDeux"
+
+
+def test_blank_lines_between_any_two_blocks_are_kept():
+    assert parse_markdown_to_linkedin("# Titre\n\n\nUn") == "Titre\n\n\nUn"
+    assert parse_markdown_to_linkedin("Un\n\n\n> b") == "Un\n\n\n> b"
+
+
+def test_a_list_reads_the_blank_lines_that_follow_it_as_its_own():
+    # they belong to the list's own parsing — a loose list eats them — so
+    # the run between a list and what follows stays the single break
+    assert parse_markdown_to_linkedin("- a\n\n\n> b") == "• a\n\n> b"
+
+
+def test_the_blank_lines_a_document_opens_or_ends_on_separate_nothing():
+    # the platform trims them before counting, so keeping them would make
+    # our count disagree with theirs
+    assert parse_markdown_to_linkedin("\n\n\nUn") == "Un"
+    assert parse_markdown_to_linkedin("Du texte.  \n\n\n") == "Du texte."
+
+
+def test_a_run_of_blank_lines_inside_a_list_leaves_the_items_alone():
+    assert parse_markdown_to_linkedin("- a\n\n\n- b") == "• a\n• b"
+
+
+# --- What the platform counts for them ---
+
+
+def test_a_blank_line_costs_the_newline_it_is(measured):
+    assert measured("Un\n\n\nDeux") == measured("Un\n\nDeux") + 1
+    assert measured("Un\n\n\n\nDeux") == measured("Un\n\nDeux") + 2
+
+
+def test_a_run_a_document_opens_on_costs_nothing(measured):
+    assert measured("\n\n\nUn") == measured("Un")

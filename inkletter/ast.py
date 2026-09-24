@@ -392,8 +392,16 @@ class SoftBreak(TextTerminal):
 
 
 class BlankLine(TextTerminal):
+    """The lines an author left between two blocks. Markdown reads them as
+    one break — a document says nothing by the rest — and keeps the count
+    for an output that does: a post goes out as it was typed."""
+
+    def __init__(self, lines=1):
+        super().__init__()
+        self.lines = lines
+
     def __repr__(self):
-        return "BlankLine()"
+        return f"BlankLine({self.lines})"
 
 
 # --- List elements ---

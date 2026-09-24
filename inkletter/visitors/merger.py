@@ -28,7 +28,13 @@ class BlockTextMerger(NodeVisitor):
                 _buf.clear()
 
         for child in children:
-            if isinstance(child, Text):
+            # The blank lines an author left stand between blocks, and say
+            # how many they were: a block of its own, not filler to clean
+            # away with the breaks around a run of text.
+            if isinstance(child, BlankLine):
+                flush(buffer, new_children)
+                new_children.append(child)
+            elif isinstance(child, Text):
                 buffer.append(child)
             elif isinstance(child, BlockText):
                 flush(buffer, new_children)

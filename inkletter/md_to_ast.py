@@ -4,7 +4,7 @@ import mistune
 
 from inkletter.ast import *
 from inkletter.link_attributes import link_attributes as link_attributes_plugin
-from inkletter.plugins import bare_url_plugin, hashtag_plugin
+from inkletter.plugins import bare_url_plugin, blank_lines_plugin, hashtag_plugin
 from inkletter.theme import DEFAULT_THEME
 from inkletter.visitors.annotation import Annotation
 from inkletter.visitors.merger import BlockTextMerger
@@ -128,8 +128,8 @@ class ASTRenderer(mistune.BaseRenderer):
     def thematic_break(self):
         return ThematicBreak()
 
-    def blank_line(self):
-        return BlankLine()
+    def blank_line(self, lines=1):
+        return BlankLine(lines)
 
     def linebreak(self):
         return LineBreak()
@@ -204,6 +204,9 @@ def parse_markdown_to_ast(
         "mistune.plugins.table.table_in_list",
         "mistune.plugins.table.table_in_quote",
         "mistune.plugins.task_lists.task_lists",
+        # A run of blank lines, counted: what an output that lays a text
+        # out as it was typed needs, and what CommonMark forgets.
+        blank_lines_plugin,
     ]
     if link_attributes:
         plugins.append(link_attributes_plugin)

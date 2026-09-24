@@ -180,8 +180,9 @@ def test_a_call_to_action_costs_its_label_unstyled_and_a_short_link(measured):
 
 
 def test_a_struck_emoji_costs_the_emoji_alone(measured):
-    # o̶k̶ ̶ is 6 units, the space's stroke included; 🎉 is 2 and takes none
-    assert measured("~~ok 🎉~~", unicode_styling=True) == 6 + 2
+    # o̶k̶ is 4 units and the space beside the emoji 1, its stroke skipped as
+    # the emoji's is; 🎉 is 2 and takes none
+    assert measured("~~ok 🎉~~", unicode_styling=True) == 5 + 2
 
 
 def test_a_bare_address_in_bold_costs_a_short_link_and_nothing_for_its_marks(measured):
@@ -238,8 +239,13 @@ def test_strikethrough_crosses_accented_letters_once():
 @pytest.mark.parametrize("emoji", ["🎉", "🇫🇷", "👍🏽", "👨‍👩‍👧", "❤️"])
 def test_strikethrough_leaves_an_emoji_whole(emoji):
     # a stroke after a joiner, a variation selector or a skin tone breaks the
-    # picture instead of crossing it out
-    assert styled(f"~~ok {emoji}~~") == f"o{STROKE}k{STROKE} {STROKE}{emoji}"
+    # picture instead of crossing it out — and so does one on the space next
+    # to it, which runs into the picture all the same
+    assert styled(f"~~ok {emoji}~~") == f"o{STROKE}k{STROKE} {emoji}"
+
+
+def test_a_space_between_two_struck_words_is_struck():
+    assert styled("~~ok ko~~") == f"o{STROKE}k{STROKE} {STROKE}k{STROKE}o{STROKE}"
 
 
 # --- A hashtag is never substituted ---

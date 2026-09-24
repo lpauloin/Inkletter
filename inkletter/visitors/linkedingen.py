@@ -75,11 +75,24 @@ STRIKE = "\u0336"
 STRUCK_CATEGORIES = ("L", "N", "P", "Zs", "Sc", "Sm")
 
 
+def is_struck(char):
+    return unicodedata.category(char).startswith(STRUCK_CATEGORIES)
+
+
 def strike(text):
-    return "".join(
-        char + STRIKE if unicodedata.category(char).startswith(STRUCK_CATEGORIES) else char
-        for char in text
-    )
+    """A stroke after each character it goes after — and **not on a space
+    that touches something it skips**: an emoji is left whole, but a stroke
+    on the space beside it runs into the picture all the same, which is the
+    very thing skipping it avoids."""
+    chars = list(text)
+    marked = []
+    for at, char in enumerate(chars):
+        struck = is_struck(char)
+        if struck and unicodedata.category(char) == "Zs":
+            neighbours = [chars[i] for i in (at - 1, at + 1) if 0 <= i < len(chars)]
+            struck = all(map(is_struck, neighbours))
+        marked.append(char + STRIKE if struck else char)
+    return "".join(marked)
 
 
 def substitute(text, styles):
@@ -137,6 +150,31 @@ class LinkedinCodegen(TextCodegen):
         return self.resolver.resolve(self.root).rstrip(), self.resolver.length
 
     # --- Blocks ---
+
+    def emit_blocks(self, nodes, scope):
+        """Blocks separated by the blank lines their author left.
+
+        Every other output draws one line between two blocks, which is all
+        a document means by a run of them. A post is sent as it was typed,
+        so the run says how many: the `BlankLine` between two blocks is the
+        separation itself, never a block of its own, and the lines a
+        document opens or ends on separate nothing — the platform trims
+        them before counting.
+        """
+        written = False
+        blank = 1
+        for node in nodes:
+            if isinstance(node, BlankLine):
+                blank = max(blank, node.lines)
+                continue
+            block = self.render_block(node, scope)
+            if not block.elements:
+                continue
+            if written:
+                for _ in range(blank):
+                    self.line()
+            self.current.add_codeblock(block)
+            written, blank = True, 1
 
     def visit_Heading(self, node, scope):
         """The text on its line, and no underline: a row of equals signs is

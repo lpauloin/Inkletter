@@ -1,8 +1,9 @@
 """What Inkletter teaches mistune to read, beyond CommonMark.
 
-Each plugin registers one inline rule; `parse_markdown_to_ast` decides
-which ones a document gets. The attribute block (`{width=…}`) is one too,
-and keeps its own module: it carries a grammar of its own.
+Each plugin registers one rule — inline, but for the blank lines a block
+rule — and `parse_markdown_to_ast` decides which ones a document gets. The
+attribute block (`{width=…}`) is one too, and keeps its own module: it
+carries a grammar of its own.
 """
 
 from mistune.util import escape_url
@@ -22,6 +23,21 @@ def parse_hashtag(inline, m, state):
 
 def hashtag_plugin(md):
     md.inline.register("hashtag", HASHTAG_PATTERN, parse_hashtag)
+
+
+# A run of blank lines, counted. Mistune reads one as a single token, which
+# is all a document means by it: one break, however many lines were left.
+# An output that lays a text out as it was typed — a post on a feed —
+# writes the lines its author wrote, and needs to know how many.
+
+
+def parse_blank_lines(block, m, state):
+    state.append_token({"type": "blank_line", "attrs": {"lines": m.group(0).count("\n")}})
+    return m.end()
+
+
+def blank_lines_plugin(md):
+    md.block.register("blank_line", None, parse_blank_lines)
 
 
 # mistune's bare-address rule, less its one defect: an address never ends on

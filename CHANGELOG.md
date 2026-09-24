@@ -4,6 +4,29 @@ Newest first. [Semantic versioning](https://semver.org): a major bump
 means a document, a theme file or a call that used to work no longer
 does.
 
+## 3.2.0 — 2026-09-24
+
+### Changed
+
+- **A post keeps the blank lines its author left.** A run of them
+  separates two blocks by as many lines as were typed instead of folding
+  into one: a document says nothing by a second blank line, a post does.
+  The blank lines a document opens or ends on still separate nothing —
+  the platform trims them before counting — and a list still reads the
+  ones that follow it as its own. Only the LinkedIn output: the mail and
+  the text alternative render exactly as before.
+
+### Added
+
+- **`BlankLine.lines`**, how many blank lines the run was. A visitor that
+  does not read it renders as it did.
+
+### Fixed
+
+- **A stroke never touches an emoji through the space beside it.** The
+  space between two struck words is struck as before; the one next to
+  something the stroke skips is skipped too, and costs one unit less.
+
 ## 3.1.0 — 2026-09-13
 
 ### Changed
