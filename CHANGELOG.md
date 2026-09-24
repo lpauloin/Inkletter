@@ -4,6 +4,20 @@ Newest first. [Semantic versioning](https://semver.org): a major bump
 means a document, a theme file or a call that used to work no longer
 does.
 
+## 3.3.0 — 2026-09-24
+
+### Changed
+
+- **The dependencies are declared as ranges**, not as exact pins:
+  `click>=8.1,<9`, `mistune>=3.3.4,<4`, `mjml-python>=1.4,<2` and
+  `tomli>=2.0` under Python 3.10. A pin in a library's metadata makes it
+  unresolvable beside any other package that pins the same name
+  differently; a range resolves as before — `uv.lock` is unchanged — and
+  leaves the choice to whoever installs. The floors are tested: the suite
+  passes with click 8.1.8 and with 8.5.0, on mistune 3.3.4 and
+  mjml-python 1.4.0 as on 1.4.2. mistune stays at `>=3.3.4`: a malformed
+  table fails on 3.3.0.
+
 ## 3.2.0 — 2026-09-24
 
 ### Changed
