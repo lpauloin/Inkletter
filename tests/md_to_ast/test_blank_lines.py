@@ -14,4 +14,8 @@ def test_a_run_of_blank_lines_says_how_many_it_was():
 
 def test_a_blank_line_stands_between_two_blocks_rather_than_inside_one():
     document = parse_markdown_to_ast("Un\n\n\nDeux")
-    assert [type(node).__name__ for node in document.children] == ["Paragraph", "BlankLine", "Paragraph"]
+    assert [type(node).__name__ for node in document.children] == [
+        "Paragraph",
+        "BlankLine",
+        "Paragraph",
+    ]
