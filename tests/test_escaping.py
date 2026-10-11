@@ -66,6 +66,26 @@ def test_without_escaping_that_link_is_clickable():
     assert 'href="https://evil.tld"' in html
 
 
+@pytest.mark.parametrize(
+    "hostile",
+    ["evil.com", "www.evil.museum/login", "Evil.io", "evil.co.uk/a?b=1#c", "evil.com:8080"],
+)
+def test_escaping_stops_a_domain_from_becoming_a_link(hostile):
+    # a name shaped like a domain — an organization called `evil.com` —
+    # is a name: escaped, its dots are no longer a domain's
+    html, text = email(f"Value: {escape_markdown(hostile)} invites you.")
+    assert "<a " not in html
+    assert "https://" not in html and "https://" not in text
+    assert hostile in html
+    assert hostile in text
+
+
+def test_without_escaping_that_domain_is_clickable():
+    # the control case, so the test above is not measuring nothing
+    html, _ = email("Value: evil.com invites you.")
+    assert 'href="https://evil.com"' in html
+
+
 def test_escaping_stops_html_from_passing_through():
     html, _ = email(f"Value: {escape_markdown('<script>alert(1)</script>')}.")
     print(html)

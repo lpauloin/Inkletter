@@ -23,6 +23,7 @@ import unicodedata
 from string import ascii_letters
 
 from inkletter.ast import *
+from inkletter.bare_domains import is_bare_domain
 from inkletter.codeblock import CodeBlockResolver
 from inkletter.counting import cost_of_link, cost_of_mention, cost_of_text
 from inkletter.visitors.textgen import TextCodegen
@@ -224,10 +225,16 @@ class LinkedinCodegen(TextCodegen):
         match. No angle brackets either: a feed shows them, it does not
         read them."""
         label = self.plain_text(node)
-        if label and label != node.href and Link.scheme_of(label) not in ("http", "https"):
+        if label and label != node.href and not self.is_an_address(label):
             self.generic_visit(node, scope)
             self.write(LABEL_SEPARATOR)
         self.write_link(node.href)
+
+    @staticmethod
+    def is_an_address(label):
+        """Whether a label is an address already — with its scheme, or a
+        domain written without one — rather than a name for one."""
+        return Link.scheme_of(label) in ("http", "https") or is_bare_domain(label)
 
     def visit_MailLink(self, node, scope):
         self.named(node, node.address, scope)

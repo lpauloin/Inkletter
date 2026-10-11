@@ -4,6 +4,37 @@ Newest first. [Semantic versioning](https://semver.org): a major bump
 means a document, a theme file or a call that used to work no longer
 does.
 
+## 3.4.0 — 2026-10-11
+
+### Added
+
+- **A domain written without its scheme is a link.** `exemple.com`,
+  `app.exemple.fr/tarifs?x=1` and `www.exemple.museum` are read as links
+  to `https://` plus what was written, in every output: a feed and a mail
+  reader make them clickable anyway, so the URL factory is now offered
+  them — a shortener shortens them, a counter charges them — like an
+  address written in full. The label stays what the author wrote: the
+  mail shows `exemple.com` on an anchor to `https://exemple.com`; the
+  post and the plain text, which show addresses, write the address once.
+
+  Two spellings are read: a name opening on `www.`, whatever its ending,
+  and a name ending on one of a closed list of extensions
+  (`inkletter.bare_domains.EXTENSIONS`: `com net org info biz io
+  co ai app dev tech fr eu be ch lu ca uk de es it nl pt us`). The
+  extension is in lower case — `fini.De retour` is a forgotten space, not
+  a German site — and must end the name: `exemple.community` and
+  `exemple.com.zip` are text. So are `readme.md`, a mail address, an
+  accented name and a name inside a path. What follows the name — port,
+  path, query, fragment — ends like any bare address, and never on the
+  `?` or `!` of the sentence around it.
+
+### Changed
+
+- **A link labelled with a domain is written once** in a post:
+  `[exemple.com](https://exemple.com/tarifs)` gives the address alone,
+  as `[https://exemple.com](…)` already did, instead of
+  `exemple.com : https://exemple.com/tarifs`.
+
 ## 3.3.0 — 2026-09-24
 
 ### Changed

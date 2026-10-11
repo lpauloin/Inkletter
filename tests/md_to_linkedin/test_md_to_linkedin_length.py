@@ -87,6 +87,19 @@ def test_a_bare_address_is_charged_once(measured):
     assert actual == len("Voir ") + 23
 
 
+def test_a_domain_without_its_scheme_is_charged_as_a_short_link(measured):
+    actual = measured("Voir exemple.com/une/longue/adresse?x=1", url_factory=Shortener())
+    assert actual == len("Voir ") + 23
+
+
+def test_a_domain_without_its_scheme_is_charged_with_it_when_nothing_shortens(measured):
+    assert measured("Voir exemple.com") == len("Voir https://exemple.com")
+
+
+def test_what_only_looks_like_a_domain_is_charged_as_text(measured):
+    assert measured("Voir readme.md", url_factory=Shortener()) == len("Voir readme.md")
+
+
 def test_a_call_to_action_is_charged_like_any_link(measured):
     actual = measured(
         "**[Réserver](https://exemple.fr/une/adresse/longue)**", url_factory=Shortener()

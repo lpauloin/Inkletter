@@ -1,4 +1,13 @@
+from inkletter import URLFactory
 from inkletter.md_to_linkedin import parse_markdown_to_linkedin
+
+
+class Short(URLFactory):
+    """Every address becomes the same short link."""
+
+    def rewrite_link(self, url, is_button=False, is_bold=False):
+        return "https://s.fr/x"
+
 
 # --- Links ---
 #
@@ -19,6 +28,48 @@ def test_a_bare_address_is_printed_once():
     actual = parse_markdown_to_linkedin("Tout est sur https://exemple.fr/page aujourd'hui.")
     print(actual)
     assert actual == "Tout est sur https://exemple.fr/page aujourd'hui."
+
+
+def test_a_domain_without_its_scheme_is_printed_once_with_it():
+    actual = parse_markdown_to_linkedin("👉Découvrez Exemple : exemple.com")
+    assert actual == "👉Découvrez Exemple : https://exemple.com"
+
+
+def test_a_shortened_domain_leaves_no_trace_of_what_was_written():
+    # the label was the address: once the factory has rewritten it, the
+    # short link stands alone, as it does for an address with its scheme
+    actual = parse_markdown_to_linkedin(
+        "Tout est sur exemple.com/tarifs?x=1 aujourd'hui.", url_factory=Short()
+    )
+    assert actual == "Tout est sur https://s.fr/x aujourd'hui."
+
+
+def test_a_link_labelled_with_a_domain_is_printed_once():
+    actual = parse_markdown_to_linkedin("[exemple.com](https://exemple.com/tarifs)")
+    assert actual == "https://exemple.com/tarifs"
+
+
+def test_a_link_labelled_with_words_around_a_domain_keeps_its_label():
+    actual = parse_markdown_to_linkedin("[voir exemple.com](https://exemple.com/tarifs)")
+    assert actual == "voir exemple.com : https://exemple.com/tarifs"
+
+
+def test_a_mail_link_labelled_with_a_domain_keeps_its_label():
+    actual = parse_markdown_to_linkedin("[exemple.com](mailto:bonjour@exemple.com)")
+    assert actual == "exemple.com : bonjour@exemple.com"
+
+
+def test_what_only_looks_like_a_domain_is_printed_as_written():
+    source = "Le fichier readme.md, écrit à a@exemple.com.Puis node.js"
+    assert parse_markdown_to_linkedin(source) == source
+
+
+def test_a_domain_in_a_list_a_quote_and_a_heading():
+    actual = parse_markdown_to_linkedin(
+        "# exemple.com\n\n- voir exemple.fr\n\n> www.b.org", url_factory=Short()
+    )
+    assert actual.count("https://s.fr/x") == 3
+    assert "exemple.com" not in actual and "exemple.fr" not in actual and "www.b.org" not in actual
 
 
 def test_no_angle_brackets_around_an_address():

@@ -15,6 +15,7 @@ from itertools import permutations
 import pytest
 
 from inkletter import URLFactory
+from inkletter.bare_domains import EXTENSIONS
 from inkletter.md_to_linkedin import parse_markdown_to_linkedin
 
 STROKE = "̶"
@@ -410,6 +411,228 @@ def test_a_bare_address_keeps_its_inner_marks_and_drops_its_trailing_ones(markdo
     factory = Recorder()
     parse_markdown_to_linkedin(markdown_text, url_factory=factory)
     assert factory.offered == [(address, False)]
+
+
+# --- A domain written without its scheme ---
+#
+# `exemple.com` is a link to `https://exemple.com`: a feed makes it
+# clickable whether or not the author wrote the scheme, so the factory is
+# offered it like any other address.
+
+
+@pytest.mark.parametrize(
+    ("markdown_text", "address"),
+    [
+        # the name alone, wherever it stands
+        ("exemple.com", "https://exemple.com"),
+        ("voir exemple.com ici", "https://exemple.com"),
+        ("👉Découvrez Exemple : exemple.com", "https://exemple.com"),
+        ("👉exemple.com", "https://exemple.com"),
+        ("l'app.exemple.com", "https://app.exemple.com"),
+        ("«exemple.com»", "https://exemple.com"),
+        ('"exemple.com"', "https://exemple.com"),
+        ("voir\nexemple.com\nici", "https://exemple.com"),
+        # only the extension is held to lower case
+        ("voir Exemple.com ici", "https://Exemple.com"),
+        ("voir EXEMPLE.com ici", "https://EXEMPLE.com"),
+        # several labels, hyphens inside, digits
+        ("voir app.exemple.com ici", "https://app.exemple.com"),
+        ("voir exemple.co.uk ici", "https://exemple.co.uk"),
+        ("voir mon-site.fr ici", "https://mon-site.fr"),
+        ("voir xn--caf-dma.fr ici", "https://xn--caf-dma.fr"),
+        ("voir 3suisses.fr ici", "https://3suisses.fr"),
+        # `www.` says it, whatever the ending
+        ("voir www.exemple.com ici", "https://www.exemple.com"),
+        ("voir www.exemple.museum ici", "https://www.exemple.museum"),
+        ("voir www.exemple.fr/page ici", "https://www.exemple.fr/page"),
+        ("voir www.exemple.com.au ici", "https://www.exemple.com.au"),
+        # what follows the name is the address too
+        ("voir exemple.com/ ici", "https://exemple.com/"),
+        ("voir exemple.com/tarifs ici", "https://exemple.com/tarifs"),
+        ("voir exemple.com/tarifs?x=1 ici", "https://exemple.com/tarifs?x=1"),
+        ("voir exemple.com/tarifs?x=1&y=2#prix ici", "https://exemple.com/tarifs?x=1&y=2#prix"),
+        ("voir exemple.com?utm_source=linkedin ici", "https://exemple.com?utm_source=linkedin"),
+        ("voir exemple.com#prix ici", "https://exemple.com#prix"),
+        ("voir exemple.com:8080 ici", "https://exemple.com:8080"),
+        ("voir exemple.com:8080/a ici", "https://exemple.com:8080/a"),
+        ("voir exemple.com/a*b ici", "https://exemple.com/a*b"),
+        ("voir exemple.com/un_chemin ici", "https://exemple.com/un_chemin"),
+        ("voir exemple.com/a.zip ici", "https://exemple.com/a.zip"),
+        # the sentence's punctuation stays the sentence's
+        ("voir exemple.com. Ensuite", "https://exemple.com"),
+        ("voir exemple.com, puis", "https://exemple.com"),
+        ("voir exemple.com: la suite", "https://exemple.com"),
+        ("voir exemple.com; la suite", "https://exemple.com"),
+        ("tu connais exemple.com?", "https://exemple.com"),
+        ("tu connais exemple.com ?", "https://exemple.com"),
+        ("allez sur exemple.com!", "https://exemple.com"),
+        ("voir exemple.com/tarifs?x=1. Ensuite", "https://exemple.com/tarifs?x=1"),
+        ("tu as vu exemple.com/tarifs?", "https://exemple.com/tarifs"),
+        ("allez sur exemple.com/tarifs!", "https://exemple.com/tarifs"),
+        ("voir exemple.com/page_ ici", "https://exemple.com/page"),
+        ("voir exemple.com/page~ ici", "https://exemple.com/page"),
+        # an underscore is a mark beside the name, never a letter of it
+        ("mon_site.com", "https://site.com"),
+        ("\\_exemple.com", "https://exemple.com"),
+        ("voir exemple.com\\_x ici", "https://exemple.com"),
+        ("(exemple.com)", "https://exemple.com"),
+        ("(voir exemple.com/tarifs) ensuite", "https://exemple.com/tarifs"),
+        ("voir exemple.com/b_(c) ensuite", "https://exemple.com/b_(c)"),
+        ("(voir exemple.com/b_(c)) ensuite", "https://exemple.com/b_(c)"),
+        ("voir exemple.com/b)) ensuite", "https://exemple.com/b"),
+    ],
+)
+def test_a_domain_without_its_scheme_is_a_link_to_it(markdown_text, address):
+    factory = Recorder()
+    parse_markdown_to_linkedin(markdown_text, url_factory=factory)
+    assert factory.offered == [(address, False)]
+
+
+@pytest.mark.parametrize("extension", EXTENSIONS)
+def test_every_listed_extension_makes_a_link(extension):
+    factory = Recorder()
+    parse_markdown_to_linkedin(f"voir exemple.{extension} ici", url_factory=factory)
+    assert factory.offered == [(f"https://exemple.{extension}", False)]
+
+
+def test_the_listed_extensions_are_the_ones_agreed():
+    # a closed list: one added or dropped is a decision, read here
+    assert sorted(EXTENSIONS) == sorted(
+        "com net org info biz io co ai app dev tech fr eu be ch lu ca uk de es it nl pt us".split()
+    )
+
+
+@pytest.mark.parametrize(
+    "markdown_text",
+    [
+        # a space forgotten after a full stop: the extension is never a capital
+        "C'est fini.De retour lundi",
+        "C'est fini.Com",
+        "EXEMPLE.COM",
+        "exemple.com.La suite",
+        # not an extension of the list — a file, a word, another country
+        "readme.md",
+        "node.js",
+        "archive.zip",
+        "script.py",
+        "exemple.me",
+        "voila.la",
+        "exemple.museum",
+        # the extension must end the name
+        "exemple.community",
+        "exemple.comme",
+        "exemple.com2",
+        "exemple.com-x",
+        "exemple.com.zip",
+        "exemple.com.au",
+        # a mail address is not a page
+        "a@exemple.com",
+        "prenom.nom@exemple.com",
+        "jean.fr@exemple.zz",
+        # inside a word, a path or a longer name
+        "-exemple.com",
+        ".exemple.com",
+        # a `#` is a tag's, or nothing: never the start of a name
+        "#exemple.com",
+        "a#exemple.com",
+        "#tag#exemple.com",
+        "/exemple.com",
+        "chemin/exemple.com",
+        "a-.io",
+        # an accented name is written with its scheme
+        "café.fr",
+        "écafe.fr",
+        # not a name at all
+        "www",
+        "www.exemple",
+        "exemple .com",
+        "exemple. com",
+        "com",
+        ".com",
+        "1.5",
+        "v1.2",
+        "etc.",
+        "p.ex.",
+    ],
+)
+def test_what_only_looks_like_a_domain_stays_text(markdown_text):
+    factory = Recorder()
+    actual = parse_markdown_to_linkedin(markdown_text, url_factory=factory)
+    assert factory.offered == []
+    assert actual == markdown_text
+
+
+def test_a_domain_in_a_code_span_stays_code():
+    factory = Recorder()
+    assert parse_markdown_to_linkedin("`exemple.com`", url_factory=factory) == "exemple.com"
+    assert factory.offered == []
+
+
+def test_a_domain_inside_an_address_is_that_address():
+    factory = Recorder()
+    parse_markdown_to_linkedin("voir https://exemple.com/a.com/b.fr ici", url_factory=factory)
+    assert factory.offered == [("https://exemple.com/a.com/b.fr", False)]
+
+
+def test_an_address_and_a_domain_are_two_links():
+    factory = Recorder()
+    parse_markdown_to_linkedin(
+        "https://exemple.com/a et exemple.fr, www.b.org", url_factory=factory
+    )
+    assert factory.offered == [
+        ("https://exemple.com/a", False),
+        ("https://exemple.fr", False),
+        ("https://www.b.org", False),
+    ]
+
+
+def test_a_domain_in_a_link_label_is_part_of_the_label():
+    # a link holds no link: the label's domain is words, the target is the link
+    factory = Recorder()
+    actual = parse_markdown_to_linkedin("[voir exemple.com](https://autre.fr)", url_factory=factory)
+    assert actual == "voir exemple.com : https://autre.fr"
+    assert factory.offered == [("https://autre.fr", False)]
+
+
+def test_a_domain_as_a_link_target_is_left_as_written():
+    # the rule reads text, not targets: a target says its own scheme, or none
+    factory = Recorder()
+    parse_markdown_to_linkedin("[là](exemple.com)", url_factory=factory)
+    assert factory.offered == [("exemple.com", False)]
+
+
+@pytest.mark.parametrize(
+    ("markdown_text", "styles"),
+    [
+        ("**exemple.com**", {"bold"}),
+        ("*exemple.com*", {"italic"}),
+        ("_exemple.com_", {"italic"}),
+        ("~~exemple.com~~", {"strike"}),
+        ("***exemple.com***", {"bold", "italic"}),
+        ("__exemple.com__", {"bold"}),
+        ("**exemple.com/tarifs**", {"bold"}),
+    ],
+)
+def test_a_domain_in_a_style_loses_its_marks_and_says_its_bold(markdown_text, styles):
+    factory = Recorder()
+    actual = parse_markdown_to_linkedin(markdown_text, unicode_styling=True, url_factory=factory)
+    address = "https://" + markdown_text.strip("*_~")
+    assert actual == address
+    assert factory.offered == [(address, "bold" in styles)]
+
+
+def test_a_domain_among_bold_words():
+    factory = Recorder()
+    actual = parse_markdown_to_linkedin(
+        "**voir exemple.com**.", unicode_styling=True, url_factory=factory
+    )
+    assert actual == f"{looks('voir', 'bold')} https://exemple.com."
+    assert factory.offered == [("https://exemple.com", True)]
+
+
+def test_a_domain_in_bold_costs_a_short_link_and_nothing_for_its_marks(measured):
+    assert measured("**exemple.com**", unicode_styling=True, url_factory=Width()) == 26
+    assert measured("**voir exemple.com**", unicode_styling=True, url_factory=Width()) == 8 + 1 + 26
 
 
 # --- Styles in blocks ---

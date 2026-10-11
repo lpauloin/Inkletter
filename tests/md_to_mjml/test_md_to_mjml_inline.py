@@ -278,6 +278,23 @@ def test_a_bare_address_alone_in_bold_is_a_button():
     assert '<mj-button href="https://exemple.fr"' in actual
 
 
+def test_a_domain_without_its_scheme_is_an_anchor_labelled_as_written():
+    actual = parse_markdown_to_mjml("Voir exemple.com/page.")
+    expected = wrap_mjml_body(
+        '<mj-text>\n  Voir <a href="https://exemple.com/page">exemple.com/page</a>.\n</mj-text>'
+    )
+    assert actual == expected
+
+
+def test_a_domain_alone_in_bold_is_a_button():
+    actual = parse_markdown_to_mjml("**exemple.com**")
+    assert '<mj-button href="https://exemple.com">exemple.com</mj-button>' in actual
+
+
+def test_what_only_looks_like_a_domain_is_no_anchor():
+    assert "<a " not in parse_markdown_to_mjml("Voir readme.md, a@exemple.com.")
+
+
 # --- An address and a number are anchors a mail client can act on ---
 
 

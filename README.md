@@ -110,6 +110,11 @@ CommonMark:
 |                          | never ending on `*`, `_` or `~`, so bold      |
 |                          | around it stays bold; a final `)` is its own  |
 |                          | only when it closes one inside                |
+| a domain without scheme  | a link to `https://` plus what was written:   |
+|                          | `www.` and any ending, or a name ending on a  |
+|                          | listed extension (`.com`, `.fr`, `.io`, …),   |
+|                          | written in lower case — `readme.md`, a mail   |
+|                          | address and `fini.De retour` stay text        |
 | `# heading`              | its text on its own line, no underline        |
 | `- item`                 | `• item`, since list markup is refused        |
 | `1. item`                | its number, as written                        |

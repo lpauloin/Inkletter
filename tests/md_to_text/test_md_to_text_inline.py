@@ -90,6 +90,32 @@ def test_a_bare_address_alone_in_bold_is_the_call_to_action():
     assert parse_markdown_to_text("**https://exemple.fr**") == "→ https://exemple.fr\n"
 
 
+def test_a_domain_without_its_scheme_is_written_once_with_it():
+    assert parse_markdown_to_text("Voir exemple.com/page.") == "Voir https://exemple.com/page.\n"
+
+
+def test_a_domain_without_its_scheme_reaches_the_url_factory():
+    from inkletter import URLFactory
+
+    class Short(URLFactory):
+        def rewrite_link(self, url, is_button=False, is_bold=False):
+            return "https://s.fr/x"
+
+    actual = parse_markdown_to_text("Voir exemple.com/page.", url_factory=Short())
+    assert actual == "Voir exemple.com/page <https://s.fr/x>.\n"
+
+
+def test_a_domain_alone_in_bold_is_the_call_to_action():
+    assert parse_markdown_to_text("**exemple.com**") == "→ https://exemple.com\n"
+
+
+def test_what_only_looks_like_a_domain_is_text():
+    assert (
+        parse_markdown_to_text("Voir readme.md, a@exemple.com.")
+        == "Voir readme.md, a@exemple.com.\n"
+    )
+
+
 # --- An address and a number ---
 
 

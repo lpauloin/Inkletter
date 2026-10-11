@@ -3,7 +3,8 @@
 Each plugin registers one rule — inline, but for the blank lines a block
 rule — and `parse_markdown_to_ast` decides which ones a document gets. The
 attribute block (`{width=…}`) is one too, and keeps its own module: it
-carries a grammar of its own.
+carries a grammar of its own. So does the domain written without its scheme
+(`bare_domains`).
 """
 
 from mistune.util import escape_url
@@ -48,13 +49,24 @@ BARE_URL_PATTERN = r"""https?:\/\/[^\s<]+[^<.,:;"'\]\s*_~]"""
 
 
 def parse_bare_url(inline, m, state):
-    """mistune's own reading of the match, with GFM's parenthesis rule:
-    a closing parenthesis at the end belongs to the address only when an
-    opening one inside it is waiting for it — `(see http://a.fr/b)` keeps
-    its sentence's parenthesis, `http://a.fr/b_(c)` keeps its own."""
-    text = m.group(0)
+    text = without_a_sentence_parenthesis(m.group(0))
+    append_address(inline, state, text, text)
+    return m.start() + len(text)
+
+
+def without_a_sentence_parenthesis(text):
+    """GFM's parenthesis rule: a closing parenthesis at the end belongs to
+    the address only when an opening one inside it is waiting for it —
+    `(see http://a.fr/b)` keeps its sentence's parenthesis,
+    `http://a.fr/b_(c)` keeps its own."""
     while text.endswith(")") and text.count(")") > text.count("("):
         text = text[:-1]
+    return text
+
+
+def append_address(inline, state, text, url):
+    """The address as a link labelled with what was written — or as plain
+    text inside a link's label, which holds no link."""
     if state.in_link:
         inline.process_text(text, state)
     else:
@@ -62,10 +74,9 @@ def parse_bare_url(inline, m, state):
             {
                 "type": "link",
                 "children": [{"type": "text", "raw": text}],
-                "attrs": {"url": escape_url(text)},
+                "attrs": {"url": escape_url(url)},
             }
         )
-    return m.start() + len(text)
 
 
 def bare_url_plugin(md):

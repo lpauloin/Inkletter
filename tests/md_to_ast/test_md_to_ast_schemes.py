@@ -70,6 +70,47 @@ def test_a_bare_address_is_a_link_with_its_scheme(ast):
     assert link.scheme == "https"
 
 
+def label_of(link):
+    return "".join(node.value for node in walk(link) if isinstance(node, LiteralText))
+
+
+@pytest.mark.parametrize(
+    ("written", "href"),
+    [
+        ("exemple.com", "https://exemple.com"),
+        ("www.exemple.fr/page", "https://www.exemple.fr/page"),
+        ("exemple.co.uk/a?b=1#c", "https://exemple.co.uk/a?b=1#c"),
+    ],
+)
+def test_a_domain_without_its_scheme_is_an_address_labelled_as_written(ast, written, href):
+    (link,) = links(ast(f"Voir {written}."))
+    assert type(link) is UrlLink
+    assert link.href == href
+    assert link.scheme == "https"
+    assert label_of(link) == written
+
+
+@pytest.mark.parametrize("text", ["readme.md", "a@exemple.com", "fini.De retour", "`exemple.com`"])
+def test_what_only_looks_like_a_domain_is_no_link(ast, text):
+    assert links(ast(f"Voir {text}.")) == []
+
+
+def test_a_domain_in_a_link_label_is_not_a_second_link(ast):
+    (link,) = links(ast("[voir exemple.com](https://autre.fr)"))
+    assert link.href == "https://autre.fr"
+    assert label_of(link) == "voir exemple.com"
+
+
+def test_a_lone_bold_domain_is_a_button(ast):
+    (button,) = buttons(ast("**exemple.com**"))
+    assert button.href == "https://exemple.com"
+
+
+def test_a_lone_bold_domain_is_the_ask(ast):
+    doc = ast("**exemple.com**", bold_link_is_button=False)
+    assert strong(doc).ask.href == "https://exemple.com"
+
+
 def test_the_dispatch_is_one_table(ast):
     # a scheme added later gets its node here, once
     assert ASTRenderer.LINKS_BY_SCHEME == {"urn": Mention, "mailto": MailLink, "tel": TelLink}

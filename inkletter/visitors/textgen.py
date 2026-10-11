@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 
 from inkletter.ast import *
+from inkletter.bare_domains import is_spelled_by
 from inkletter.codeblock import (
     CodeBlock,
     CodeBlockResolver,
@@ -161,7 +162,7 @@ class TextCodegen(NodeVisitor):
 
     def visit_UrlLink(self, node, scope):
         label = self.resolve_inline(node.children, scope)
-        if not label or label == node.href:
+        if not label or is_spelled_by(node.href, label):
             self.write(node.href)
         else:
             self.write(f"{label} <{node.href}>")
@@ -214,7 +215,9 @@ class TextCodegen(NodeVisitor):
     def visit_Button(self, node, scope):
         label = self.resolve_inline(node.children, scope).replace("\n", " ").strip()
         # a bare address made a button reads as the address, once
-        self.line(f"→ {node.href}" if label == node.href else f"→ {label} : {node.href}")
+        self.line(
+            f"→ {node.href}" if is_spelled_by(node.href, label) else f"→ {label} : {node.href}"
+        )
 
     # --- Lists ---
 

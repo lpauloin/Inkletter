@@ -3,6 +3,7 @@ import html
 import mistune
 
 from inkletter.ast import *
+from inkletter.bare_domains import bare_domain_plugin
 from inkletter.link_attributes import link_attributes as link_attributes_plugin
 from inkletter.plugins import bare_url_plugin, blank_lines_plugin, hashtag_plugin
 from inkletter.theme import DEFAULT_THEME
@@ -198,6 +199,7 @@ def parse_markdown_to_ast(
         # read as one, so the URL factory shortens it and the counter
         # charges it like any other.
         bare_url_plugin,
+        bare_domain_plugin,
         hashtag_plugin,
         "mistune.plugins.formatting.strikethrough",
         "mistune.plugins.table.table",
