@@ -15,6 +15,7 @@ def parse_markdown_to_mjml(
     bold_link_is_button: bool = True,
     link_attributes: bool = True,
     url_factory: URLFactory | None = None,
+    lang: str | None = None,
 ) -> str:
     ast = parse_markdown_to_ast(
         markdown_text,
@@ -25,7 +26,7 @@ def parse_markdown_to_mjml(
     )
     if print_ast:
         print_tree(ast)
-    codegen = Codegen()
+    codegen = Codegen(lang=lang)
     codegen.visit(ast)
     return codegen.get_code()
 

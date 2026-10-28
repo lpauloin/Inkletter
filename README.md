@@ -337,6 +337,19 @@ screen reader announces. A heading carrying emphasis, a link or an image
 is left alone rather than flattened, and the document simply has no
 title. This is not the subject line: that one you pass when sending.
 
+### Document language
+
+Pass the language your email is written in, and it lands on the
+`<html>` tag, where a screen reader picks its voice and a mail client
+its hyphenation:
+
+```python
+html = parse_markdown_to_html(markdown, lang="en")
+```
+
+`parse_markdown_to_mjml` takes the same argument. Without it, MJML
+writes `lang="und"` — undetermined.
+
 ## Layout
 
 Layout is driven by plain CommonMark structure — no custom syntax, the same
