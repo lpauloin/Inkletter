@@ -6,7 +6,8 @@ which ones a document gets.
 | Plugin                   | Module            | Rule            | What it reads                         |
 |--------------------------|-------------------|-----------------|---------------------------------------|
 | `hashtag_plugin`         | `hashtags`        | inline, `#`     | `#tag`, before any mark inside it     |
-| `bare_links_plugin`      | `bare_links`      | core            | `https://…` and `exemple.com`         |
+| `bare_links_plugin`      | `bare_links`      | inline, `:`;    | `https://…`, at its `:`; `exemple.com`|
+|                          |                   | core            | in the text                           |
 | `task_lists_plugin`      | `task_lists`      | core            | `[ ]` and `[x]` opening a list item   |
 | `typed_lists_plugin`     | `typed_lists`     | block, ends `p` | a list ends where its author stopped  |
 | `link_attributes_plugin` | `link_attributes` | inline, `{`     | `{width=96px}` after an image         |

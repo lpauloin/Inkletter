@@ -3,10 +3,12 @@
 // theme in sight.
 
 import {
+  type AnnotationValue,
+  BlankLine,
   type BlockCode,
   type BlockHtml,
   type BlockQuote,
-  BlockText,
+  type BlockText,
   type Button,
   type CodeSpan,
   type Document,
@@ -19,12 +21,14 @@ import {
   type ImageRow,
   type InlineHtml,
   type Link,
+  type LineBreak,
   type List,
   type ListItem,
   type LiteralText,
   type MediaObject,
   type Node,
   type Paragraph,
+  type SoftBreak,
   type StrikeThrough,
   type Strong,
   type Table,
@@ -112,7 +116,9 @@ export class Codegen extends NodeVisitor {
   emitBands(children: Node[], scope: ScopeStack): void {
     let band: Node[] = [];
     const flush = () => {
-      if (band.length) this.emitFlowBand(band, scope);
+      // the blank lines between two bands of their own are no band: an empty
+      // section would only add its padding
+      if (band.some((node) => !(node instanceof BlankLine))) this.emitFlowBand(band, scope);
       band = [];
     };
     for (const child of children) {
@@ -189,8 +195,20 @@ export class Codegen extends NodeVisitor {
 
   visit_Paragraph(node: Paragraph, scope: ScopeStack): void {
     if (node.annotations.requires_paragraph_tag) {
-      this.blockTag('p', null, { inline: true }, () => this.genericVisit(node, scope));
-    } else this.genericVisit(node, scope);
+      this.blockTag('p', null, { inline: true }, () => {
+        this.checkbox(node);
+        this.genericVisit(node, scope);
+      });
+    } else {
+      this.checkbox(node);
+      this.genericVisit(node, scope);
+    }
+  }
+
+  /** The box a task item's first line opens on. */
+  checkbox(node: Node): void {
+    const box = node.annotations.checkbox;
+    if (typeof box === 'string' && box) this.current.addText(`${box} `);
   }
 
   visit_Heading(node: Heading, scope: ScopeStack): void {
@@ -200,7 +218,10 @@ export class Codegen extends NodeVisitor {
   }
 
   visit_BlockText(node: BlockText, scope: ScopeStack): void {
-    this.ensureOpenText(node, () => this.genericVisit(node, scope));
+    this.ensureOpenText(node, () => {
+      this.checkbox(node);
+      this.genericVisit(node, scope);
+    });
   }
 
   visit_BlockQuote(node: BlockQuote, scope: ScopeStack): void {
@@ -217,56 +238,58 @@ export class Codegen extends NodeVisitor {
     this.blockTag('mj-divider', node.annotations.divider_attrs as Attrs, { selfClosing: true });
   }
 
-  visit_LineBreak(): void {
-    this.current.addText('<br/>');
-    this.current.addNewline();
+  visit_LineBreak(node: LineBreak): void {
+    this.lineBreak(node);
   }
 
-  visit_SoftBreak(): void {
+  visit_SoftBreak(node: SoftBreak): void {
     // Deliberate divergence from CommonMark (which renders a soft break as a
     // space): newsletter authors line-wrap on purpose.
+    this.lineBreak(node);
+  }
+
+  lineBreak(node: LineBreak | SoftBreak): void {
+    // beside an image stacked as a block, the stacking is the break
+    if (node.annotations.between_blocks) return;
     this.current.addText('<br/>');
     this.current.addNewline();
   }
 
   visit_BlankLine(): void {}
 
-  visit_Image(node: Image): void {
-    // an alt always, empty for an image that says nothing
-    const attrs: Record<string, string> = { src: node.url, alt: node.altText };
-    if (node.title) attrs.title = node.title;
-    let tag: string;
-    if (node.annotations.requires_manual_image) {
-      tag = 'img';
-      attrs.style = String(node.annotations.image_style);
-    } else {
-      tag = 'mj-image';
-      const padding = node.annotations.image_padding;
-      if (typeof padding === 'string' && padding) attrs.padding = padding;
-      Object.assign(attrs, (node.annotations.image_size as Attrs | undefined) ?? {});
+  /** An image's attributes: a plain <img> takes its style, an mj-image its
+   *  link, its spacing in a row and the author's size. An alt always, empty
+   *  for an image that says nothing. */
+  static imageAttrs(img: Image, href: string | null = null, padding: AnnotationValue = null): Record<string, string> {
+    const attrs: Record<string, string> = { src: img.url };
+    if (href) attrs.href = href;
+    attrs.alt = img.altText;
+    if (img.title) attrs.title = img.title;
+    if (img.annotations.requires_manual_image) {
+      attrs.style = String(img.annotations.image_style);
+      return attrs;
     }
-    this.blockTag(tag, attrs, { selfClosing: true });
+    if (typeof padding === 'string' && padding) attrs.padding = padding;
+    Object.assign(attrs, (img.annotations.image_size as Attrs | undefined) ?? {});
+    return attrs;
+  }
+
+  visit_Image(node: Image): void {
+    const tag = node.annotations.requires_manual_image ? 'img' : 'mj-image';
+    this.blockTag(tag, Codegen.imageAttrs(node, null, node.annotations.image_padding), { selfClosing: true });
   }
 
   visit_ImageLink(node: ImageLink): void {
-    const img = node.img;
-    if (img.annotations.requires_manual_image) {
+    if (node.img.annotations.requires_manual_image) {
       // href is not a valid <img> attribute: wrap in an anchor
       const linkAttrs: Record<string, string> = { href: node.href };
       if (node.title) linkAttrs.title = node.title;
       this.blockTag('a', linkAttrs, { inline: true }, () => {
-        const imgAttrs: Record<string, string> = { src: img.url, alt: img.altText };
-        if (img.title) imgAttrs.title = img.title;
-        imgAttrs.style = String(img.annotations.image_style);
-        this.blockTag('img', imgAttrs, { selfClosing: true, inline: true });
+        this.blockTag('img', Codegen.imageAttrs(node.img), { selfClosing: true, inline: true });
       });
       return;
     }
-    const attrs: Record<string, string> = { src: img.url, href: node.href, alt: img.altText };
-    if (img.title) attrs.title = img.title;
-    const padding = node.annotations.image_padding;
-    if (typeof padding === 'string' && padding) attrs.padding = padding;
-    Object.assign(attrs, (img.annotations.image_size as Attrs | undefined) ?? {});
+    const attrs = Codegen.imageAttrs(node.img, node.href, node.annotations.image_padding);
     this.blockTag('mj-image', attrs, { selfClosing: true, inline: true });
   }
 
@@ -283,17 +306,9 @@ export class Codegen extends NodeVisitor {
   }
 
   visit_TaskListItem(node: TaskListItem, scope: ScopeStack): void {
-    const checkbox = node.checked ? '☑' : '☐';
     // the checkbox replaces the bullet for this item only, so mixed
     // task/normal lists keep their bullets on normal items
-    this.blockTag('li', { style: 'list-style-type: none;' }, {}, () => {
-      const [block, ...extra] = node.children;
-      if (!(block instanceof BlockText)) throw new Error('a task item opens on its text');
-      this.current.addText(`${checkbox} `);
-      for (const child of block.getChildren()) this.visit(child, scope);
-      this.current.addNewline();
-      for (const child of extra) this.visit(child, scope);
-    });
+    this.blockTag('li', { style: 'list-style-type: none;' }, {}, () => this.genericVisit(node, scope));
   }
 
   visit_Table(node: Table, scope: ScopeStack): void {
@@ -372,14 +387,10 @@ export class Codegen extends NodeVisitor {
     this.ensureOpenText(node, () => this.current.addText(node.value));
   }
 
-  /** Verbatim content, wrapped in mj-raw when it sits at flow level. */
-  emitRaw(node: Node, value: string): void {
-    if (node.annotations.requires_raw) this.blockTag('mj-raw', null, {}, () => this.addRawLines(value));
-    else this.addRawLines(value);
-  }
-
   visit_BlockHtml(node: BlockHtml): void {
-    this.emitRaw(node, node.value);
+    // verbatim, wrapped in mj-raw when it sits at flow level
+    if (node.annotations.requires_raw) this.blockTag('mj-raw', null, {}, () => this.addRawLines(node.value));
+    else this.addRawLines(node.value);
   }
 
   addRawLines(value: string): void {

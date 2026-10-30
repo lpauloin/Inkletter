@@ -36,7 +36,7 @@ class URLRewriter(NodeVisitor):
         self.generic_visit(node, scope)
 
     @staticmethod
-    def is_an_address(node):
+    def is_rewritable(node):
         """What a factory may be handed: a web address, or a path relative
         to one — a local image a factory uploads has no scheme at all.
         Anything else names something rather than locating it, and
@@ -44,11 +44,11 @@ class URLRewriter(NodeVisitor):
         return node.scheme in REWRITABLE_SCHEMES
 
     def visit_Image(self, node, scope):
-        if self.is_an_address(node):
+        if self.is_rewritable(node):
             node.url = self.checked("rewrite_image", node.url, self.factory.rewrite_image(node.url))
 
     def rewrite_href(self, node):
-        if self.is_an_address(node):
+        if self.is_rewritable(node):
             rewritten = self.factory.rewrite_link(
                 node.href,
                 is_button=node.annotations.get("button", False),

@@ -14,7 +14,7 @@ from itertools import permutations
 
 import pytest
 
-from inkletter import URLFactory
+from inkletter import URLFactory, render_linkedin
 from inkletter.md_to_linkedin import parse_markdown_to_linkedin
 from inkletter.plugins.bare_domains import EXTENSIONS
 
@@ -653,3 +653,27 @@ def test_styles_combine_in_a_quote():
 
 def test_a_code_span_in_bold_takes_the_bold():
     assert styled("**du `code` ici**") == looks("du code ici", "bold")
+
+
+# The ask is a bold link alone on its line; among words, bold is emphasis.
+
+
+def test_a_bold_link_among_words_is_emphasis_and_takes_the_look_alikes():
+    render = render_linkedin(
+        "Lisez **[notre étude](https://exemple.fr/etude)** ici", unicode_styling=True
+    )
+    assert render.text == "Lisez 𝗻𝗼𝘁𝗿𝗲 é𝘁𝘂𝗱𝗲 : https://exemple.fr/etude ici"
+
+
+def test_a_bold_link_among_words_warns_of_the_bold_it_loses():
+    assert render_linkedin(
+        "Lisez **[notre étude](https://exemple.fr/etude)** ici"
+    ).unrendered_formatting
+
+
+def test_a_bold_link_alone_on_its_line_is_the_ask_and_keeps_its_letters():
+    render = render_linkedin(
+        "Notre étude :\n**[La lire](https://exemple.fr/etude)**", unicode_styling=True
+    )
+    assert render.text == "Notre étude :\nLa lire : https://exemple.fr/etude"
+    assert not render_linkedin("**[La lire](https://exemple.fr/etude)**").unrendered_formatting

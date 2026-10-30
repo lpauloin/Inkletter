@@ -310,3 +310,12 @@ def test_a_lone_bold_mail_link_is_a_button():
     assert '<mj-button href="mailto:a@b.fr"' in parse_markdown_to_mjml(
         "**[Écrivez-nous](mailto:a@b.fr)**"
     )
+
+
+def test_a_link_that_runs_something_is_its_words():
+    actual = parse_markdown_to_mjml(
+        "Lisez [notre étude](javascript:alert(1)) ![logo](data:text/html,x)"
+    )
+    print(actual)
+    assert "javascript:" not in actual and "data:" not in actual
+    assert "notre étude" in actual and "logo" in actual

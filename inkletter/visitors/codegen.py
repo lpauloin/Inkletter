@@ -75,9 +75,7 @@ class Codegen(NodeVisitor):
 
     def visit_Document(self, node, scope):
         with self.block_tag("mjml"):
-            head = node.annotations["head"]
-            if head is not None:
-                self.emit_head(head)
+            self.emit_head(node.annotations["head"])
             with self.block_tag("mj-body", attrs=node.annotations["body_attrs"]):
                 self.emit_bands(node.children, scope)
 
@@ -93,8 +91,13 @@ class Codegen(NodeVisitor):
             if multi_column:
                 for node in band:
                     self.visit(node, scope)
-            else:
-                self.emit_flow_band(band, scope)
+                continue
+            band = list(band)
+            # the blank lines between two bands of their own are no band:
+            # an empty section would only add its padding
+            if all(isinstance(node, BlankLine) for node in band):
+                continue
+            self.emit_flow_band(band, scope)
 
     def emit_flow_band(self, children, scope):
         with self.block_tag("mj-section"):
@@ -164,9 +167,17 @@ class Codegen(NodeVisitor):
     def visit_Paragraph(self, node, scope):
         if node.annotations.get("requires_paragraph_tag"):
             with self.block_tag("p", inline=True):
+                self.checkbox(node)
                 self.generic_visit(node, scope)
         else:
+            self.checkbox(node)
             self.generic_visit(node, scope)
+
+    def checkbox(self, node):
+        """The box a task item's first line opens on."""
+        box = node.annotations.get("checkbox")
+        if box:
+            self.current.add_text(box + " ")
 
     def visit_Heading(self, node, scope):
         with self.ensure_open_text(node):
@@ -175,6 +186,7 @@ class Codegen(NodeVisitor):
 
     def visit_BlockText(self, node, scope):
         with self.ensure_open_text(node):
+            self.checkbox(node)
             self.generic_visit(node, scope)
 
     def visit_BlockQuote(self, node, scope):
@@ -196,34 +208,46 @@ class Codegen(NodeVisitor):
             pass
 
     def visit_LineBreak(self, node, scope):
-        self.current.add_text("<br/>")
-        self.current.add_newline()
+        self.line_break(node)
 
     def visit_SoftBreak(self, node, scope):
         # Deliberate divergence from CommonMark (which renders a soft
         # break as a space): newsletter authors line-wrap on purpose,
         # a single newline in the source is a visible line break.
+        self.line_break(node)
+
+    def line_break(self, node):
+        # beside an image stacked as a block, the stacking is the break
+        if node.annotations.get("between_blocks"):
+            return
         self.current.add_text("<br/>")
         self.current.add_newline()
 
     def visit_BlankLine(self, node, scope):
         pass
 
+    @staticmethod
+    def image_attrs(img, href=None, padding=None):
+        """An image's attributes: a plain <img> takes its style, an
+        mj-image its link, its spacing in a row and the author's size. An
+        alt always, empty for an image that says nothing."""
+        attrs = {"src": img.url}
+        if href:
+            attrs["href"] = href
+        attrs["alt"] = img.alt_text
+        if img.title:
+            attrs["title"] = img.title
+        if img.annotations.get("requires_manual_image"):
+            attrs["style"] = img.annotations["image_style"]
+            return attrs
+        if padding:
+            attrs["padding"] = padding
+        attrs.update(img.annotations.get("image_size", {}))
+        return attrs
+
     def visit_Image(self, node, scope):
-        # an alt always, empty for an image that says nothing
-        attrs = {"src": node.url, "alt": node.alt_text}
-        if node.title:
-            attrs["title"] = node.title
-
-        if node.annotations.get("requires_manual_image"):
-            tag = "img"
-            attrs["style"] = node.annotations["image_style"]
-        else:
-            tag = "mj-image"
-            if node.annotations.get("image_padding"):
-                attrs["padding"] = node.annotations["image_padding"]
-            attrs.update(node.annotations.get("image_size", {}))
-
+        tag = "img" if node.annotations.get("requires_manual_image") else "mj-image"
+        attrs = self.image_attrs(node, padding=node.annotations.get("image_padding"))
         with self.block_tag(tag, attrs=attrs, self_closing=True):
             pass
 
@@ -234,23 +258,16 @@ class Codegen(NodeVisitor):
             if node.title:
                 link_attrs["title"] = node.title
             with self.block_tag("a", attrs=link_attrs, inline=True):
-                img_attrs = {"src": node.img.url, "alt": node.img.alt_text}
-                if node.img.title:
-                    img_attrs["title"] = node.img.title
-                img_attrs["style"] = node.img.annotations["image_style"]
-
-                with self.block_tag("img", attrs=img_attrs, self_closing=True, inline=True):
+                with self.block_tag(
+                    "img", attrs=self.image_attrs(node.img), self_closing=True, inline=True
+                ):
                     pass
-        else:
-            attrs = {"src": node.img.url, "href": node.href, "alt": node.img.alt_text}
-            if node.img.title:
-                attrs["title"] = node.img.title
-            if node.annotations.get("image_padding"):
-                attrs["padding"] = node.annotations["image_padding"]
-            attrs.update(node.img.annotations.get("image_size", {}))
-
-            with self.block_tag("mj-image", attrs=attrs, self_closing=True, inline=True):
-                pass
+            return
+        attrs = self.image_attrs(
+            node.img, href=node.href, padding=node.annotations.get("image_padding")
+        )
+        with self.block_tag("mj-image", attrs=attrs, self_closing=True, inline=True):
+            pass
 
     def visit_List(self, node, scope):
         with self.ensure_open_text(node):
@@ -266,18 +283,10 @@ class Codegen(NodeVisitor):
             self.generic_visit(node, scope)
 
     def visit_TaskListItem(self, node, scope):
-        checkbox = "☑" if node.checked else "☐"
         # the checkbox replaces the bullet for this item only, so mixed
         # task/normal lists keep their bullets on normal items
         with self.block_tag("li", attrs={"style": "list-style-type: none;"}):
-            block = node.children[0]
-            assert isinstance(block, BlockText)
-            self.current.add_text(checkbox + " ")
-            for child in block.get_children():
-                self.visit(child, scope)
-            self.current.add_newline()
-            for extra_child in node.children[1:]:
-                self.visit(extra_child, scope)
+            self.generic_visit(node, scope)
 
     def visit_Table(self, node, scope):
         tag = "table" if node.annotations.get("requires_manual_table", False) else "mj-table"
@@ -298,16 +307,15 @@ class Codegen(NodeVisitor):
                 self.visit(cell, scope)
 
     def visit_TableHeaderCell(self, node, scope):
-        attrs = {"align": node.align} if node.align else {}
-        attrs["style"] = node.annotations["cell_style"]
-        with self.block_tag("th", attrs=attrs, inline=True):
-            self.generic_visit(node, scope)
-        self.current.add_newline()
+        self.cell("th", node, scope)
 
     def visit_TableCell(self, node, scope):
+        self.cell("td", node, scope)
+
+    def cell(self, tag, node, scope):
         attrs = {"align": node.align} if node.align else {}
         attrs["style"] = node.annotations["cell_style"]
-        with self.block_tag("td", attrs=attrs, inline=True):
+        with self.block_tag(tag, attrs=attrs, inline=True):
             self.generic_visit(node, scope)
         self.current.add_newline()
 
@@ -351,16 +359,13 @@ class Codegen(NodeVisitor):
         with self.ensure_open_text(node):
             self.current.add_text(node.value)
 
-    def emit_raw(self, node, value):
-        """Verbatim content, wrapped in mj-raw when it sits at flow level."""
+    def visit_BlockHtml(self, node, scope):
+        # verbatim, wrapped in mj-raw when it sits at flow level
         if node.annotations.get("requires_raw"):
             with self.block_tag("mj-raw"):
-                self.add_raw_lines(value)
+                self.add_raw_lines(node.value)
         else:
-            self.add_raw_lines(value)
-
-    def visit_BlockHtml(self, node, scope):
-        self.emit_raw(node, node.value)
+            self.add_raw_lines(node.value)
 
     def add_raw_lines(self, value):
         for line in value.splitlines():

@@ -98,3 +98,18 @@ def test_other_inline_tags_still_vanish():
     actual = parse_markdown_to_html_fragment("Du <span>texte</span> et du <b>gras</b>.")
     print(actual)
     assert actual == "<p>Du texte et du gras.</p>"
+
+
+def test_a_bare_address_is_read_before_the_marks_inside_it():
+    # it never ends on a mark, which stays text after it
+    actual = parse_markdown_to_html_fragment("Voir https://exemple.fr/*etoiles* merci")
+    print(actual)
+    assert actual == (
+        '<p>Voir <a href="https://exemple.fr/*etoiles">https://exemple.fr/*etoiles</a>* merci</p>'
+    )
+
+
+def test_a_bare_address_inside_a_link_label_is_its_text():
+    actual = parse_markdown_to_html_fragment("[voir https://a.fr ici](https://b.fr)")
+    print(actual)
+    assert actual == '<p><a href="https://b.fr">voir https://a.fr ici</a></p>'

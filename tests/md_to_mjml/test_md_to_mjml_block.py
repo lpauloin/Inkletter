@@ -319,3 +319,9 @@ def test_an_empty_document_has_an_empty_body():
     actual = parse_markdown_to_mjml("")
     print(actual)
     assert actual == wrap_mjml_document("")
+
+
+def test_a_loose_task_list_draws_its_boxes():
+    mjml = parse_markdown_to_mjml("- [ ] Un\n\n- [x] Deux")
+    assert "☐ Un" in mjml
+    assert "☑ Deux" in mjml

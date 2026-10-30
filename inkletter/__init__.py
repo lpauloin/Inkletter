@@ -1,9 +1,11 @@
-"""Inkletter: Markdown to responsive MJML/HTML emails."""
+"""Inkletter: Markdown to responsive MJML/HTML emails, LinkedIn posts and
+HTML fragments."""
 
 from importlib.metadata import PackageNotFoundError, version
 
+from inkletter.ast import runs_something
 from inkletter.escaping import escape_markdown
-from inkletter.exceptions import LengthError, ThemeError
+from inkletter.exceptions import LengthError, MarkupError, ThemeError
 from inkletter.md_to_html import parse_markdown_to_html, parse_mjml_to_html
 from inkletter.md_to_html_fragment import parse_markdown_to_html_fragment
 from inkletter.md_to_linkedin import parse_markdown_to_linkedin, render_linkedin
@@ -26,11 +28,13 @@ __all__ = [
     "parse_markdown_to_text",
     "parse_markdown_to_linkedin",
     "render_linkedin",
+    "runs_something",
     "LinkedinRender",
     "parse_mjml_to_html",
     "Theme",
     "ThemeError",
     "LengthError",
+    "MarkupError",
     "THEMES",
     "URLFactory",
     "BitlyShortener",

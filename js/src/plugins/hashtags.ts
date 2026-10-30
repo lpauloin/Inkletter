@@ -5,23 +5,25 @@ import type MarkdownIt from 'markdown-it';
 import type { StateInline } from 'markdown-it';
 import { WORD } from '../stdlib.js';
 
-// A hashtag, read before the marks inside it: `#équipe_rh` is one tag, where
-// the emphasis rule would have seen an `_` to open an italic. Not a heading:
-// a heading is a block, decided line by line before any inline rule runs,
-// and it needs a space after its `#`. Not after a word character, `&` (an
-// entity) or another `#` either.
-const HASHTAG = new RegExp(`(?<![${WORD}&#])#(?=[${WORD}]*[\\p{L}\\p{Nl}\\p{No}])[${WORD}]+`, 'uy');
+// A hashtag as LinkedIn reads one — measured in its own composer, laid out
+// in `inkletter/plugins/hashtags.py`: `#`, then letters, digits or
+// underscores, not after an ASCII letter or digit, `_`, `&` or `/`.
+const PATTERN = `(?<![A-Za-z0-9_&/])#[${WORD}]+`;
+/** A hashtag, for an application to search a text with. */
+export const HASHTAG = new RegExp(PATTERN, 'u');
+// read where the inline rule stands
+const HASHTAG_HERE = new RegExp(PATTERN, 'uy');
 
 function hashtag(state: StateInline, silent: boolean): boolean {
   if (state.src[state.pos] !== '#') return false;
-  HASHTAG.lastIndex = state.pos;
-  const match = HASHTAG.exec(state.src);
+  HASHTAG_HERE.lastIndex = state.pos;
+  const match = HASHTAG_HERE.exec(state.src);
   if (!match) return false;
   if (!silent) {
     const token = state.push('hashtag', '', 0);
     token.meta = { name: match[0].slice(1) };
   }
-  state.pos = HASHTAG.lastIndex;
+  state.pos = HASHTAG_HERE.lastIndex;
   return true;
 }
 

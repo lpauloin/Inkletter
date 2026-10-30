@@ -29,3 +29,11 @@ def test_image_title_is_ignored():
     actual = parse_markdown_to_text('![Alt](https://x.com/i.png "Tooltip")')
     print(actual)
     assert actual == "Alt\n"
+
+
+def test_an_image_on_its_own_line_stays_on_its_line():
+    assert parse_markdown_to_text("a\n![al](https://i.com/a.png)\nb") == "a\nal\nb\n"
+
+
+def test_an_image_inside_a_line_stays_inside_it():
+    assert parse_markdown_to_text("see ![alt](https://i.com/a.png) here") == "see alt here\n"

@@ -33,19 +33,43 @@ class Trimmer(NodeVisitor):
 
     @classmethod
     def flatten(cls, node):
-        children = [
+        cls.unbreak(node)
+        cls.trim_edge(node, leading=True)
+        cls.trim_edge(node, leading=False)
+
+    @classmethod
+    def trim_edge(cls, node, leading):
+        """The whitespace at one end of the run goes, under its marks too
+        and past a hand-written tag, up to the first word."""
+        children = node.children
+        at = 0 if leading else len(children) - 1
+        step = 1 if leading else -1
+        while 0 <= at < len(children):
+            child = children[at]
+            if isinstance(child, InlineHtml):
+                at += step
+                continue
+            if cls.blank(child):
+                del children[at]
+                if not leading:
+                    at -= 1
+                continue
+            if isinstance(child, LiteralText):
+                child.value = child.value.lstrip() if leading else child.value.rstrip()
+            elif isinstance(child, BlockNode):
+                cls.trim_edge(child, leading)
+            return
+
+    @classmethod
+    def unbreak(cls, node):
+        """Every break in the run a space, under its marks too."""
+        node.children = [
             LiteralText(" ") if isinstance(child, (SoftBreak, LineBreak)) else child
             for child in node.children
         ]
-        while children and cls.blank(children[0]):
-            children.pop(0)
-        while children and cls.blank(children[-1]):
-            children.pop()
-        if children and isinstance(children[0], LiteralText):
-            children[0].value = children[0].value.lstrip()
-        if children and isinstance(children[-1], LiteralText):
-            children[-1].value = children[-1].value.rstrip()
-        node.children = children
+        for child in node.children:
+            if isinstance(child, BlockNode):
+                cls.unbreak(child)
 
     @staticmethod
     def blank(node):

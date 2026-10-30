@@ -4,6 +4,128 @@ Newest first. [Semantic versioning](https://semver.org): a major bump
 means a document, a theme file or a call that used to work no longer
 does.
 
+## 4.2.0 — 2026-10-30
+
+Measured in LinkedIn's own composer, on a page: what it reads as a hashtag,
+and where it starts and ends an address.
+
+### Changed
+
+- **A hashtag is read as LinkedIn reads one.** Not after an ASCII letter or
+  digit, `_`, `&` or `/` — but after another `#` (`Merci ##tag` holds the
+  tag `#tag`) or an accented letter (`é#tag`); and a number is a tag
+  (`#2026`), as on the feed. It matters beyond the preview: a tag keeps its
+  own letters where look-alikes are written, and one the feed reads as a
+  tag must stay one.
+- **An address starts and ends where LinkedIn does.** In full, it is read
+  before any mark inside it, so `https://exemple.fr/*etoiles*` keeps its
+  stars (as markdown-it's own linkify rule reads one); it starts at the
+  start, after a space, `(`, `"` or a mark — not glued to a letter, a `«`,
+  a `“`, a `'` or a `-` (`«https://…»` is text on the feed) — and a final
+  `?` or `!` is the sentence's, like a final `.`.
+- **The ask is a bold link alone on its line.** Among words, a bold link
+  is emphasis: in look-alikes where they are written, and said as a
+  formatting the feed will not show. Alone on its line — through the marks
+  that wrap it alone — it is the call to action, whose words keep their
+  own letters. Its URL still reaches the factory as bold, wherever it is.
+- **A link that runs something is its words**, in every output: a target in
+  `javascript:`, `vbscript:`, `file:` or `data:` (an image's own `data:`
+  aside — markdown-it's own list) makes no link and no image, its label or
+  its alternative text standing in. The scheme is read as a browser reads
+  it — tabs and line breaks left out, spaces and control characters at the
+  ends too — so ` javascript:` or `java⇥script:` in a hand-written `<a>`
+  never reaches a page as a link.
+- **A rule stands for a blank line in a post**, typed between two lines
+  (`Avant` / `***` / `Après`) as between two paragraphs, and draws nothing
+  inside a list item.
+- **A loose list keeps its blank lines in a post**: the blank lines its
+  author left between two items stay between them (`- Un` / blank /
+  `- Deux` sends `• Un`, a blank line, `• Deux`), as between two blocks. The
+  mail and its text alternative read a loose list as one block, as before.
+  `List.gaps` says how many lines stood between each item and the next.
+- **One rule for a link that runs something, in every output.** The HTML
+  fragment no longer keeps a list of its own: it links every scheme that
+  locates something (`sms:`, `ftp:`…), and a hand-written `<a>` to
+  `javascript:` or `data:` is its words in the fragment, the text and the
+  post alike.
+- **A loose task list puts each item in a paragraph**, its box inside
+  (`<li><p>☐ Un</p></li>`), in the mail as in the fragment — as a loose
+  bullet list does.
+- **A code block ends on its last line**, fenced or indented alike: the
+  break that ends its last line is no longer kept for a fenced one.
+- **An image in a link's label keeps its alternative text in the post**
+  (`[![alt](i.png)](…)` reads `![alt](i.png) : …`).
+- **A scheme is what is written before the `:`**, read with a pattern on
+  both sides rather than through each language's URL splitter, which do not
+  refuse the same addresses.
+
+### Added
+
+- `MarkupError` is exported in Python, as in JavaScript; `HASHTAG` in
+  JavaScript, for an application to search a text the way Inkletter does.
+- `LinkedinRender.styles`: the styles written on words — `bold`, `italic`,
+  `strikethrough` — look-alikes or not, for a warning to name what the feed
+  will not show.
+- `Node.plain_text()` / `plainText()`, what a node reads as with no
+  rendering, and `Image.says_something` / `saysSomething`, whether it has
+  an alternative text to show.
+- `runs_something` (Python) and `runsSomething` (JavaScript): whether a
+  target runs something, for an editor to refuse a link before writing it,
+  by the rule every output reads it with.
+
+### Fixed
+
+- **A list starting at 0 says 0** in the text and the post, as the mail's
+  `<ol start="0">` does; and **a box in a numbered list keeps its rank**,
+  the item after it numbered as a reader of the mail counts it.
+- **A hand-written anchor keeps its address inside a mark, a table cell or
+  around an image** — in the text, the post and the fragment alike; it
+  pairs with its closing tag across what stands between them.
+- **In the post**: the blank lines inside an item of a loose list are kept,
+  the images of a row go one per line, and an image written after its text
+  stays after it.
+- **An image keeps its place in its line**: on a line of its own, the
+  breaks around it are kept (a mail stacks it as a block, and needs none);
+  inside a line, it stays inside it — in the text, the post and the
+  fragment, where its alternative text ran into the next line or lost it.
+- **In the text**: an image inside a list item adds no blank line, and an
+  empty item ends on its marker's line.
+- **A link's label or a mention's name holding a hashtag keeps its words**
+  (`[#tag](…)` reads `#tag : …` on the post; `[Equipe #rh](urn:…)` names
+  `Equipe #rh`), and **a break under a mark inside a label is a space**, as
+  one directly in it; the spaces at a label's edges go under its marks too
+  and past a hand-written tag. **A mention naming nobody** (`[](urn:…)`)
+  writes nothing in the post, as in every other output.
+- **A quote that opens a list item marks its first line too** (`- > a`), in
+  the text and the post.
+- **In the fragment**: a linked image's alternative text is a link; a box
+  stands for its item's marker (`list-style-type: none`), in a numbered list
+  as in another, as in the mail; an anchor written inside another is its
+  words, a page holding no anchor in an anchor.
+- **In the mail**: two image rows or media objects in a row leave no empty
+  section between them, and a table inside a quote is a plain `<table>`
+  rather than an `mj-table` a browser would flatten to text.
+- **A loose task list renders in a mail**: its boxes and their words,
+  where the MJML output used to fail on the paragraph a loose item holds.
+
+### Fixed (JavaScript)
+
+- **A theme whose font family is quoted compiles into HTML** — the `green`
+  preset, or `'Helvetica Neue'` — with a button in the mail: `mjml-browser`
+  receives the stack's quotes as written, its CSS inliner failing on
+  escaped ones. The MJML stays the same as Python's.
+
+- **A no-break space at the edge of a paragraph or a heading is trimmed**,
+  as markdown-it-py trims it: the two readings of ` a` agree, a table
+  cell's too. One written as an entity (`&nbsp;`) stays.
+
+- **A theme is a value all the way down**: its sections and heading levels
+  are frozen, as Python's frozen dataclasses are; changing one no longer
+  changes the presets.
+- **The exported patterns keep no state** between two searches
+  (`BARE_DOMAIN`, `HASHTAG`).
+- `%g` formats a media ratio below 1e-4 as Python does.
+
 ## 4.1.0 — 2026-10-30
 
 ### Added

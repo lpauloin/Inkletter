@@ -1,6 +1,6 @@
 {
   "name": "inkletter",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Markdown to LinkedIn posts, HTML fragments, MJML and responsive emails \u2014 the JavaScript twin of the Python package, output for output",
   "license": "MIT",
   "author": "Laurent Pauloin <laurent.pauloin@gmail.com>",

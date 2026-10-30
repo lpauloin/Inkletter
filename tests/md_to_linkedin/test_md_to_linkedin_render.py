@@ -73,3 +73,9 @@ def test_a_heading_the_feed_will_not_show_is_said():
     assert render_linkedin("# Titre").unrendered_headings is True
     assert render_linkedin("# Titre", unicode_styling=True).unrendered_headings is True
     assert render_linkedin("Titre").unrendered_headings is False
+
+
+def test_the_styles_written_are_named_look_alikes_or_not():
+    assert render_linkedin("Un **mot** et *un autre*").styles == {"bold", "italic"}
+    assert render_linkedin("Un ~~mot~~", unicode_styling=True).styles == {"strikethrough"}
+    assert render_linkedin("**[La lire](https://exemple.fr)**").styles == frozenset()

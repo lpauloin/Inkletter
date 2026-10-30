@@ -3,12 +3,34 @@
 // A visitor dispatches on `kind`, the class's own name: the bundler that
 // minifies a class name leaves a string alone.
 
-import { strip, urlSplit } from './stdlib.js';
+import { strip } from './stdlib.js';
+
+// A scheme: a letter, then letters, digits, `+`, `-` or `.`, before a `:`.
+const SCHEME = /^([A-Za-z][A-Za-z0-9+.-]*):/;
+
+// What runs something rather than locating it: a link to one is its words,
+// in every output — an image's own `data:` aside. markdown-it's own list.
+const RUNS_SOMETHING = ['javascript', 'vbscript', 'file', 'data'];
+export const IMAGE_DATA = /^data:image\/(gif|png|jpeg|webp);/i;
+
+// What a browser leaves out of an address before reading its scheme: every
+// tab and line break, and the spaces and control characters at its ends.
+const URL_IGNORED = /[\t\n\r]/g;
+const URL_EDGES = /^[\u0000-\u0020]+|[\u0000-\u0020]+$/g;
+
+/** Whether a target runs something rather than locating it — a link to one
+ *  is its words, in every output. Its scheme is read as a browser reads it:
+ *  ` javascript:` and `java⇥script:` run as `javascript:` does. */
+export function runsSomething(target: string): boolean {
+  const read = target.replace(URL_IGNORED, '').replace(URL_EDGES, '');
+  return RUNS_SOMETHING.includes(Link.schemeOf(read));
+}
 
 export type Annotations = Record<string, AnnotationValue>;
 // What a pass may write on a node for the passes after it.
 export type AnnotationValue =
   | string
+  | number
   | boolean
   | null
   | ReadonlySet<string>
@@ -34,6 +56,14 @@ export abstract class Node {
   /** Nothing to read: a break, or text made of whitespace. */
   isBlank(): boolean {
     return false;
+  }
+
+  /** What a node reads as, with no rendering: enough to tell a label that
+   *  is an address from one that is words. */
+  plainText(): string {
+    return this.getChildren()
+      .map((child) => child.plainText())
+      .join('');
   }
 }
 
@@ -72,6 +102,10 @@ export class LiteralText extends Text {
   override isBlank(): boolean {
     return !strip(this.value);
   }
+
+  override plainText(): string {
+    return this.value;
+  }
 }
 
 export class CodeSpan extends Text {
@@ -79,6 +113,10 @@ export class CodeSpan extends Text {
 
   constructor(public code: string) {
     super();
+  }
+
+  override plainText(): string {
+    return this.code;
   }
 }
 
@@ -93,6 +131,10 @@ export class Hashtag extends Text {
 
   constructor(public name: string) {
     super();
+  }
+
+  override plainText(): string {
+    return `#${this.name}`;
   }
 }
 
@@ -139,10 +181,16 @@ export abstract class Link extends TextBlock {
   }
 
   /** The scheme a target starts with, lower-cased — `https`, `mailto`,
-   *  `urn` — and `""` for a path relative to nothing, or for a target the
-   *  standard splitter refuses: what it is not, at least, is an address. */
+   *  `urn` — and `""` for a path relative to nothing. */
   static schemeOf(target: string): string {
-    return urlSplit(target)?.scheme ?? '';
+    return SCHEME.exec(target)?.[1]?.toLowerCase() ?? '';
+  }
+
+  /** What a `mailto:` or a `tel:` names: the target after its scheme, up to
+   *  a query or a fragment. */
+  static afterScheme(target: string): string {
+    const match = SCHEME.exec(target);
+    return (match ? target.slice(match[0].length) : target).split(/[?#]/, 1)[0] ?? '';
   }
 
   // Each kind says its scheme; only an address has to read it off its
@@ -187,7 +235,7 @@ export class MailLink extends Link {
   }
 
   get address(): string {
-    return urlSplit(this.href)?.path ?? '';
+    return Link.afterScheme(this.href);
   }
 }
 
@@ -200,7 +248,7 @@ export class TelLink extends Link {
   }
 
   get number(): string {
-    return urlSplit(this.href)?.path ?? '';
+    return Link.afterScheme(this.href);
   }
 }
 
@@ -213,6 +261,17 @@ export class Document extends BlockNode {
   get head(): HeadAnnotation | null {
     const head = this.annotations.head;
     return typeof head === 'object' && head !== null && 'fonts' in head ? (head as HeadAnnotation) : null;
+  }
+
+  /** The styles the annotation pass found on the document's words. */
+  get stylesWritten(): ReadonlySet<string> {
+    const styles = this.annotations.styles_written;
+    return styles instanceof Set ? styles : new Set<string>();
+  }
+
+  /** Whether the annotation pass found a heading in the document. */
+  get hasHeadings(): boolean {
+    return this.annotations.has_headings === true;
   }
 }
 
@@ -294,6 +353,15 @@ export class Image extends Node {
   get scheme(): string {
     return Link.schemeOf(this.url);
   }
+
+  override plainText(): string {
+    return this.altText;
+  }
+
+  /** Whether it has an alternative text to show where it is not seen. */
+  get saysSomething(): boolean {
+    return Boolean(strip(this.altText));
+  }
 }
 
 export class ImageLink extends Node {
@@ -311,6 +379,10 @@ export class ImageLink extends Node {
     return Link.schemeOf(this.href);
   }
 
+  get saysSomething(): boolean {
+    return this.img.saysSomething;
+  }
+
   override getChildren(): Node[] {
     return [this.img];
   }
@@ -319,6 +391,11 @@ export class ImageLink extends Node {
 /** A paragraph made only of images: rendered as side-by-side columns. */
 export class ImageRow extends BlockNode {
   readonly kind = 'ImageRow';
+  declare children: (Image | ImageLink)[];
+
+  constructor(children: (Image | ImageLink)[]) {
+    super(children);
+  }
 }
 
 /** A paragraph made only of a bold link: a call-to-action button. */
@@ -397,6 +474,8 @@ export class List extends Node {
     public elements: (ListItem | TaskListItem)[],
     public ordered = false,
     public start: number | null = null,
+    /** The blank lines the author left between each item and the next. */
+    public gaps: number[] = new Array<number>(Math.max(elements.length - 1, 0)).fill(0),
   ) {
     super();
   }

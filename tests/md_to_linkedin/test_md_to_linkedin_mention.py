@@ -73,3 +73,18 @@ def test_a_shortener_cannot_replace_an_urn_with_a_dead_link():
     print(actual)
     assert "urn:li:organization:12345678" in actual
     assert "le site : https://exa.mp/r/abc123" in actual
+
+
+def test_the_spaces_at_a_name_s_edges_go_under_its_marks_too():
+    assert (
+        parse_markdown_to_linkedin("voir [**Acme&#32;**](urn:li:organization:1) ok")
+        == "voir @[urn:li:organization:1|Acme] ok"
+    )
+    assert (
+        parse_markdown_to_linkedin("[<b> Acme</b>](urn:li:organization:1)")
+        == "@[urn:li:organization:1|Acme]"
+    )
+
+
+def test_a_mention_naming_nobody_writes_nothing():
+    assert parse_markdown_to_linkedin("Merci [](urn:li:organization:1) !") == "Merci  !"

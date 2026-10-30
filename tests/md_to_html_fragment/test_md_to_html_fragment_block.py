@@ -45,7 +45,7 @@ def test_nested_blockquote():
 def test_block_code_is_preformatted_and_escaped():
     actual = parse_markdown_to_html_fragment('```\nprint("x" < 2)\n    indented\n```')
     print(actual)
-    assert actual == '<pre><code>print("x" &lt; 2)\n    indented\n</code></pre>'
+    assert actual == '<pre><code>print("x" &lt; 2)\n    indented</code></pre>'
 
 
 def test_thematic_break():

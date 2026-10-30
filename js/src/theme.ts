@@ -127,7 +127,7 @@ export type Fonts = readonly (readonly [string, string])[];
 export type ThemeValue = string | boolean | null;
 export type ThemeMapping = Record<string, Record<string, ThemeValue | Record<string, ThemeValue>>>;
 
-const DEFAULTS: ThemeSections = {
+const DEFAULTS: Readonly<ThemeSections> = {
   layout: { width: '600px', background_color: Gray.LIGHTEST, content_background_color: WHITE, section_padding: '16px 0' },
   text: { font_family: 'Helvetica, Arial, sans-serif', font_size: '14px', line_height: '1.6', color: Gray.DARK },
   headings: {
@@ -165,33 +165,37 @@ export type ThemeOverrides = { [Name in SectionName]?: Partial<ThemeSections[Nam
   fonts?: Fonts | Record<string, string>;
 };
 
-export class Theme implements ThemeSections {
-  readonly layout: Layout;
-  readonly text: TextSection;
-  readonly headings: Headings;
-  readonly links: Links;
-  readonly hashtags: Hashtags;
-  readonly code: Code;
-  readonly quote: Quote;
-  readonly divider: Divider;
-  readonly table: TableSection;
-  readonly images: Images;
-  readonly buttons: Buttons;
+export class Theme {
+  readonly layout: Readonly<Layout>;
+  readonly text: Readonly<TextSection>;
+  readonly headings: Readonly<Headings>;
+  readonly links: Readonly<Links>;
+  readonly hashtags: Readonly<Hashtags>;
+  readonly code: Readonly<Code>;
+  readonly quote: Readonly<Quote>;
+  readonly divider: Readonly<Divider>;
+  readonly table: Readonly<TableSection>;
+  readonly images: Readonly<Images>;
+  readonly buttons: Readonly<Buttons>;
   // web fonts to load, name and stylesheet URL, in order
   readonly fonts: Fonts;
 
   constructor(overrides: ThemeOverrides = {}) {
-    this.layout = { ...DEFAULTS.layout, ...overrides.layout };
-    this.text = { ...DEFAULTS.text, ...overrides.text };
-    this.headings = { ...DEFAULTS.headings, ...overrides.headings };
-    this.links = { ...DEFAULTS.links, ...overrides.links };
-    this.hashtags = { ...DEFAULTS.hashtags, ...overrides.hashtags };
-    this.code = { ...DEFAULTS.code, ...overrides.code };
-    this.quote = { ...DEFAULTS.quote, ...overrides.quote };
-    this.divider = { ...DEFAULTS.divider, ...overrides.divider };
-    this.table = { ...DEFAULTS.table, ...overrides.table };
-    this.images = { ...DEFAULTS.images, ...overrides.images };
-    this.buttons = { ...DEFAULTS.buttons, ...overrides.buttons };
+    // a value, all the way down: no theme changes once built, nor its
+    // sections, nor the defaults it was built from
+    this.layout = Object.freeze({ ...DEFAULTS.layout, ...overrides.layout });
+    this.text = Object.freeze({ ...DEFAULTS.text, ...overrides.text });
+    const headings = { ...DEFAULTS.headings, ...overrides.headings };
+    for (const number of LEVELS) headings[`h${number}`] = Object.freeze({ ...headings[`h${number}`] });
+    this.headings = Object.freeze(headings);
+    this.links = Object.freeze({ ...DEFAULTS.links, ...overrides.links });
+    this.hashtags = Object.freeze({ ...DEFAULTS.hashtags, ...overrides.hashtags });
+    this.code = Object.freeze({ ...DEFAULTS.code, ...overrides.code });
+    this.quote = Object.freeze({ ...DEFAULTS.quote, ...overrides.quote });
+    this.divider = Object.freeze({ ...DEFAULTS.divider, ...overrides.divider });
+    this.table = Object.freeze({ ...DEFAULTS.table, ...overrides.table });
+    this.images = Object.freeze({ ...DEFAULTS.images, ...overrides.images });
+    this.buttons = Object.freeze({ ...DEFAULTS.buttons, ...overrides.buttons });
     for (const number of LEVELS) validateAlignment(`headings.h${number}`, this.headingAt(number).align);
     validateAlignment('buttons', this.buttons.align);
     validateAlignment('images', this.images.align);

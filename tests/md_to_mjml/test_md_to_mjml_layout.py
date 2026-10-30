@@ -3,7 +3,7 @@ import pytest
 from inkletter.exceptions import ThemeError
 from inkletter.md_to_html import parse_markdown_to_html
 from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_document
-from inkletter.theme import Images, Theme, split_media_ratio
+from inkletter.theme import THEMES, Images, Theme, split_media_ratio
 
 # --- Image rows ---
 
@@ -141,3 +141,27 @@ def test_final_html_renders_row_and_media_columns():
     assert "mj-column-per-30" in html
     assert "mj-column-per-70" in html
     assert "@media" in html
+
+
+def test_two_rows_of_images_leave_no_empty_section_between_them():
+    mjml = parse_markdown_to_mjml(
+        "![A](https://e.fr/a.png) ![B](https://e.fr/b.png)\n\n"
+        "![C](https://e.fr/c.png) ![D](https://e.fr/d.png)"
+    )
+    body = mjml[mjml.index("<mj-body") :]
+    assert body.count("<mj-section") == 2
+
+
+def test_a_table_in_a_quote_is_a_plain_table():
+    mjml = parse_markdown_to_mjml("> | a | b |\n> |---|---|\n> | 1 | 2 |")
+    body = mjml[mjml.index("<mj-body") :]
+    assert "<mj-table" not in body
+    assert "<blockquote>\n            <table>" in body
+
+
+@pytest.mark.parametrize("name", list(THEMES))
+def test_every_theme_compiles_a_mail_with_a_button(name):
+    html = parse_markdown_to_html(
+        "# Titre\n\n**[Réserver](https://exemple.fr)**", theme=Theme.named(name)
+    )
+    assert 'href="https://exemple.fr"' in html

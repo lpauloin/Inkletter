@@ -1,12 +1,19 @@
 import re
 
 from inkletter.ast import *
+from inkletter.plugins.bare_domains import is_bare_domain
 from inkletter.theme import split_media_ratio
 from inkletter.visitors.generic import NodeVisitor
 
-#: The href of a hand-written opening anchor, read for the text
-#: output only — the HTML half passes the tag through untouched.
+#: The href of a hand-written opening anchor: what the outputs that cannot
+#: pass the tag through — text, post, fragment — spell or rebuild.
 ANCHOR_HREF = re.compile(r'<a\s[^>]*\bhref\s*=\s*["\']([^"\']*)["\']', re.I)
+
+
+def is_an_address(label):
+    """Whether a label is an address already — with its scheme, or a domain
+    written without one — rather than a name for one."""
+    return Link.scheme_of(label) in ("http", "https") or is_bare_domain(label)
 
 
 class Annotation(NodeVisitor):
@@ -26,15 +33,16 @@ class Annotation(NodeVisitor):
         # an empty slot the first h1 fills in, with its text or with
         # None when it turns out not to be usable as a title
         scope.set("document_title", [])
+        # what the document writes that a feed will not show: the styles on
+        # its words, look-alikes or not, and its headings
+        scope.set("document", node)
+        scope.set("styles_written", set())
+        node.annotations["has_headings"] = False
         theme = self.theme
         image_attrs = {"align": theme.images.align}
         if not self.link_attributes:
-            # fluid-on-mobile goes full width *even though a width is
-            # set* — its only effect is to undo one. An image without a
-            # width already follows its column, so the attribute is a
-            # no-op there and this default is kept for one reason: a
-            # document converted with --no-link-attributes, where no
-            # image can carry a width, renders exactly as it did before.
+            # without link attributes no image carries a width of its
+            # own: each takes the full width of a phone's screen
             image_attrs["fluid-on-mobile"] = "true"
         if theme.images.border_radius not in ("0", "0px"):
             image_attrs["border-radius"] = theme.images.border_radius
@@ -78,6 +86,7 @@ class Annotation(NodeVisitor):
             "background-color": theme.layout.background_color,
         }
         self.generic_visit(node, scope)
+        node.annotations["styles_written"] = frozenset(scope.get("styles_written"))
         found = scope.get("document_title")
         node.annotations["head"]["title"] = found[0] if found else None
         scope.pop(node)
@@ -87,25 +96,35 @@ class Annotation(NodeVisitor):
         down to every text they cover."""
         scope.set("styles", scope.get("styles", frozenset()) | {style})
 
-    def mark_styles(self, node, scope):
+    def mark_styles(self, node, scope, text):
         # a mention's name is never dressed: it is what the platform matches
         styles = scope.get("styles")
-        if styles and not scope.get("is_in_mention"):
+        if styles and not scope.get("is_in_mention") and not scope.get("is_in_address"):
             node.annotations["styles"] = styles
+            # spaces alone wear no style a reader could miss
+            if text.strip():
+                scope.get("styles_written").update(styles)
+
+    @staticmethod
+    def in_raw_html(scope):
+        """Whether a node sits in raw HTML already — an mj-text's content, a
+        table, a list item, a button's label — where no MJML component may
+        open."""
+        return (
+            scope.get("in_text", False)
+            or scope.get("is_in_table", False)
+            or scope.get("is_in_list_item", False)
+            or scope.get("is_in_button", False)
+        )
 
     def mark_text_if_needed(self, node, scope):
-        if (
-            not scope.get("in_text", False)
-            and not scope.get("is_in_table_cell", False)
-            and not scope.get("is_in_list_item", False)
-            and not scope.get("is_in_button", False)
-        ):
+        if not self.in_raw_html(scope):
             node.annotations["requires_text"] = True
             scope.set("in_text", True)
 
     def mark_manual_table_if_needed(self, node, scope):
-        is_in_list = scope.get("is_in_list", False)
-        if is_in_list:
+        # in raw HTML — a list, a quote, a cell — an mj-table is an unknown tag
+        if self.in_raw_html(scope):
             node.annotations["requires_manual_table"] = True
 
     def apply_author_attributes(self, node):
@@ -140,15 +159,9 @@ class Annotation(NodeVisitor):
         }
 
     def mark_manual_image_if_needed(self, node, scope):
-        # Inside the raw HTML of an mj-text (in_text: headings, quotes,
-        # lists, inline formatting), of an mj-table or of an mj-button
-        # label, an mj-image would leak as an unknown tag: render a
+        # In raw HTML an mj-image would leak as an unknown tag: render a
         # plain <img> instead, with its style ready to emit.
-        if (
-            scope.get("in_text", False)
-            or scope.get("is_in_table", False)
-            or scope.get("is_in_button", False)
-        ):
+        if self.in_raw_html(scope):
             node.annotations["requires_manual_image"] = True
             style = "max-width: 100%; height: auto;"
             radius = self.theme.images.border_radius
@@ -160,12 +173,23 @@ class Annotation(NodeVisitor):
         scope.push(node)
         scope.set("is_in_list", True)
         self.mark_text_if_needed(node, scope)
+        # an ordered list numbers its items from its start, a box included,
+        # as a reader of the mail counts them — a rank is a matter between
+        # siblings
+        if node.ordered:
+            start = 1 if node.start is None else node.start
+            for offset, item in enumerate(node.elements):
+                item.annotations["number"] = start + offset
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_TaskListItem(self, node, scope):
         assert isinstance(scope.stack[-1]["node"], List)
         scope.push(node)
+        self.open_anchor_run(scope)
+        # the box opens the item's first line, drawn by whoever writes it
+        if node.children:
+            node.children[0].annotations["checkbox"] = "☑" if node.checked else "☐"
         scope.set("is_in_list_item", True)
         self.generic_visit(node, scope)
         scope.pop(node)
@@ -173,29 +197,34 @@ class Annotation(NodeVisitor):
     def visit_ListItem(self, node, scope):
         assert isinstance(scope.stack[-1]["node"], List)
         scope.push(node)
+        self.open_anchor_run(scope)
         scope.set("is_in_list_item", True)
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_Paragraph(self, node, scope):
         scope.push(node)
+        self.open_anchor_run(scope)
         # At flow level each paragraph gets its own mj-text, and the
         # padding between them is what separates them. Inside a
         # raw-HTML context — a quote, a list item, a cell — there is no
         # such padding, so the paragraph must carry its own tag or it
         # runs into its neighbour.
-        node.annotations["requires_paragraph_tag"] = (
-            scope.get("in_text", False)
-            or scope.get("is_in_table_cell", False)
-            or scope.get("is_in_list_item", False)
-        )
+        node.annotations["requires_paragraph_tag"] = self.in_raw_html(scope)
+        if not node.annotations["requires_paragraph_tag"]:
+            # At flow level an image is a block of its own, stacked between
+            # the lines around it: the breaks beside it separate what the
+            # mail already sets apart.
+            for child in node.children:
+                if isinstance(child, TextTerminal):
+                    child.annotations["between_blocks"] = True
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_BlockText(self, node, scope):
         scope.push(node)
         self.mark_text_if_needed(node, scope)
-        self.mark_inline_anchors(node)
+        self.mark_the_asks(node)
         self.generic_visit(node, scope)
         scope.pop(node)
 
@@ -213,14 +242,14 @@ class Annotation(NodeVisitor):
 
     def visit_Table(self, node, scope):
         scope.push(node)
-        scope.set("is_in_table", True)
         self.mark_manual_table_if_needed(node, scope)
+        scope.set("is_in_table", True)
         self.generic_visit(node, scope)
         scope.pop(node)
 
     def visit_TableHeaderCell(self, node, scope):
         scope.push(node)
-        scope.set("is_in_table_cell", True)
+        self.open_anchor_run(scope)
         table = self.theme.table
         style = f"border-bottom: 2px solid {table.border_color}; padding: {table.cell_padding};"
         if table.header_color:
@@ -235,7 +264,7 @@ class Annotation(NodeVisitor):
 
     def visit_TableCell(self, node, scope):
         scope.push(node)
-        scope.set("is_in_table_cell", True)
+        self.open_anchor_run(scope)
         table = self.theme.table
         node.annotations["cell_style"] = (
             f"border-bottom: 1px solid {table.border_color}; padding: {table.cell_padding};"
@@ -245,6 +274,7 @@ class Annotation(NodeVisitor):
 
     def visit_Button(self, node, scope):
         scope.push(node)
+        self.open_anchor_run(scope)
         # The one link of the document that is the ask, said in the node
         # for whoever handles URLs after this pass.
         node.annotations["button"] = True
@@ -268,6 +298,7 @@ class Annotation(NodeVisitor):
 
     def visit_MediaObject(self, node, scope):
         scope.push(node)
+        self.open_anchor_run(scope)
         # Same as ImageRow: its 30/70 columns need their own mj-section.
         node.annotations["defines_own_columns"] = True
         # Full render instructions: layout mode, column widths, and the
@@ -293,12 +324,13 @@ class Annotation(NodeVisitor):
     def visit_ImageLink(self, node, scope):
         scope.push(node)
         node.annotations["bold"] = scope.get("is_in_strong", False)
-        self.mark_manual_image_if_needed(node, scope)
         self.generic_visit(node, scope)  # reaches node.img -> visit_Image
         scope.pop(node)
 
     def visit_Heading(self, node, scope):
         scope.push(node)
+        self.open_anchor_run(scope)
+        scope.get("document").annotations["has_headings"] = True
         # Only the first h1 of the document body is its title, and only
         # if it holds nothing but text — anything else disqualifies it
         # rather than being flattened away. in_text already tells us the
@@ -313,8 +345,7 @@ class Annotation(NodeVisitor):
         # CSS: it comes out both as `td align` and as an inlined
         # text-align, where a `h1 { text-align }` rule would depend on a
         # <style> block some clients drop. Left is MJML's own default,
-        # so nothing is emitted for it and an unchanged theme renders
-        # byte for byte as before.
+        # so nothing is emitted for it.
         align = self.theme.headings.at(node.level).align
         if node.annotations.get("requires_text") and align != "left":
             node.annotations["text_attrs"] = {"align": align}
@@ -332,7 +363,7 @@ class Annotation(NodeVisitor):
         parts = scope.get("title_parts")
         if parts is not None:
             parts.append(node.value)
-        self.mark_styles(node, scope)
+        self.mark_styles(node, scope, node.value)
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
@@ -347,10 +378,10 @@ class Annotation(NodeVisitor):
     def visit_Strong(self, node, scope):
         scope.push(node)
         scope.set("is_in_strong", True)
-        # The ask — a link alone in bold, where no button exists — still
-        # says it was bold, for the URL factory, but its words keep their
-        # own letters: on a feed a call to action is a line of text.
-        if node.ask is None:
+        # The ask still says it was bold, for the URL factory, but its words
+        # keep their own letters: on a feed a call to action is a line of
+        # text. A bold link among words is emphasis, styled as such.
+        if not node.annotations.get("ask"):
             self.add_style(scope, "bold")
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
@@ -364,19 +395,29 @@ class Annotation(NodeVisitor):
         scope.pop(node)
 
     def visit_UrlLink(self, node, scope):
-        self.link(node, scope)
+        label = node.plain_text()
+        self.link(node, scope, not label or label == node.href or is_an_address(label))
 
     def visit_MailLink(self, node, scope):
-        self.link(node, scope)
+        label = node.plain_text()
+        self.link(node, scope, not label or label in (node.address, node.href))
 
     def visit_TelLink(self, node, scope):
-        self.link(node, scope)
+        label = node.plain_text()
+        self.link(node, scope, not label or label in (node.number, node.href))
 
-    def link(self, node, scope):
+    def link(self, node, scope, label_is_address):
         scope.push(node)
         # Said in the node for whoever handles URLs after this pass: a
         # link inside bold text is the ask where no button exists.
         node.annotations["bold"] = scope.get("is_in_strong", False)
+        # A label that is an address already — the target itself, the one
+        # the parser wrapped around a bare address, or another — is not a
+        # name for it: where the target is shown, it is not shown twice,
+        # and its words are no styled text.
+        node.annotations["label_is_address"] = label_is_address
+        if label_is_address:
+            scope.set("is_in_address", True)
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
@@ -400,7 +441,7 @@ class Annotation(NodeVisitor):
 
     def visit_CodeSpan(self, node, scope):
         scope.push(node)
-        self.mark_styles(node, scope)
+        self.mark_styles(node, scope, node.code)
         self.mark_text_if_needed(node, scope)
         self.generic_visit(node, scope)
         scope.pop(node)
@@ -408,9 +449,18 @@ class Annotation(NodeVisitor):
     def visit_InlineHtml(self, node, scope):
         scope.push(node)
         self.mark_text_if_needed(node, scope)
+        self.mark_anchor(node, scope)
         scope.pop(node)
 
-    def mark_inline_anchors(self, node):
+    @staticmethod
+    def open_anchor_run(scope):
+        """A block where hand-written anchors pair up: an opening tag and
+        its closing one sit in the same paragraph, heading, cell or item,
+        whatever marks or images stand between them."""
+        scope.set("anchors", [])
+
+    @staticmethod
+    def mark_anchor(node, scope):
         """Say which hand-written tags open and close an anchor, and hand
         the closing one the URL its opening tag carried.
 
@@ -418,30 +468,59 @@ class Annotation(NodeVisitor):
         would lose its URL where a Markdown link keeps it — silently,
         in the half meant to stay readable everywhere; the fragment
         rebuilds the anchor from its URL alone. Pairing an opening tag
-        with its closing one is a matter between siblings, so it belongs
+        with its closing one is a matter of document order, so it belongs
         here rather than in a codegen.
         """
-        pending = []
-        for child in node.children:
-            if not isinstance(child, InlineHtml):
+        pending = scope.get("anchors")
+        if pending is None:
+            return
+        value = node.value.strip()
+        opening = ANCHOR_HREF.match(value)
+        if opening:
+            # what runs something is no link, hand-written or not: its
+            # closing tag is still its own, never an outer anchor's
+            href = None if runs_something(opening.group(1)) else opening.group(1)
+            # an anchor inside another is no tag a page can hold: its
+            # address is still said where words carry it
+            nested = any(outer is not None for outer, _ in pending)
+            if href is not None:
+                node.annotations["anchor_opens"] = href
+                node.annotations["anchor_nested"] = nested
+            pending.append((href, nested))
+        elif value.lower() == "</a>" and pending:
+            href, nested = pending.pop()
+            if href is not None:
+                node.annotations["anchor_href"] = href
+                node.annotations["anchor_nested"] = nested
+
+    @staticmethod
+    def mark_the_asks(node):
+        """Say which bold link is the ask — where no button exists: alone on
+        its line, blanks aside. Which line a node is on is a matter between
+        siblings, so it belongs here rather than in a codegen."""
+        line = []
+        for child in [*node.children, LineBreak()]:
+            if not isinstance(child, (SoftBreak, LineBreak)):
+                line.append(child)
                 continue
-            value = child.value.strip()
-            opening = ANCHOR_HREF.match(value)
-            if opening:
-                child.annotations["anchor_opens"] = opening.group(1)
-                pending.append(opening.group(1))
-            elif value.lower() == "</a>" and pending:
-                child.annotations["anchor_href"] = pending.pop()
+            alone = Annotation.alone(line)
+            # through the marks that wrap it alone: `*__[Réserver](…)__*`
+            while isinstance(alone, (Emphasis, StrikeThrough)):
+                alone = Annotation.alone(alone.children)
+            if isinstance(alone, Strong) and alone.ask is not None:
+                alone.annotations["ask"] = True
+            line = []
+
+    @staticmethod
+    def alone(nodes):
+        """The one node of a run, blanks aside, or None."""
+        inner = [node for node in nodes if not node.is_blank()]
+        return inner[0] if len(inner) == 1 else None
 
     def mark_raw_if_needed(self, node, scope):
-        # Outside of any raw-HTML context (mj-text content, table, list item),
-        # raw content must be wrapped in mj-raw to be valid MJML.
-        node.annotations["requires_raw"] = not (
-            scope.get("in_text", False)
-            or scope.get("is_in_table_cell", False)
-            or scope.get("is_in_list_item", False)
-            or scope.get("is_in_button", False)
-        )
+        # Outside raw HTML, raw content must be wrapped in mj-raw to be
+        # valid MJML.
+        node.annotations["requires_raw"] = not self.in_raw_html(scope)
 
     def visit_BlockHtml(self, node, scope):
         scope.push(node)
@@ -457,11 +536,13 @@ class Annotation(NodeVisitor):
         scope.pop(node)
 
     def visit_LineBreak(self, node, scope):
-        scope.push(node)
-        self.mark_text_if_needed(node, scope)
-        scope.pop(node)
+        self.break_(node, scope)
 
     def visit_SoftBreak(self, node, scope):
+        self.break_(node, scope)
+
+    def break_(self, node, scope):
         scope.push(node)
-        self.mark_text_if_needed(node, scope)
+        if not node.annotations.get("between_blocks"):
+            self.mark_text_if_needed(node, scope)
         scope.pop(node)

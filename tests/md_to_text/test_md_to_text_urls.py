@@ -71,3 +71,19 @@ def test_other_inline_tags_still_vanish():
     actual = parse_markdown_to_text("Du <span>texte</span> et du <b>gras</b>.")
     print(actual)
     assert actual == "Du texte et du gras.\n"
+
+
+def test_a_hand_written_anchor_that_runs_something_says_no_address():
+    actual = parse_markdown_to_text('Voir <a href="javascript:alert(1)">ici</a>.')
+    assert actual == "Voir ici.\n"
+
+
+def test_a_hand_written_anchor_keeps_its_address_inside_a_mark_a_cell_or_around_an_image():
+    assert parse_markdown_to_text('**<a href="https://b.com">y</a>**') == "y <https://b.com>\n"
+    assert parse_markdown_to_text('| <a href="https://x.com">y</a> |\n|---|').startswith(
+        "y <https://x.com>\n"
+    )
+    assert (
+        parse_markdown_to_text('<a href="https://x.com">![x](https://i.com/x.png)</a>')
+        == "x <https://x.com>\n"
+    )

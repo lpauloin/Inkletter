@@ -20,6 +20,7 @@ import {
   type InlineHtml,
   type Link,
   type List,
+  type ListItem,
   type LiteralText,
   type MailLink,
   type MediaObject,
@@ -31,10 +32,10 @@ import {
   type TableCell,
   type TelLink,
   type BlockCode,
-  TaskListItem,
+  type TaskListItem,
   type UrlLink,
 } from '../ast.js';
-import { CodeBlock, CodeBlockResolver, Newline, TextElement } from '../codeblock.js';
+import { CodeBlock, CodeBlockResolver, type CodeElement, Newline, TextElement } from '../codeblock.js';
 import { isSpelledBy } from '../plugins/bare_domains.js';
 import { center, codePoints, ljust, rjust, rstrip, splitLines, strip } from '../stdlib.js';
 import { NodeVisitor } from './generic.js';
@@ -69,15 +70,19 @@ export class TextCodegen extends NodeVisitor {
   }
 
   /** End the current line if the last element left it open. */
-  closeLine(): void {
+  /** Whether the last element left the current line open. */
+  lineOpen(): boolean {
     for (let at = this.current.elements.length - 1; at >= 0; at -= 1) {
       const element = this.current.elements[at];
-      if (element instanceof Newline || element instanceof CodeBlock) return; // nested blocks are always attached closed
-      if (element instanceof TextElement) {
-        this.current.addNewline();
-        return;
-      }
+      if (element instanceof Newline || element instanceof CodeBlock) return false; // nested blocks are always attached closed
+      if (element instanceof TextElement) return true;
     }
+    return false;
+  }
+
+  /** End the current line if the last element left it open. */
+  closeLine(): void {
+    if (this.lineOpen()) this.current.addNewline();
   }
 
   /** The node's output as its own CodeBlock, line closed. */
@@ -89,12 +94,36 @@ export class TextCodegen extends NodeVisitor {
   }
 
   /** Emit the visible blocks separated by one blank line. */
-  emitBlocks(nodes: Node[], scope: ScopeStack): void {
-    const visible = nodes.map((node) => this.renderBlock(node, scope)).filter((block) => block.elements.length);
-    visible.forEach((block, index) => {
-      if (index) this.line();
+  emitBlocks(nodes: Node[], scope: ScopeStack): boolean {
+    let written = false;
+    for (const node of nodes) {
+      if (!written && this.lineOpen()) {
+        // the first block continues a line already open — an item's marker,
+        // a quote's — and writes what it opens with there
+        if (this.wrote(node, scope)) {
+          this.closeLine();
+          written = true;
+        }
+        continue;
+      }
+      const block = this.renderBlock(node, scope);
+      if (!showsText(block.elements)) continue;
+      if (written) this.line();
       this.current.addCodeblock(block);
-    });
+      written = true;
+    }
+    return written;
+  }
+
+  /** Visit a node where the writing stands; whether it wrote words. What a
+   *  visit that wrote none left — a break, an indent, a quote's mark — is
+   *  taken back, the line kept for what comes next. */
+  wrote(node: Node, scope: ScopeStack): boolean {
+    const before = this.current.elements.length;
+    this.visit(node, scope);
+    if (showsText(this.current.elements.slice(before))) return true;
+    this.current.elements.splice(before);
+    return false;
   }
 
   /** Divert what `fill` writes into a fresh CodeBlock, then restore. */
@@ -123,11 +152,12 @@ export class TextCodegen extends NodeVisitor {
 
   visit_Paragraph(node: Paragraph, scope: ScopeStack): void {
     this.genericVisit(node, scope);
+    this.closeLine();
   }
 
   visit_BlockText(node: BlockText, scope: ScopeStack): void {
+    // a run of a line: whoever holds it ends the line
     this.genericVisit(node, scope);
-    this.line();
   }
 
   visit_Heading(node: Heading, scope: ScopeStack): void {
@@ -143,10 +173,15 @@ export class TextCodegen extends NodeVisitor {
   }
 
   visit_BlockQuote(node: BlockQuote, scope: ScopeStack): void {
-    // the marker is a prefix on every line of the quote, blank ones included
+    // the marker is a prefix on every line of the quote, blank ones included;
+    // on a line already open (an item's marker), it is written there
+    const before = this.current.elements.length;
+    if (this.lineOpen()) this.write('> ');
     this.current.addIndent('> ');
-    this.emitBlocks(node.children, scope);
+    const written = this.emitBlocks(node.children, scope);
     this.current.addDedent();
+    // a quote of nothing leaves no mark
+    if (!written) this.current.elements.splice(before);
   }
 
   visit_BlockCode(node: BlockCode): void {
@@ -195,6 +230,9 @@ export class TextCodegen extends NodeVisitor {
   }
 
   visit_UrlLink(node: UrlLink, scope: ScopeStack): void {
+    // The label beside the address unless it spells it: compared once a
+    // factory has rewritten the address, so a shortened link still says, in
+    // words, where it leads.
     const label = this.resolveInline(node.children, scope);
     if (!label || isSpelledBy(node.href, label)) this.write(node.href);
     else this.write(`${label} <${node.href}>`);
@@ -211,9 +249,8 @@ export class TextCodegen extends NodeVisitor {
   named(node: Link, target: string, scope: ScopeStack): void {
     // the address or the number alone when the label is it, rather than
     // twice, once with its scheme
-    const label = this.resolveInline(node.children, scope);
-    if (!label || label === target || label === node.href) this.write(target);
-    else this.write(`${label} <${node.href}>`);
+    if (node.annotations.label_is_address) this.write(target);
+    else this.write(`${this.resolveInline(node.children, scope)} <${node.href}>`);
   }
 
   visit_LineBreak(): void {
@@ -227,21 +264,28 @@ export class TextCodegen extends NodeVisitor {
   // --- Images and layout conventions ---
 
   visit_Image(node: Image): void {
-    if (node.altText) this.line(node.altText);
+    if (node.saysSomething) this.write(node.altText);
   }
 
   visit_ImageLink(node: ImageLink): void {
-    const alt = node.img.altText;
-    this.line(alt ? `${alt} <${node.href}>` : node.href);
+    this.write(node.saysSomething ? `${node.img.altText} <${node.href}>` : node.href);
   }
 
   visit_ImageRow(node: ImageRow, scope: ScopeStack): void {
-    for (const image of node.children) this.visit(image, scope);
+    // one line per image
+    for (const image of node.children) {
+      this.visit(image, scope);
+      this.closeLine();
+    }
   }
 
   visit_MediaObject(node: MediaObject, scope: ScopeStack): void {
     this.visit(node.image, scope);
-    if (this.current.elements.length) this.line(); // blank line only below a visible alt
+    if (this.current.elements.length) {
+      // blank line only below a visible alt
+      this.closeLine();
+      this.line();
+    }
     this.emitBlocks(node.children, scope);
   }
 
@@ -253,21 +297,37 @@ export class TextCodegen extends NodeVisitor {
 
   // --- Lists ---
 
+  /** The blank lines written before an item: in a text, none — a list
+   *  reads as one block, loose or tight. */
+  blankLinesBefore(_node: List, _index: number): number {
+    return 0;
+  }
+
   visit_List(node: List, scope: ScopeStack): void {
-    let number = node.ordered && node.start ? node.start : 1;
-    for (const item of node.elements) {
-      let marker: string;
-      if (item instanceof TaskListItem) marker = item.checked ? '[x] ' : '[ ] ';
-      else if (node.ordered) {
-        marker = `${number}. `;
-        number += 1;
-      } else marker = this.bullet;
-      this.write(marker);
-      this.current.addIndent();
-      for (const child of item.children) this.visit(child, scope);
-      this.closeLine();
-      this.current.addDedent();
-    }
+    node.elements.forEach((item, index) => {
+      for (let blank = this.blankLinesBefore(node, index); blank > 0; blank -= 1) this.line();
+      this.visit(item, scope);
+    });
+  }
+
+  visit_ListItem(node: ListItem, scope: ScopeStack): void {
+    const number = node.annotations.number;
+    this.item(node, typeof number === 'number' ? `${number}. ` : this.bullet, scope);
+  }
+
+  visit_TaskListItem(node: TaskListItem, scope: ScopeStack): void {
+    this.item(node, node.checked ? '[x] ' : '[ ] ', scope);
+  }
+
+  /** An item on its marker, what it holds indented under it. */
+  item(node: ListItem | TaskListItem, marker: string, scope: ScopeStack): void {
+    this.write(marker);
+    this.current.addIndent();
+    // a block that writes nothing leaves the line to the next one
+    for (const child of node.children) if (this.wrote(child, scope)) this.closeLine();
+    // an empty item still ends on its marker's line
+    this.closeLine();
+    this.current.addDedent();
   }
 
   // --- Tables ---
@@ -285,17 +345,19 @@ export class TextCodegen extends NodeVisitor {
     if (!grid.length) return;
     const columns = Math.max(...grid.map((line) => line.length));
     const widths = Array.from({ length: columns }, (_, at) => Math.max(...grid.map((line) => codePoints(line[at] ?? ''))));
-    const emitRow = (line: string[]) => {
-      const padded = widths.map((width, at) => pad(line[at] ?? '', width, aligns[at] ?? null));
-      this.line(rstrip(padded.join(' | ')));
-    };
     let body = grid;
     if (header.length && grid[0]) {
-      emitRow(grid[0]);
+      this.row(grid[0], widths, aligns);
       this.line(widths.map((width) => '-'.repeat(width)).join('-+-'));
       body = grid.slice(1);
     }
-    for (const line of body) emitRow(line);
+    for (const line of body) this.row(line, widths, aligns);
+  }
+
+  /** One line of a table, each cell padded to its column. */
+  row(line: string[], widths: number[], aligns: (string | null)[]): void {
+    const padded = widths.map((width, at) => pad(line[at] ?? '', width, aligns[at] ?? null));
+    this.line(rstrip(padded.join(' | ')));
   }
 }
 
@@ -303,4 +365,13 @@ function pad(value: string, width: number, align: string | null): string {
   if (align === 'right') return rjust(value, width);
   if (align === 'center') return center(value, width);
   return ljust(value, width);
+}
+
+/** Whether elements hold words a reader sees, nested blocks included. */
+export function showsText(elements: readonly CodeElement[]): boolean {
+  return elements.some(
+    (element) =>
+      (element instanceof TextElement && Boolean(strip(element.text))) ||
+      (element instanceof CodeBlock && showsText(element.elements)),
+  );
 }

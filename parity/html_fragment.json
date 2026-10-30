@@ -1,10 +1,10 @@
 {
- "inkletter": "4.1.0",
+ "inkletter": "4.2.0",
  "cases": [
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_all.py::test_full_document_covers_every_markdown_element",
    "source": "# The Inkletter Times\n\nA paragraph with *emphasis*, **strong**, ~~strikethrough~~, `code span`,\na soft break and a hard break\\\nright here.\n\nSpecial: an entity AT&amp;T, a copyright &copy;, an escaped \\*star\\*,\nan <span>inline html tag</span> and an autolink <https://example.com>.\n\nSetext heading\n--------------\n\nVisit [our site](https://example.com), a titled [guide](https://example.com/guide \"The guide\"),\nor the bare link [https://example.com](https://example.com).\n\n### Level three\n\n#### Level four\n\n##### Level five\n\n###### Level six\n\n---\n\n> A quote on two\n> lines.\n>\n> > A nested quote.\n>\n> - a list in a quote\n> - with two items\n\n```python\ndef hello(name):\n    print(\"hi\", name)\n\nhello(\"world\")\n```\n\n    an indented code block\n\n1. first ordered item\n2. second one,\n   soft-wrapped\n7. renumbered anyway\n\n- unordered item\n  - nested item\n- [x] a done task\n- [ ] a pending task\n- a **[bold link in a list](https://example.com/list)** stays a link\n\n| Left | Center | Right |\n|:-----|:------:|------:|\n| ab | cd | ef |\n| a **bold** cell | x | 12345 |\n\n![First view](https://x.com/a.png) ![Second view](https://x.com/b.png) [![Logo](https://x.com/l.png)](https://example.com)\n\n![Portrait](https://x.com/team.png) Jane joined the team this week.\nShe will own the rendering platform.\n\n![](https://x.com/decorative.png)\n\n<div>a raw html block</div>\n\n**[Read the full story](https://example.com/story)**\n",
-   "expected": "<h1>The Inkletter Times</h1><p>A paragraph with <em>emphasis</em>, <strong>strong</strong>, <s>strikethrough</s>, <code>code span</code>,<br>a soft break and a hard break<br>right here.</p><p>Special: an entity AT&amp;T, a copyright ©, an escaped *star*,<br>an inline html tag and an autolink <a href=\"https://example.com\">https://example.com</a>.</p><h2>Setext heading</h2><p>Visit <a href=\"https://example.com\">our site</a>, a titled <a href=\"https://example.com/guide\">guide</a>,<br>or the bare link <a href=\"https://example.com\">https://example.com</a>.</p><h3>Level three</h3><h4>Level four</h4><h5>Level five</h5><h6>Level six</h6><hr><blockquote><p>A quote on two<br>lines.</p><blockquote><p>A nested quote.</p></blockquote><ul><li>a list in a quote</li><li>with two items</li></ul></blockquote><pre><code>def hello(name):\n    print(\"hi\", name)\n\nhello(\"world\")\n</code></pre><pre><code>an indented code block</code></pre><ol><li>first ordered item</li><li>second one,<br>soft-wrapped</li><li>renumbered anyway</li></ol><ul><li>unordered item<ul><li>nested item</li></ul></li><li>☑ a done task</li><li>☐ a pending task</li><li>a <strong><a href=\"https://example.com/list\">bold link in a list</a></strong> stays a link</li></ul><table><thead><tr><th style=\"text-align: left\">Left</th><th style=\"text-align: center\">Center</th><th style=\"text-align: right\">Right</th></tr></thead><tbody><tr><td style=\"text-align: left\">ab</td><td style=\"text-align: center\">cd</td><td style=\"text-align: right\">ef</td></tr><tr><td style=\"text-align: left\">a <strong>bold</strong> cell</td><td style=\"text-align: center\">x</td><td style=\"text-align: right\">12345</td></tr></tbody></table><p>First view<br>Second view<br>Logo</p><p>Portrait</p><p>Jane joined the team this week.<br>She will own the rendering platform.</p><p><a href=\"https://example.com/story\"><strong>Read the full story</strong></a></p>"
+   "expected": "<h1>The Inkletter Times</h1><p>A paragraph with <em>emphasis</em>, <strong>strong</strong>, <s>strikethrough</s>, <code>code span</code>,<br>a soft break and a hard break<br>right here.</p><p>Special: an entity AT&amp;T, a copyright ©, an escaped *star*,<br>an inline html tag and an autolink <a href=\"https://example.com\">https://example.com</a>.</p><h2>Setext heading</h2><p>Visit <a href=\"https://example.com\">our site</a>, a titled <a href=\"https://example.com/guide\">guide</a>,<br>or the bare link <a href=\"https://example.com\">https://example.com</a>.</p><h3>Level three</h3><h4>Level four</h4><h5>Level five</h5><h6>Level six</h6><hr><blockquote><p>A quote on two<br>lines.</p><blockquote><p>A nested quote.</p></blockquote><ul><li>a list in a quote</li><li>with two items</li></ul></blockquote><pre><code>def hello(name):\n    print(\"hi\", name)\n\nhello(\"world\")</code></pre><pre><code>an indented code block</code></pre><ol><li>first ordered item</li><li>second one,<br>soft-wrapped</li><li>renumbered anyway</li></ol><ul><li>unordered item<ul><li>nested item</li></ul></li><li style=\"list-style-type: none\">☑ a done task</li><li style=\"list-style-type: none\">☐ a pending task</li><li>a <strong><a href=\"https://example.com/list\">bold link in a list</a></strong> stays a link</li></ul><table><thead><tr><th style=\"text-align: left\">Left</th><th style=\"text-align: center\">Center</th><th style=\"text-align: right\">Right</th></tr></thead><tbody><tr><td style=\"text-align: left\">ab</td><td style=\"text-align: center\">cd</td><td style=\"text-align: right\">ef</td></tr><tr><td style=\"text-align: left\">a <strong>bold</strong> cell</td><td style=\"text-align: center\">x</td><td style=\"text-align: right\">12345</td></tr></tbody></table><p>First view<br>Second view<br><a href=\"https://example.com\">Logo</a></p><p>Portrait</p><p>Jane joined the team this week.<br>She will own the rendering platform.</p><p><a href=\"https://example.com/story\"><strong>Read the full story</strong></a></p>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_block.py::test_paragraph",
@@ -39,7 +39,7 @@
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_block.py::test_block_code_is_preformatted_and_escaped",
    "source": "```\nprint(\"x\" < 2)\n    indented\n```",
-   "expected": "<pre><code>print(\"x\" &lt; 2)\n    indented\n</code></pre>"
+   "expected": "<pre><code>print(\"x\" &lt; 2)\n    indented</code></pre>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_block.py::test_thematic_break",
@@ -197,9 +197,14 @@
    "expected": "<p>before</p><p>after</p>"
   },
   {
-   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_linked_image_is_its_alt",
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_linked_image_is_its_alt_as_the_link_it_was",
    "source": "[![Logo](https://x.com/l.png)](https://example.com)",
-   "expected": "<p>Logo</p>"
+   "expected": "<p><a href=\"https://example.com\">Logo</a></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_linked_image_without_alt_leaves_nothing",
+   "source": "[![](https://x.com/l.png)](https://example.com)",
+   "expected": ""
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_image_title_is_ignored",
@@ -209,7 +214,7 @@
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_an_image_never_fetches_whatever_its_address",
    "source": "![x](https://evil.test/track.png) ![y](javascript:alert(1)) <img src=\"x\" onerror=\"alert(1)\">",
-   "expected": "<p>x y </p>"
+   "expected": "<p>x</p><p>y </p>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_emphasis_strong_and_strikethrough",
@@ -343,6 +348,21 @@
    "expected": "<p><a href=\"java%73cript:alert(1)\">click</a></p>"
   },
   {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_a_scheme_that_locates_something_is_a_link",
+   "source": "[écrire](sms:+33600000000)",
+   "expected": "<p><a href=\"sms:+33600000000\">écrire</a></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_a_hand_written_anchor_that_runs_something_is_its_words[javascript:alert(1)]",
+   "source": "Voir <a href=\"javascript:alert(1)\">ici</a> <a href=\"/b\">là</a>.",
+   "expected": "<p>Voir ici <a href=\"/b\">là</a>.</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_a_hand_written_anchor_that_runs_something_is_its_words[data:text/html,x]",
+   "source": "Voir <a href=\"data:text/html,x\">ici</a> <a href=\"/b\">là</a>.",
+   "expected": "<p>Voir ici <a href=\"/b\">là</a>.</p>"
+  },
+  {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_an_autolink_to_a_scheme_that_runs_something_is_text[javascript:alert(1)]",
    "source": "<javascript:alert(1)>",
    "expected": "<p>javascript:alert(1)</p>"
@@ -413,6 +433,46 @@
    "expected": "<p><a href=\"https://exemple.fr\">&lt;b&gt;bold&lt;/b&gt;</a></p>"
   },
   {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_a_hand_written_anchor_is_rebuilt_inside_a_mark_or_a_cell",
+   "source": "**<a href=\"https://b.com\">y</a>**",
+   "expected": "<p><strong><a href=\"https://b.com\">y</a></strong></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_a_hand_written_anchor_is_rebuilt_inside_a_mark_or_a_cell",
+   "source": "| <a href=\"https://x.com\">y</a> |\n|---|",
+   "expected": "<table><thead><tr><th><a href=\"https://x.com\">y</a></th></tr></thead><tbody></tbody></table>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_an_anchor_inside_another_is_its_words",
+   "source": "<a href=\"https://a.com\">x <a href=\"https://b.com\">y</a> z</a>",
+   "expected": "<p><a href=\"https://a.com\">x y z</a></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_an_image_on_its_own_line_keeps_the_breaks_around_it",
+   "source": "a\n![al](https://i.com/a.png)\nb",
+   "expected": "<p>a<br>al<br>b</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_a_hand_written_anchor_running_something_is_refused_as_a_browser_reads_it[",
+   "source": "<a href=\" javascript:alert(1)\">x</a> <a href=\"/b\">y</a>",
+   "expected": "<p>x <a href=\"/b\">y</a></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_a_hand_written_anchor_running_something_is_refused_as_a_browser_reads_it[java\\tscript:alert(1)]",
+   "source": "<a href=\"java\tscript:alert(1)\">x</a> <a href=\"/b\">y</a>",
+   "expected": "<p>x <a href=\"/b\">y</a></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_a_hand_written_anchor_running_something_is_refused_as_a_browser_reads_it[\\njavascript:alert(1)]",
+   "source": "<a href=\"\njavascript:alert(1)\">x</a> <a href=\"/b\">y</a>",
+   "expected": "<p>x <a href=\"/b\">y</a></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_a_hand_written_anchor_running_something_is_refused_as_a_browser_reads_it[JAVA\\rSCRIPT:x]",
+   "source": "<a href=\"JAVA\rSCRIPT:x\">x</a> <a href=\"/b\">y</a>",
+   "expected": "<p>x <a href=\"/b\">y</a></p>"
+  },
+  {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_layout.py::test_a_button_is_a_bold_link",
    "source": "**[Get started](https://example.com/go)**",
    "expected": "<p><a href=\"https://example.com/go\"><strong>Get started</strong></a></p>"
@@ -426,7 +486,7 @@
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_layout.py::test_a_button_to_another_scheme_is_its_label",
    "source": "**[Get started](javascript:go())**",
-   "expected": "<p>Get started</p>"
+   "expected": "<p><strong>Get started</strong></p>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_layout.py::test_image_row_is_its_alts",
@@ -461,12 +521,12 @@
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_list.py::test_task_list_uses_checkboxes",
    "source": "- [x] done\n- [ ] to do",
-   "expected": "<ul><li>☑ done</li><li>☐ to do</li></ul>"
+   "expected": "<ul><li style=\"list-style-type: none\">☑ done</li><li style=\"list-style-type: none\">☐ to do</li></ul>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_list.py::test_mixed_task_and_normal_list",
    "source": "- [x] done\n- normal",
-   "expected": "<ul><li>☑ done</li><li>normal</li></ul>"
+   "expected": "<ul><li style=\"list-style-type: none\">☑ done</li><li>normal</li></ul>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_list.py::test_a_loose_list_keeps_its_paragraphs",
@@ -486,7 +546,7 @@
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_list.py::test_code_inside_a_list",
    "source": "- item\n\n  ```\n  <b>x</b>\n  ```",
-   "expected": "<ul><li><p>item</p><pre><code>&lt;b&gt;x&lt;/b&gt;\n</code></pre></li></ul>"
+   "expected": "<ul><li><p>item</p><pre><code>&lt;b&gt;x&lt;/b&gt;</code></pre></li></ul>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_list.py::test_a_deeply_nested_list",
@@ -506,7 +566,7 @@
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_list.py::test_a_line_typed_after_an_item_is_a_block_of_its_own[-",
    "source": "- [ ] Étapes\nAprès",
-   "expected": "<ul><li>☐ Étapes</li></ul><p>Après</p>"
+   "expected": "<ul><li style=\"list-style-type: none\">☐ Étapes</li></ul><p>Après</p>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_list.py::test_a_list_between_two_lines",
@@ -527,6 +587,11 @@
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_list.py::test_a_block_after_a_blank_line_ends_the_list",
    "source": "1. un\n2. deux\n\n> Une citation",
    "expected": "<ol><li>un</li><li>deux</li></ol><blockquote><p>Une citation</p></blockquote>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_list.py::test_a_box_in_a_numbered_list_stands_for_its_number",
+   "source": "3. [ ] a\n4. b",
+   "expected": "<ol start=\"3\"><li style=\"list-style-type: none\">☐ a</li><li>b</li></ol>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_styles.py::test_styles_combine_whatever_is_outside[order0-*]",
@@ -856,7 +921,7 @@
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_styles.py::test_styles_in_a_task_list",
    "source": "- [x] **done**\n- [ ] *to do*",
-   "expected": "<ul><li>☑ <strong>done</strong></li><li>☐ <em>to do</em></li></ul>"
+   "expected": "<ul><li style=\"list-style-type: none\">☑ <strong>done</strong></li><li style=\"list-style-type: none\">☐ <em>to do</em></li></ul>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_styles.py::test_styles_in_a_quote",
@@ -876,7 +941,7 @@
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_styles.py::test_no_style_reaches_a_code_block",
    "source": "```\n**not bold** *nor italic*\n```",
-   "expected": "<pre><code>**not bold** *nor italic*\n</code></pre>"
+   "expected": "<pre><code>**not bold** *nor italic*</code></pre>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_styles.py::test_a_mark_that_never_closes_leaves_balanced_tags[**not",
@@ -1019,6 +1084,16 @@
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_urls.py::test_other_inline_tags_still_vanish",
    "source": "Du <span>texte</span> et du <b>gras</b>.",
    "expected": "<p>Du texte et du gras.</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_urls.py::test_a_bare_address_is_read_before_the_marks_inside_it",
+   "source": "Voir https://exemple.fr/*etoiles* merci",
+   "expected": "<p>Voir <a href=\"https://exemple.fr/*etoiles\">https://exemple.fr/*etoiles</a>* merci</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_urls.py::test_a_bare_address_inside_a_link_label_is_its_text",
+   "source": "[voir https://a.fr ici](https://b.fr)",
+   "expected": "<p><a href=\"https://b.fr\">voir https://a.fr ici</a></p>"
   },
   {
    "name": "tests/test_package_api.py::test_the_html_fragment_output_is_public",
@@ -1171,13 +1246,13 @@
   {
    "name": "task list",
    "source": "- [x] fait\n- [ ] à faire",
-   "expected": "<ul><li>☑ fait</li><li>☐ à faire</li></ul>"
+   "expected": "<ul><li style=\"list-style-type: none\">☑ fait</li><li style=\"list-style-type: none\">☐ à faire</li></ul>"
   },
   {
    "name": "task list (marking)",
    "source": "- [x] fait\n- [ ] à faire",
    "factory": "marking",
-   "expected": "<ul><li>☑ fait</li><li>☐ à faire</li></ul>"
+   "expected": "<ul><li style=\"list-style-type: none\">☑ fait</li><li style=\"list-style-type: none\">☐ à faire</li></ul>"
   },
   {
    "name": "table",
@@ -1292,24 +1367,24 @@
   {
    "name": "fenced code block",
    "source": "```python\nprint(1)\n```",
-   "expected": "<pre><code>print(1)\n</code></pre>"
+   "expected": "<pre><code>print(1)</code></pre>"
   },
   {
    "name": "fenced code block (marking)",
    "source": "```python\nprint(1)\n```",
    "factory": "marking",
-   "expected": "<pre><code>print(1)\n</code></pre>"
+   "expected": "<pre><code>print(1)</code></pre>"
   },
   {
    "name": "code block with a blank line",
    "source": "```\na\n\nb\n```",
-   "expected": "<pre><code>a\n\nb\n</code></pre>"
+   "expected": "<pre><code>a\n\nb</code></pre>"
   },
   {
    "name": "code block with a blank line (marking)",
    "source": "```\na\n\nb\n```",
    "factory": "marking",
-   "expected": "<pre><code>a\n\nb\n</code></pre>"
+   "expected": "<pre><code>a\n\nb</code></pre>"
   },
   {
    "name": "indented code block",
@@ -1826,13 +1901,13 @@
   {
    "name": "clickable image",
    "source": "[![Bannière](https://exemple.fr/b.png)](https://exemple.fr/offre)",
-   "expected": "<p>Bannière</p>"
+   "expected": "<p><a href=\"https://exemple.fr/offre\">Bannière</a></p>"
   },
   {
    "name": "clickable image (marking)",
    "source": "[![Bannière](https://exemple.fr/b.png)](https://exemple.fr/offre)",
    "factory": "marking",
-   "expected": "<p>Bannière</p>"
+   "expected": "<p><a href=\"https://exemple.fr/offre#link\">Bannière</a></p>"
   },
   {
    "name": "image beside text",
@@ -2525,13 +2600,13 @@
   {
    "name": "list item with a code block",
    "source": "- une\n\n  ```\n  code\n  ```\n- deux",
-   "expected": "<ul><li><p>une</p><pre><code>code\n</code></pre></li><li><p>deux</p></li></ul>"
+   "expected": "<ul><li><p>une</p><pre><code>code</code></pre></li><li><p>deux</p></li></ul>"
   },
   {
    "name": "list item with a code block (marking)",
    "source": "- une\n\n  ```\n  code\n  ```\n- deux",
    "factory": "marking",
-   "expected": "<ul><li><p>une</p><pre><code>code\n</code></pre></li><li><p>deux</p></li></ul>"
+   "expected": "<ul><li><p>une</p><pre><code>code</code></pre></li><li><p>deux</p></li></ul>"
   },
   {
    "name": "list item with a quote",
@@ -2613,13 +2688,13 @@
   {
    "name": "quote with a code block",
    "source": "> ```\n> code\n> ```",
-   "expected": "<blockquote><pre><code>code\n</code></pre></blockquote>"
+   "expected": "<blockquote><pre><code>code</code></pre></blockquote>"
   },
   {
    "name": "quote with a code block (marking)",
    "source": "> ```\n> code\n> ```",
    "factory": "marking",
-   "expected": "<blockquote><pre><code>code\n</code></pre></blockquote>"
+   "expected": "<blockquote><pre><code>code</code></pre></blockquote>"
   },
   {
    "name": "table with escaped pipe",
@@ -3163,13 +3238,13 @@
   {
    "name": "checklist nested under a bullet",
    "source": "- un\n    - [ ] à faire\n    - [x] fait",
-   "expected": "<ul><li>un<ul><li>☐ à faire</li><li>☑ fait</li></ul></li></ul>"
+   "expected": "<ul><li>un<ul><li style=\"list-style-type: none\">☐ à faire</li><li style=\"list-style-type: none\">☑ fait</li></ul></li></ul>"
   },
   {
    "name": "checklist nested under a bullet (marking)",
    "source": "- un\n    - [ ] à faire\n    - [x] fait",
    "factory": "marking",
-   "expected": "<ul><li>un<ul><li>☐ à faire</li><li>☑ fait</li></ul></li></ul>"
+   "expected": "<ul><li>un<ul><li style=\"list-style-type: none\">☐ à faire</li><li style=\"list-style-type: none\">☑ fait</li></ul></li></ul>"
   },
   {
    "name": "nested list coming back out",
@@ -3218,24 +3293,24 @@
   {
    "name": "stress: checklist, every item bold (styled)",
    "source": "- [ ] **un**\n- [ ] **deux**\n- [ ] **trois**",
-   "expected": "<ul><li>☐ <strong>un</strong></li><li>☐ <strong>deux</strong></li><li>☐ <strong>trois</strong></li></ul>"
+   "expected": "<ul><li style=\"list-style-type: none\">☐ <strong>un</strong></li><li style=\"list-style-type: none\">☐ <strong>deux</strong></li><li style=\"list-style-type: none\">☐ <strong>trois</strong></li></ul>"
   },
   {
    "name": "stress: checklist, every item bold (styled) (marking)",
    "source": "- [ ] **un**\n- [ ] **deux**\n- [ ] **trois**",
    "factory": "marking",
-   "expected": "<ul><li>☐ <strong>un</strong></li><li>☐ <strong>deux</strong></li><li>☐ <strong>trois</strong></li></ul>"
+   "expected": "<ul><li style=\"list-style-type: none\">☐ <strong>un</strong></li><li style=\"list-style-type: none\">☐ <strong>deux</strong></li><li style=\"list-style-type: none\">☐ <strong>trois</strong></li></ul>"
   },
   {
    "name": "stress: checked item in italics (styled)",
    "source": "- [x] *faire*",
-   "expected": "<ul><li>☑ <em>faire</em></li></ul>"
+   "expected": "<ul><li style=\"list-style-type: none\">☑ <em>faire</em></li></ul>"
   },
   {
    "name": "stress: checked item in italics (styled) (marking)",
    "source": "- [x] *faire*",
    "factory": "marking",
-   "expected": "<ul><li>☑ <em>faire</em></li></ul>"
+   "expected": "<ul><li style=\"list-style-type: none\">☑ <em>faire</em></li></ul>"
   },
   {
    "name": "stress: item split after bold, renumbered (styled)",
@@ -5464,7 +5539,7 @@
    "name": "list ends at a line without a marker: task (marking)",
    "source": "- [ ] Étapes\nAprès",
    "factory": "marking",
-   "expected": "<ul><li>☐ Étapes</li></ul><p>Après</p>"
+   "expected": "<ul><li style=\"list-style-type: none\">☐ Étapes</li></ul><p>Après</p>"
   },
   {
    "name": "list ends at a line without a marker: bullet, short",
@@ -5491,13 +5566,13 @@
   {
    "name": "list ends at a line without a marker: task, short",
    "source": "- [ ] Un\nDeux",
-   "expected": "<ul><li>☐ Un</li></ul><p>Deux</p>"
+   "expected": "<ul><li style=\"list-style-type: none\">☐ Un</li></ul><p>Deux</p>"
   },
   {
    "name": "list ends at a line without a marker: task, short (marking)",
    "source": "- [ ] Un\nDeux",
    "factory": "marking",
-   "expected": "<ul><li>☐ Un</li></ul><p>Deux</p>"
+   "expected": "<ul><li style=\"list-style-type: none\">☐ Un</li></ul><p>Deux</p>"
   },
   {
    "name": "lists of two kinds, line after line: bullet, numbered, bullet (marking)",
@@ -5508,13 +5583,13 @@
   {
    "name": "lists of two kinds, line after line: task, numbered, task",
    "source": "- [ ] Un\n1. Deux\n- [ ] Trois",
-   "expected": "<ul><li>☐ Un</li></ul><ol><li>Deux</li></ol><ul><li>☐ Trois</li></ul>"
+   "expected": "<ul><li style=\"list-style-type: none\">☐ Un</li></ul><ol><li>Deux</li></ol><ul><li style=\"list-style-type: none\">☐ Trois</li></ul>"
   },
   {
    "name": "lists of two kinds, line after line: task, numbered, task (marking)",
    "source": "- [ ] Un\n1. Deux\n- [ ] Trois",
    "factory": "marking",
-   "expected": "<ul><li>☐ Un</li></ul><ol><li>Deux</li></ol><ul><li>☐ Trois</li></ul>"
+   "expected": "<ul><li style=\"list-style-type: none\">☐ Un</li></ul><ol><li>Deux</li></ol><ul><li style=\"list-style-type: none\">☐ Trois</li></ul>"
   },
   {
    "name": "lists of two kinds, line after line: numbered, bullet, numbered",
@@ -5530,13 +5605,13 @@
   {
    "name": "lists of two kinds, line after line: numbered, task, numbered",
    "source": "1. Un\n- [ ] Deux\n1. Trois",
-   "expected": "<ol><li>Un</li></ol><ul><li>☐ Deux</li></ul><ol><li>Trois</li></ol>"
+   "expected": "<ol><li>Un</li></ol><ul><li style=\"list-style-type: none\">☐ Deux</li></ul><ol><li>Trois</li></ol>"
   },
   {
    "name": "lists of two kinds, line after line: numbered, task, numbered (marking)",
    "source": "1. Un\n- [ ] Deux\n1. Trois",
    "factory": "marking",
-   "expected": "<ol><li>Un</li></ol><ul><li>☐ Deux</li></ul><ol><li>Trois</li></ol>"
+   "expected": "<ol><li>Un</li></ol><ul><li style=\"list-style-type: none\">☐ Deux</li></ul><ol><li>Trois</li></ol>"
   },
   {
    "name": "list between two lines, none left: bullet (marking)",
@@ -5558,13 +5633,13 @@
   {
    "name": "list between two lines, none left: task",
    "source": "Voici :\n- [ ] Un point\nMerci.",
-   "expected": "<p>Voici :</p><ul><li>☐ Un point</li></ul><p>Merci.</p>"
+   "expected": "<p>Voici :</p><ul><li style=\"list-style-type: none\">☐ Un point</li></ul><p>Merci.</p>"
   },
   {
    "name": "list between two lines, none left: task (marking)",
    "source": "Voici :\n- [ ] Un point\nMerci.",
    "factory": "marking",
-   "expected": "<p>Voici :</p><ul><li>☐ Un point</li></ul><p>Merci.</p>"
+   "expected": "<p>Voici :</p><ul><li style=\"list-style-type: none\">☐ Un point</li></ul><p>Merci.</p>"
   },
   {
    "name": "list between two lines, one left on each side",
@@ -5706,6 +5781,270 @@
    "factory": "marking",
    "error": "MarkupError",
    "message": "'align=top' is not an alignment; use left, center, right"
+  },
+  {
+   "name": "loose bullet list",
+   "source": "- Un\n\n- Deux\n\n\n- Trois",
+   "expected": "<ul><li><p>Un</p></li><li><p>Deux</p></li><li><p>Trois</p></li></ul>"
+  },
+  {
+   "name": "loose bullet list (marking)",
+   "source": "- Un\n\n- Deux\n\n\n- Trois",
+   "factory": "marking",
+   "expected": "<ul><li><p>Un</p></li><li><p>Deux</p></li><li><p>Trois</p></li></ul>"
+  },
+  {
+   "name": "loose task list between paragraphs",
+   "source": "Avant\n\n- [ ] Un\n\n- [x] Deux\n\nAprès",
+   "expected": "<p>Avant</p><ul><li style=\"list-style-type: none\"><p>☐ Un</p></li><li style=\"list-style-type: none\"><p>☑ Deux</p></li></ul><p>Après</p>"
+  },
+  {
+   "name": "loose task list between paragraphs (marking)",
+   "source": "Avant\n\n- [ ] Un\n\n- [x] Deux\n\nAprès",
+   "factory": "marking",
+   "expected": "<p>Avant</p><ul><li style=\"list-style-type: none\"><p>☐ Un</p></li><li style=\"list-style-type: none\"><p>☑ Deux</p></li></ul><p>Après</p>"
+  },
+  {
+   "name": "loose nested list",
+   "source": "1. Un\n   - a\n\n   - b\n\n2. Deux",
+   "expected": "<ol><li><p>Un</p><ul><li><p>a</p></li><li><p>b</p></li></ul></li><li><p>Deux</p></li></ol>"
+  },
+  {
+   "name": "loose nested list (marking)",
+   "source": "1. Un\n   - a\n\n   - b\n\n2. Deux",
+   "factory": "marking",
+   "expected": "<ol><li><p>Un</p><ul><li><p>a</p></li><li><p>b</p></li></ul></li><li><p>Deux</p></li></ol>"
+  },
+  {
+   "name": "no-break space opening a paragraph",
+   "source": " a",
+   "expected": "<p>a</p>"
+  },
+  {
+   "name": "no-break space opening a paragraph (marking)",
+   "source": " a",
+   "factory": "marking",
+   "expected": "<p>a</p>"
+  },
+  {
+   "name": "no-break space ending a paragraph",
+   "source": "a ",
+   "expected": "<p>a</p>"
+  },
+  {
+   "name": "no-break space ending a paragraph (marking)",
+   "source": "a ",
+   "factory": "marking",
+   "expected": "<p>a</p>"
+  },
+  {
+   "name": "no-break space opening an item",
+   "source": "-  a",
+   "expected": "<ul><li>a</li></ul>"
+  },
+  {
+   "name": "no-break space opening an item (marking)",
+   "source": "-  a",
+   "factory": "marking",
+   "expected": "<ul><li>a</li></ul>"
+  },
+  {
+   "name": "no-break space ending a heading",
+   "source": "# a ",
+   "expected": "<h1>a</h1>"
+  },
+  {
+   "name": "no-break space ending a heading (marking)",
+   "source": "# a ",
+   "factory": "marking",
+   "expected": "<h1>a</h1>"
+  },
+  {
+   "name": "a no-break space alone",
+   "source": " ",
+   "expected": ""
+  },
+  {
+   "name": "a no-break space alone (marking)",
+   "source": " ",
+   "factory": "marking",
+   "expected": ""
+  },
+  {
+   "name": "a no-break space written as an entity",
+   "source": "&nbsp;a",
+   "expected": "<p> a</p>"
+  },
+  {
+   "name": "a no-break space written as an entity (marking)",
+   "source": "&nbsp;a",
+   "factory": "marking",
+   "expected": "<p> a</p>"
+  },
+  {
+   "name": "French spacing kept inside a line",
+   "source": "Bonjour ! Ça va ?",
+   "expected": "<p>Bonjour ! Ça va ?</p>"
+  },
+  {
+   "name": "French spacing kept inside a line (marking)",
+   "source": "Bonjour ! Ça va ?",
+   "factory": "marking",
+   "expected": "<p>Bonjour ! Ça va ?</p>"
+  },
+  {
+   "name": "a quote opening an item",
+   "source": "- > a\n  > b\n1. > c",
+   "expected": "<ul><li><blockquote><p>a<br>b</p></blockquote></li></ul><ol><li><blockquote><p>c</p></blockquote></li></ol>"
+  },
+  {
+   "name": "a quote opening an item (marking)",
+   "source": "- > a\n  > b\n1. > c",
+   "factory": "marking",
+   "expected": "<ul><li><blockquote><p>a<br>b</p></blockquote></li></ul><ol><li><blockquote><p>c</p></blockquote></li></ol>"
+  },
+  {
+   "name": "a hard break opening a paragraph",
+   "source": "**\\\na**\n\nb\\\n",
+   "expected": "<p><strong><br>a</strong></p><p>b\\</p>"
+  },
+  {
+   "name": "a hard break opening a paragraph (marking)",
+   "source": "**\\\na**\n\nb\\\n",
+   "factory": "marking",
+   "expected": "<p><strong><br>a</strong></p><p>b\\</p>"
+  },
+  {
+   "name": "a next-line character at a cell's edges",
+   "source": "| a | b |\n|---|---|\n| x |  |",
+   "expected": "<table><thead><tr><th>a</th><th>b</th></tr></thead><tbody><tr><td>x</td><td></td></tr></tbody></table>"
+  },
+  {
+   "name": "a next-line character at a cell's edges (marking)",
+   "source": "| a | b |\n|---|---|\n| x |  |",
+   "factory": "marking",
+   "expected": "<table><thead><tr><th>a</th><th>b</th></tr></thead><tbody><tr><td>x</td><td></td></tr></tbody></table>"
+  },
+  {
+   "name": "an item whose first block writes nothing",
+   "source": "- <!-- c -->\n  a\n- > <!-- c -->\n  > b\n-\n  c",
+   "expected": "<ul><li>a</li><li><blockquote><p>b</p></blockquote></li><li>c</li></ul>"
+  },
+  {
+   "name": "an item whose first block writes nothing (marking)",
+   "source": "- <!-- c -->\n  a\n- > <!-- c -->\n  > b\n-\n  c",
+   "factory": "marking",
+   "expected": "<ul><li>a</li><li><blockquote><p>b</p></blockquote></li><li>c</li></ul>"
+  },
+  {
+   "name": "quotes nested on an item's line",
+   "source": "- > > a\n  > > b",
+   "expected": "<ul><li><blockquote><blockquote><p>a<br>b</p></blockquote></blockquote></li></ul>"
+  },
+  {
+   "name": "quotes nested on an item's line (marking)",
+   "source": "- > > a\n  > > b",
+   "factory": "marking",
+   "expected": "<ul><li><blockquote><blockquote><p>a<br>b</p></blockquote></blockquote></li></ul>"
+  },
+  {
+   "name": "a hard break opening a tight item",
+   "source": "- \\\n  a\n- b",
+   "expected": "<ul><li>a</li><li>b</li></ul>"
+  },
+  {
+   "name": "a hard break opening a tight item (marking)",
+   "source": "- \\\n  a\n- b",
+   "factory": "marking",
+   "expected": "<ul><li>a</li><li>b</li></ul>"
+  },
+  {
+   "name": "blocks showing nothing on an item's line",
+   "source": "- >\n\n  a\n- #\n\n  b\n- >\n  > #\n  > c",
+   "expected": "<ul><li><blockquote></blockquote><p>a</p></li><li><h1></h1><p>b</p></li><li><blockquote><h1></h1><p>c</p></blockquote></li></ul>"
+  },
+  {
+   "name": "blocks showing nothing on an item's line (marking)",
+   "source": "- >\n\n  a\n- #\n\n  b\n- >\n  > #\n  > c",
+   "factory": "marking",
+   "expected": "<ul><li><blockquote></blockquote><p>a</p></li><li><h1></h1><p>b</p></li><li><blockquote><h1></h1><p>c</p></blockquote></li></ul>"
+  },
+  {
+   "name": "an empty quote between blocks",
+   "source": "a\n\n>\n\nb\n\n> <!-- c -->\n\nd",
+   "expected": "<p>a</p><blockquote></blockquote><p>b</p><blockquote></blockquote><p>d</p>"
+  },
+  {
+   "name": "an empty quote between blocks (marking)",
+   "source": "a\n\n>\n\nb\n\n> <!-- c -->\n\nd",
+   "factory": "marking",
+   "expected": "<p>a</p><blockquote></blockquote><p>b</p><blockquote></blockquote><p>d</p>"
+  },
+  {
+   "name": "a label made of a hashtag",
+   "source": "[#tag](https://x.com) et [#contact](mailto:a@b.fr)",
+   "expected": "<p><a href=\"https://x.com\">#tag</a> et <a href=\"mailto:a@b.fr\">#contact</a></p>"
+  },
+  {
+   "name": "a label made of a hashtag (marking)",
+   "source": "[#tag](https://x.com) et [#contact](mailto:a@b.fr)",
+   "factory": "marking",
+   "expected": "<p><a href=\"https://x.com#link\">#tag</a> et <a href=\"mailto:a@b.fr\">#contact</a></p>"
+  },
+  {
+   "name": "a mention's name holding a hashtag",
+   "source": "Merci [Equipe #rh](urn:li:organization:1)",
+   "expected": "<p>Merci Equipe #rh</p>"
+  },
+  {
+   "name": "a mention's name holding a hashtag (marking)",
+   "source": "Merci [Equipe #rh](urn:li:organization:1)",
+   "factory": "marking",
+   "expected": "<p>Merci Equipe #rh</p>"
+  },
+  {
+   "name": "a break under a mark in a label",
+   "source": "un [*a\nb*](https://x.com) deux [**Ac\nme**](urn:li:organization:1)",
+   "expected": "<p>un <a href=\"https://x.com\"><em>a b</em></a> deux <strong>Ac me</strong></p>"
+  },
+  {
+   "name": "a break under a mark in a label (marking)",
+   "source": "un [*a\nb*](https://x.com) deux [**Ac\nme**](urn:li:organization:1)",
+   "factory": "marking",
+   "expected": "<p>un <a href=\"https://x.com#link\"><em>a b</em></a> deux <strong>Ac me</strong></p>"
+  },
+  {
+   "name": "spaces at a label's edges under its marks",
+   "source": "voir [**Acme&#32;**](urn:li:organization:1) et [**exemple.com&#32;**](https://exemple.com) et [<b> Acme</b>](urn:li:organization:2)",
+   "expected": "<p>voir <strong>Acme</strong> et <a href=\"https://exemple.com\"><strong>exemple.com</strong></a> et Acme</p>"
+  },
+  {
+   "name": "spaces at a label's edges under its marks (marking)",
+   "source": "voir [**Acme&#32;**](urn:li:organization:1) et [**exemple.com&#32;**](https://exemple.com) et [<b> Acme</b>](urn:li:organization:2)",
+   "factory": "marking",
+   "expected": "<p>voir <strong>Acme</strong> et <a href=\"https://exemple.com#link\"><strong>exemple.com</strong></a> et Acme</p>"
+  },
+  {
+   "name": "a mention naming nobody",
+   "source": "Merci [](urn:li:organization:1) et [ ](urn:li:organization:2) !",
+   "expected": "<p>Merci  et  !</p>"
+  },
+  {
+   "name": "a mention naming nobody (marking)",
+   "source": "Merci [](urn:li:organization:1) et [ ](urn:li:organization:2) !",
+   "factory": "marking",
+   "expected": "<p>Merci  et  !</p>"
+  },
+  {
+   "name": "hand-written anchors hiding a scheme",
+   "source": "<a href=\" javascript:alert(1)\">x</a> <a href=\"java\tscript:alert(1)\">y</a> <a href=\"/b\">z</a>",
+   "expected": "<p>x y <a href=\"/b\">z</a></p>"
+  },
+  {
+   "name": "hand-written anchors hiding a scheme (marking)",
+   "source": "<a href=\" javascript:alert(1)\">x</a> <a href=\"java\tscript:alert(1)\">y</a> <a href=\"/b\">z</a>",
+   "factory": "marking",
+   "expected": "<p>x y <a href=\"/b\">z</a></p>"
   }
  ]
 }

@@ -103,6 +103,7 @@ def linkedin(case):
         ],
         "unrendered_formatting": render.unrendered_formatting,
         "unrendered_headings": render.unrendered_headings,
+        "styles": sorted(render.styles),
     }
 
 

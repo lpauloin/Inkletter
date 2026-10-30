@@ -32,18 +32,18 @@ export class URLRewriter extends NodeVisitor {
     this.genericVisit(node, scope);
   }
 
-  static isAnAddress(node: { scheme: string }): boolean {
+  static isRewritable(node: { scheme: string }): boolean {
     return REWRITABLE_SCHEMES.includes(node.scheme);
   }
 
   visit_Image(node: Image): void {
-    if (URLRewriter.isAnAddress(node)) {
+    if (URLRewriter.isRewritable(node)) {
       node.url = this.checked('rewriteImage', node.url, this.factory.rewriteImage(node.url));
     }
   }
 
   rewriteHref(node: UrlLink | ImageLink | Button): void {
-    if (!URLRewriter.isAnAddress(node)) return;
+    if (!URLRewriter.isRewritable(node)) return;
     const rewritten = this.factory.rewriteLink(
       node.href,
       node.annotations.button === true,

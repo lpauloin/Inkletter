@@ -235,3 +235,10 @@ def test_task_list_nested_2(ast):
     assert isinstance(task_block2, BlockText)
     assert isinstance(task_block2.children[0], LiteralText)
     assert task_block2.children[0].value == "Not checked"
+
+
+def test_a_list_says_the_blank_lines_between_its_items(ast):
+    assert ast("- a\n- b\n- c").children[0].gaps == [0, 0]
+    assert ast("- a\n\n- b\n\n\n- c").children[0].gaps == [1, 2]
+    # an item that spans lines ends where its last block does
+    assert ast("- a\n  suite\n\n- b").children[0].gaps == [1]

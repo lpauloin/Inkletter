@@ -27,8 +27,8 @@ from urllib.parse import unquote
 from inkletter.ast import *
 from inkletter.codeblock import CodeBlockResolver, Line
 from inkletter.counting import cost_of_link, cost_of_mention, cost_of_text
-from inkletter.plugins.bare_domains import is_bare_domain, is_spelled_by
-from inkletter.visitors.textgen import TextCodegen
+from inkletter.plugins.bare_domains import is_spelled_by
+from inkletter.visitors.textgen import TextCodegen, shows_text
 
 BULLET = "• "
 CELL_SEPARATOR = " — "
@@ -122,6 +122,9 @@ class LinkedinRender:
     # bold, italic or strikethrough written that the feed will not show —
     # never when look-alikes stand in
     unrendered_formatting: bool
+    # the styles written on words — `bold`, `italic`, `strikethrough` — none
+    # of which the feed has, look-alikes or not: what a warning names
+    styles: frozenset[str]
     # a heading written: the feed shows none, look-alikes or not
     unrendered_headings: bool
 
@@ -135,24 +138,11 @@ class LinkedinRender:
 
 
 class LinkedinCodegen(TextCodegen):
-    @classmethod
-    def plain_text(cls, node):
-        """What a node reads as, with no rendering: enough to tell a label
-        that is an address from one that is words."""
-        if isinstance(node, LiteralText):
-            return node.value
-        if isinstance(node, CodeSpan):
-            return node.code
-        return "".join(cls.plain_text(child) for child in node.get_children())
-
     def __init__(self, *, unicode_styling=False, link_length=None):
         super().__init__(bullet=BULLET)
         self.resolver = CodeBlockResolver(measure=cost_of_text)
         self.unicode_styling = unicode_styling
         self.link_length = link_length
-        # what was written that the feed will not show
-        self.styled_words = False
-        self.headings = False
 
     def write(self, text, cost=None, kind="text", display=None):
         """Text costs what it says, unless it is priced — a marker, an
@@ -166,8 +156,6 @@ class LinkedinCodegen(TextCodegen):
         wanted. Only words: a marker or an address is never styled, or it
         would stop resolving."""
         styles = annotations.get("styles")
-        if styles and text.strip():
-            self.styled_words = True
         if self.unicode_styling and styles:
             text = substitute(text, styles)
         self.write(text)
@@ -187,15 +175,31 @@ class LinkedinCodegen(TextCodegen):
         whitespace goes, as the platform trims it before it counts."""
         self.visit(document)
         text = self.resolver.resolve(self.root).rstrip()
+        styles = document.annotations["styles_written"]
         return LinkedinRender(
             text=text,
             length=self.resolver.length,
             lines=tuple(self.resolver.written_lines),
-            unrendered_formatting=self.styled_words and not self.unicode_styling,
-            unrendered_headings=self.headings,
+            unrendered_formatting=bool(styles) and not self.unicode_styling,
+            unrendered_headings=document.annotations["has_headings"],
+            styles=styles,
         )
 
     # --- Blocks ---
+
+    def item(self, node, marker, scope):
+        """An item on its marker, its blocks separated by the blank lines
+        their author left, as a post is sent."""
+        self.write(marker)
+        self.current.add_indent()
+        self.emit_blocks(node.children, scope)
+        self.close_line()
+        self.current.add_dedent()
+
+    def blank_lines_before(self, node, index):
+        """The blank lines the author left before an item of a loose list:
+        a post is sent as it was typed."""
+        return node.gaps[index - 1] if index else 0
 
     def emit_blocks(self, nodes, scope):
         """Blocks separated by the blank lines their author left.
@@ -213,25 +217,33 @@ class LinkedinCodegen(TextCodegen):
             if isinstance(node, BlankLine):
                 blank = max(blank, node.lines)
                 continue
+            if isinstance(node, ThematicBreak):
+                # a feed draws no rule: what it separates, a blank line does
+                blank = max(blank, 1)
+                continue
+            if not written and self.line_open():
+                # the first block continues a line already open — an item's
+                # marker — and writes what it opens with there
+                if self.wrote(node, scope):
+                    self.close_line()
+                    written, blank = True, 0
+                continue
             block = self.render_block(node, scope)
-            if not block.elements:
+            if not shows_text(block.elements):
                 continue
             if written:
                 for _ in range(blank):
                     self.line()
             self.current.add_codeblock(block)
             written, blank = True, 0
+        return written
 
     def visit_Heading(self, node, scope):
         """The text on its line, and no underline: a row of equals signs is
         a convention of plain-text mail, not of a feed — which shows no
         heading at all."""
-        self.headings = True
         self.generic_visit(node, scope)
         self.close_line()
-
-    def visit_ThematicBreak(self, node, scope):
-        pass  # forty dashes across a feed are noise; the blank line stays
 
     def visit_Table(self, node, scope):
         """One line per row, cells joined by a dash: a proportional font
@@ -257,10 +269,12 @@ class LinkedinCodegen(TextCodegen):
 
     def visit_Mention(self, node, scope):
         """`@[<urn>|<name>]`, the one form a publishing API resolves into a
-        real mention. The name is the author's and travels verbatim; the
+        real mention. The name is the author's, its letters and case kept; the
         marker is the API's, and the platform weighs the name alone. A
         name the marker cannot carry goes out as plain text."""
-        name = self.plain_text(node)
+        name = node.plain_text()
+        if not name:
+            return  # a marker naming nobody would show nothing and cost nothing
         if any(delimiter in name for delimiter in MARKER_DELIMITERS):
             return self.write(f"@{name}")
         self.write(f"@[{node.urn}|{name}]", cost_of_mention(name), "mention", name)
@@ -268,19 +282,12 @@ class LinkedinCodegen(TextCodegen):
     def visit_UrlLink(self, node, scope):
         """`label : url`, and the url alone when the label is one too — a
         bare address the author typed, which the parser encapsulates and a
-        factory may have shortened, so that the two halves differ. No angle brackets either: a feed shows them, it does not
-        read them."""
-        label = self.plain_text(node)
-        if label and label != node.href and not self.is_an_address(label):
+        factory may have shortened, so that the two halves differ. No angle
+        brackets either: a feed shows them, it does not read them."""
+        if not node.annotations["label_is_address"]:
             self.generic_visit(node, scope)
             self.write(LABEL_SEPARATOR)
-        self.write_link(node.href, label)
-
-    @staticmethod
-    def is_an_address(label):
-        """Whether a label is an address already — with its scheme, or a
-        domain written without one — rather than a name for one."""
-        return Link.scheme_of(label) in ("http", "https") or is_bare_domain(label)
+        self.write_link(node.href, node.plain_text())
 
     def visit_MailLink(self, node, scope):
         self.named(node, node.address, scope)
@@ -293,8 +300,7 @@ class LinkedinCodegen(TextCodegen):
         the whole `mailto:`/`tel:` the parser wrote for a bare one — a feed
         dials nothing and drafts nothing, so what it shows is the address
         or the number, as words."""
-        label = self.plain_text(node)
-        if label and label not in (target, node.href):
+        if not node.annotations["label_is_address"]:
             self.generic_visit(node, scope)
             self.write(LABEL_SEPARATOR)
         self.write(target)
@@ -317,9 +323,10 @@ class LinkedinCodegen(TextCodegen):
 
     def visit_ImageLink(self, node, scope):
         self.write(f"[![{node.img.alt_text}]({node.img.url})]({node.href})")
-        self.close_line()
 
     def visit_MediaObject(self, node, scope):
-        # the image beside its text, written as one paragraph: the image,
-        # then its text, one blank line between them as in every output
-        super().emit_blocks([node.image, *node.children], scope)
+        # the image beside its text, one blank line between them as in
+        # every output
+        blocks = [node.image, BlankLine(1), *node.children]
+        # where the author put the image: before its text, or after it
+        self.emit_blocks(blocks if node.side == "left" else blocks[::-1], scope)

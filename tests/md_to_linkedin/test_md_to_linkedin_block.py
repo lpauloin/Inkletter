@@ -59,6 +59,14 @@ def test_a_horizontal_rule_becomes_a_blank_line():
     assert parse_markdown_to_linkedin("Avant\n\n---\n\nAprès") == "Avant\n\nAprès"
 
 
+def test_a_rule_typed_between_two_lines_still_separates_them():
+    assert parse_markdown_to_linkedin("Avant\n***\nAprès") == "Avant\n\nAprès"
+
+
+def test_a_rule_adds_nothing_to_the_blank_lines_typed_around_it():
+    assert parse_markdown_to_linkedin("Avant\n\n\n***\n\n\nAprès") == "Avant\n\n\nAprès"
+
+
 # --- No buttons ---
 #
 # A feed draws none, so the tree is built without any: a lone bold link
@@ -126,6 +134,18 @@ def test_the_blank_lines_after_a_list_are_the_authors():
     assert parse_markdown_to_linkedin("- a\n\nb") == "• a\n\nb"
 
 
+def test_the_blank_lines_between_the_items_of_a_loose_list_are_the_authors():
+    assert parse_markdown_to_linkedin("- Un\n\n- Deux") == "• Un\n\n• Deux"
+    assert (
+        parse_markdown_to_linkedin("1. Un\n\n\n2. Deux\n3. Trois") == "1. Un\n\n\n2. Deux\n3. Trois"
+    )
+    assert parse_markdown_to_linkedin("- [ ] Un\n\n- [x] Deux") == "[ ] Un\n\n[x] Deux"
+    # nested: the blank line carries no indent
+    assert (
+        parse_markdown_to_linkedin("- Un\n  - a\n\n  - b\n- Deux") == "• Un\n  • a\n\n  • b\n• Deux"
+    )
+
+
 def test_a_line_typed_after_a_list_follows_it_without_a_blank_line():
     assert parse_markdown_to_linkedin("- Étapes\nAprès") == "• Étapes\nAprès"
     assert parse_markdown_to_linkedin("1. Étapes\nAprès") == "1. Étapes\nAprès"
@@ -148,10 +168,6 @@ def test_the_blank_lines_a_document_opens_or_ends_on_separate_nothing():
     # our count disagree with theirs
     assert parse_markdown_to_linkedin("\n\n\nUn") == "Un"
     assert parse_markdown_to_linkedin("Du texte.  \n\n\n") == "Du texte."
-
-
-def test_a_run_of_blank_lines_inside_a_list_leaves_the_items_alone():
-    assert parse_markdown_to_linkedin("- a\n\n\n- b") == "• a\n• b"
 
 
 # --- What the platform counts for them ---
@@ -182,3 +198,46 @@ def test_a_list_right_under_a_quote_follows_it():
     actual = parse_markdown_to_linkedin("> Citée\n- un point", max_length=None)
     print(actual)
     assert actual == "> Citée\n• un point"
+
+
+def test_a_rule_inside_a_list_item_draws_no_dashes():
+    actual = parse_markdown_to_linkedin("- a\n\n  ***\n\n  b", max_length=None)
+    print(actual)
+    assert "---" not in actual
+
+
+def test_a_loose_item_keeps_the_blank_lines_between_its_blocks():
+    assert parse_markdown_to_linkedin("- a\n\n  para\n\n- b") == "• a\n\n  para\n\n• b"
+
+
+def test_a_row_of_images_writes_one_per_line():
+    assert (
+        parse_markdown_to_linkedin("![a](https://e.fr/a.png) ![b](https://e.fr/b.png)")
+        == "![a](https://e.fr/a.png)\n![b](https://e.fr/b.png)"
+    )
+
+
+def test_an_image_after_its_text_stays_after_it():
+    assert (
+        parse_markdown_to_linkedin("Texte avant ![a](https://e.fr/a.png)")
+        == "Texte avant\n\n![a](https://e.fr/a.png)"
+    )
+
+
+def test_a_quote_opening_an_item_marks_its_first_line_too():
+    assert parse_markdown_to_linkedin("- > a\n  > b") == "• > a\n  > b"
+
+
+def test_the_breaks_a_paragraph_opens_or_ends_on_separate_nothing():
+    assert parse_markdown_to_linkedin("\\\na") == "a"
+
+
+def test_an_item_whose_first_block_writes_nothing_keeps_its_words_on_its_marker():
+    assert parse_markdown_to_linkedin("- <!-- c -->\n  a") == "• a"
+    assert parse_markdown_to_linkedin("- <!-- c -->\n\n  a\n\n- b") == "• a\n\n• b"
+
+
+def test_a_block_showing_nothing_leaves_no_mark():
+    assert parse_markdown_to_linkedin("- >\n\n  a") == "• a"
+    assert parse_markdown_to_linkedin("- #\n\n  a") == "• a"
+    assert parse_markdown_to_linkedin("a\n\n> <!-- c -->\n\nb") == "a\n\nb"

@@ -28,6 +28,7 @@ interface Case {
   lines?: [string, number, [string, string, number][]][];
   unrendered_formatting?: boolean;
   unrendered_headings?: boolean;
+  styles?: string[];
   error?: string;
   message?: string;
 }
@@ -73,10 +74,10 @@ function answered(render: () => Partial<Case>): Partial<Case> {
 }
 
 function expectedOf(scenario: Case): Partial<Case> {
-  const { error, message, expected, length, lines, unrendered_formatting, unrendered_headings } = scenario;
+  const { error, message, expected, length, lines, unrendered_formatting, unrendered_headings, styles } = scenario;
   if (error !== undefined) return { error, message };
   if (length === undefined) return { expected };
-  return { expected, length, lines, unrendered_formatting, unrendered_headings };
+  return { expected, length, lines, unrendered_formatting, unrendered_headings, styles };
 }
 
 const options = (scenario: Case) => ({
@@ -102,6 +103,7 @@ describe('the post: the same text, the same count, the same lines', () => {
         ]),
         unrendered_formatting: render.unrenderedFormatting,
         unrendered_headings: render.unrenderedHeadings,
+        styles: [...render.styles].sort(),
       };
     });
     expect(found).toEqual(expectedOf(scenario));

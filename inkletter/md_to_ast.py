@@ -1,3 +1,4 @@
+from itertools import pairwise
 from urllib.parse import quote
 
 from markdown_it import MarkdownIt
@@ -25,9 +26,10 @@ URL_SAFE = ":/?#@!$&()*+,;=%"
 # What a node of an image's alt reads as, when it is not its own text.
 ALT_SPELLINGS = {"softbreak": " ", "hardbreak": " ", "html_inline": ""}
 
+
 # The containers whose blocks may have blank lines between them — and whose
 # last block, not the container, says where it ends.
-CONTAINERS = ("root", "blockquote", "bullet_list", "ordered_list", "list_item")
+CONTAINERS = ("blockquote", "bullet_list", "ordered_list", "list_item")
 
 
 class ASTBuilder:
@@ -114,11 +116,16 @@ class ASTBuilder:
         return BlockQuote(self.blocks(node.children, node.map[0]))
 
     def fence(self, node):
-        return BlockCode(node.content, node.info.strip() or None)
+        return BlockCode(self.code_of(node), node.info.strip() or None)
 
     def code_block(self, node):
-        # indented code ends on its last line, its line breaks aside
-        return BlockCode(node.content.rstrip("\n"), None)
+        return BlockCode(self.code_of(node), None)
+
+    @staticmethod
+    def code_of(node):
+        # its lines, the break that ends the last one aside — fenced or
+        # indented alike
+        return node.content.removesuffix("\n")
 
     def html_block(self, node):
         return BlockHtml(node.content.strip("\n"))
@@ -129,11 +136,18 @@ class ASTBuilder:
     # --- Lists ---
 
     def bullet_list(self, node):
-        return List(self.built(node.children), ordered=False)
+        return List(self.built(node.children), ordered=False, gaps=self.gaps(node.children))
 
     def ordered_list(self, node):
         start = node.attrs.get("start")
-        return List(self.built(node.children), ordered=True, start=start)
+        return List(
+            self.built(node.children), ordered=True, start=start, gaps=self.gaps(node.children)
+        )
+
+    def gaps(self, items):
+        """The blank lines between each item of a list and the next — none in
+        a tight list, the author's own in a loose one."""
+        return [after.map[0] - self.end_of(before) for before, after in pairwise(items)]
 
     def list_item(self, node):
         children = self.blocks(node.children, node.map[0])
@@ -210,6 +224,8 @@ class ASTBuilder:
     def link(self, node):
         url, title = node.attrs["href"], node.attrs.get("title")
         text = self.built(node.children)
+        if runs_something(url):
+            return text
         # What the target's scheme names — an entity, for a URN — becomes
         # its own node here, once, rather than being recognised again by
         # every visitor that walks past a link.
@@ -224,6 +240,8 @@ class ASTBuilder:
         return self.DEFAULT_LINK(text, url, title)
 
     def image(self, node):
+        if runs_something(node.attrs["src"]) and not IMAGE_DATA.match(node.attrs["src"]):
+            return LiteralText(self.alt_text(node.children))
         return Image(
             node.attrs["src"],
             self.alt_text(node.children),
@@ -253,9 +271,9 @@ def create_markdown(link_attributes=True):
     """The parser: CommonMark, GitHub's tables and strikethrough, and what
     Inkletter reads beyond them."""
     markdown = MarkdownIt("commonmark").enable(["table", "strikethrough"])
-    # A target is kept as written, whatever its scheme: what a link to
-    # `javascript:` becomes is each output's to decide, and a URN must
-    # reach the mention it names.
+    # Every target is read: what a link that runs something becomes is the
+    # tree's to decide (`ASTBuilder.link`), and a URN must reach the mention
+    # it names.
     markdown.validateLink = accept_any_link
     markdown.normalizeLink = normalize_link
     markdown.normalizeLinkText = str

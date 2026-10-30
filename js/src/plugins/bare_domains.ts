@@ -34,10 +34,11 @@ const LISTED_NAME = `${LABELS}(?:${EXTENSIONS.join('|')})`;
 const NAME_ENDS = '(?![\\p{L}\\p{N}]|[@\\-])(?!\\.[\\p{L}\\p{N}])';
 const REST = `(?::[0-9]+)?(?:[/?#][^${SPACE}<]*[^<.,:;"'\\]${SPACE}*_~?!]|/)?`;
 
-const PATTERN = `${NOT_INSIDE}(?:${WWW_NAME}|${LISTED_NAME})${NAME_ENDS}${REST}`;
-/** Read in the text by `bare_links`, with the full address. */
-export const BARE_DOMAIN = new RegExp(PATTERN, 'gu');
-const WHOLE_BARE_DOMAIN = new RegExp(`^(?:${PATTERN})$`, 'u');
+/** The grammar, as a pattern to build a search with. */
+export const DOMAIN_PATTERN = `${NOT_INSIDE}(?:${WWW_NAME}|${LISTED_NAME})${NAME_ENDS}${REST}`;
+/** A domain written without its scheme — read in the text by `bare_links`. */
+export const BARE_DOMAIN = new RegExp(DOMAIN_PATTERN, 'u');
+const WHOLE_BARE_DOMAIN = new RegExp(`^(?:${DOMAIN_PATTERN})$`, 'u');
 
 // --- What an output asks of a label ---
 

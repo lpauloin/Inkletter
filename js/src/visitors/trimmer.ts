@@ -4,7 +4,7 @@
 // whitespace at either end goes, on the tree, once. A table cell needs
 // none: the parser trims it, and it holds no break.
 
-import { type BlockNode, LineBreak, LiteralText, type Node, SoftBreak } from '../ast.js';
+import { BlockNode, InlineHtml, LineBreak, LiteralText, type Node, SoftBreak } from '../ast.js';
 import { lstrip, rstrip, strip } from '../stdlib.js';
 import { NodeVisitor } from './generic.js';
 import type { ScopeStack } from './scope.js';
@@ -33,16 +33,40 @@ export class Trimmer extends NodeVisitor {
   }
 
   static flatten(node: BlockNode): void {
-    const children = node.children.map((child) =>
+    Trimmer.unbreak(node);
+    Trimmer.trimEdge(node, true);
+    Trimmer.trimEdge(node, false);
+  }
+
+  /** The whitespace at one end of the run goes, under its marks too and past
+   *  a hand-written tag, up to the first word. */
+  static trimEdge(node: BlockNode, leading: boolean): void {
+    const children = node.children;
+    let at = leading ? 0 : children.length - 1;
+    const step = leading ? 1 : -1;
+    while (at >= 0 && at < children.length) {
+      const child = children[at];
+      if (child instanceof InlineHtml) {
+        at += step;
+        continue;
+      }
+      if (Trimmer.blank(child)) {
+        children.splice(at, 1);
+        if (!leading) at -= 1;
+        continue;
+      }
+      if (child instanceof LiteralText) child.value = leading ? lstrip(child.value) : rstrip(child.value);
+      else if (child instanceof BlockNode) Trimmer.trimEdge(child, leading);
+      return;
+    }
+  }
+
+  /** Every break in the run a space, under its marks too. */
+  static unbreak(node: BlockNode): void {
+    node.children = node.children.map((child) =>
       child instanceof SoftBreak || child instanceof LineBreak ? new LiteralText(' ') : child,
     );
-    while (children.length && Trimmer.blank(children[0])) children.shift();
-    while (children.length && Trimmer.blank(children.at(-1))) children.pop();
-    const first = children[0];
-    if (first instanceof LiteralText) first.value = lstrip(first.value);
-    const last = children.at(-1);
-    if (last instanceof LiteralText) last.value = rstrip(last.value);
-    node.children = children;
+    for (const child of node.children) if (child instanceof BlockNode) Trimmer.unbreak(child);
   }
 
   static blank(node: Node | undefined): boolean {

@@ -199,3 +199,28 @@ def test_an_address_and_a_number_cost_their_characters(measured):
     # words, not links: nothing is shortened, nothing is priced otherwise
     assert measured("[nous](mailto:a@b.fr)") == len("nous : a@b.fr")
     assert measured("[là](tel:+331)") == len("là : +331")
+
+
+# What LinkedIn's own composer counts, read off its counter past the
+# ceiling: UTF-16 units, every line break one, the spaces a line opens on
+# kept, an address at its full length when nothing shortens it.
+MEASURED_IN_THE_COMPOSER = [
+    ("Bonjour", 7),
+    ("été", 3),
+    ("😀", 2),
+    ("👨‍👩‍👧", 8),
+    ("🇫🇷", 4),
+    ("𝗻𝗼𝘁𝗿𝗲", 10),
+    ("Un\nDeux", 7),
+    ("Un\n\nDeux", 8),
+    ("Un\n&#32;&#32;Deux", 9),
+    ("#Prism", 6),
+    ("Voir https://exemple.fr/etude?", 30),
+    ("Voir «https://exemple.fr/etude-complete-sur-le-recrutement»", 59),
+    ("Voir « https://exemple.fr/etude-complete-sur-le-recrutement »", 61),
+]
+
+
+@pytest.mark.parametrize(("markdown_text", "count"), MEASURED_IN_THE_COMPOSER)
+def test_the_count_is_the_composer_s(measured, markdown_text, count):
+    assert measured(markdown_text) == count

@@ -59,18 +59,24 @@ This is anoter text
     assert block.children[2].value == "This is anoter text"
 
 
-def test_terminals_are_stripped_at_both_edges_of_each_group():
-    # two inline groups split by an image: each flush must clean its own
-    # buffer (the helpers used to close over the outer one by accident)
+def test_the_breaks_around_an_image_stand_beside_the_runs():
+    # an image on a line of its own: the breaks around it are kept, out of
+    # the runs of text on either side
     ast = generate_ast("avant  \n![i](https://x.com/i.png)\nmilieu  \nfin")
     merged = merge_ast(ast)
     para = merged.children[0]
 
     kinds = [type(c).__name__ for c in para.children]
-    assert kinds == ["BlockText", "Image", "BlockText"]
-    first, _, second = para.children
+    assert kinds == ["BlockText", "LineBreak", "Image", "SoftBreak", "BlockText"]
+    first, *_, second = para.children
     assert not isinstance(first.children[-1], TextTerminal)
     assert not isinstance(second.children[0], TextTerminal)
+
+
+def test_an_image_inside_a_line_has_no_break_beside_it():
+    merged = merge_ast(generate_ast("avant ![i](https://x.com/i.png) après"))
+    kinds = [type(c).__name__ for c in merged.children[0].children]
+    assert kinds == ["BlockText", "Image", "BlockText"]
 
 
 # --- What a scope is made of ---

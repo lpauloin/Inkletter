@@ -118,15 +118,17 @@ def test_image_in_blockquote(ast):
     assert isinstance(quote.children[0], Paragraph)
 
     para = quote.children[0]
-    assert len(para.children) == 2
+    # the image on its line, the break after it kept
+    assert len(para.children) == 3
     assert isinstance(para.children[0], Image)
+    assert isinstance(para.children[1], SoftBreak)
 
     img = para.children[0]
     assert img.url == "https://picsum.photos/600/300"
     assert img.alt_text == "Quote Icon"
 
-    assert isinstance(para.children[1], BlockText)
-    block = para.children[1]
+    assert isinstance(para.children[2], BlockText)
+    block = para.children[2]
     assert len(block.children) == 1
     assert isinstance(block.children[0], LiteralText)
     assert block.children[0].value == "Citation"

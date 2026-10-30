@@ -13,7 +13,6 @@
 // | `urllib.parse.quote`     | `quote`             | `encodeURI` keeps another set        |
 // | `urllib.parse.unquote`   | `unquote`           | `decodeURIComponent` throws on a     |
 // |                          |                     | stray `%`, Python leaves it          |
-// | `urllib.parse.urlsplit`  | `urlSplit`          | `URL` refuses what has no scheme     |
 // | `f"{x:g}"`               | `formatG`           | not in the language                  |
 //
 // The letters, digits and spaces are read through Unicode's tables, which
@@ -108,34 +107,15 @@ export function unquote(text: string): string {
   });
 }
 
-export interface SplitUrl {
-  scheme: string;
-  path: string;
-}
-
-/** `urllib.parse.urlsplit`, for the scheme and the path — or null where it
- *  raises (an unclosed IPv6 bracket). A scheme is a letter, then letters,
- *  digits, `+`, `-` or `.`, before the first `:`. */
-export function urlSplit(url: string): SplitUrl | null {
-  const cleaned = url.replace(/^[\x00-\x20]+/, '').replace(/[\t\r\n]/g, '');
-  const colon = cleaned.indexOf(':');
-  let scheme = '';
-  let rest = cleaned;
-  if (colon > 0 && /^[A-Za-z][A-Za-z0-9+\-.]*$/.test(cleaned.slice(0, colon))) {
-    scheme = cleaned.slice(0, colon).toLowerCase();
-    rest = cleaned.slice(colon + 1);
-  }
-  if (rest.startsWith('//')) {
-    const end = rest.slice(2).search(/[/?#]/);
-    const netloc = end < 0 ? rest.slice(2) : rest.slice(2, end + 2);
-    if (netloc.includes('[') !== netloc.includes(']')) return null;
-    rest = end < 0 ? '' : rest.slice(end + 2);
-  }
-  return { scheme, path: rest.split(/[?#]/, 1)[0] ?? '' };
-}
-
-/** `f"{value:g}"`, for the numbers a theme holds: six significant digits,
- *  no trailing zero. */
+/** `f"{value:g}"`: six significant digits, no trailing zero, and an
+ *  exponent of two digits at least below 1e-4 or from 1e6. */
 export function formatG(value: number): string {
+  const exponent = value === 0 ? 0 : Math.floor(Math.log10(Math.abs(Number(value.toPrecision(6)))));
+  if (exponent < -4 || exponent >= 6) {
+    const [mantissa = '', power = '0'] = value.toExponential(5).split('e');
+    const digits = mantissa.replace(/\.?0+$/, '');
+    const sign = power.startsWith('-') ? '-' : '+';
+    return `${digits}e${sign}${power.replace(/^[+-]/, '').padStart(2, '0')}`;
+  }
   return String(Number(value.toPrecision(6)));
 }

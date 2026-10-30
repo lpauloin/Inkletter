@@ -21,19 +21,28 @@ class BlockTextMerger(NodeVisitor):
             cls.flush(buffer, merged)
             merged.append(child)
         cls.flush(buffer, merged)
+        # the breaks a paragraph opens or ends on separate nothing
+        while merged and isinstance(merged[0], TextTerminal):
+            merged.pop(0)
+        while merged and isinstance(merged[-1], TextTerminal):
+            merged.pop()
         return merged
 
     @staticmethod
     def flush(buffer, merged):
         """The run gathered so far as a BlockText, the breaks at its edges
-        aside — an image between two lines leaves one on either side."""
+        beside it — an image on a line of its own keeps the breaks around
+        it, one inside a line has none."""
+        leading, trailing = [], []
         while buffer and isinstance(buffer[0], TextTerminal):
-            buffer.pop(0)
+            leading.append(buffer.pop(0))
         while buffer and isinstance(buffer[-1], TextTerminal):
-            buffer.pop()
+            trailing.insert(0, buffer.pop())
+        merged.extend(leading)
         if buffer:
             merged.append(BlockText(buffer.copy()))
             buffer.clear()
+        merged.extend(trailing)
 
     def process_blocknode(self, node, scope):
         node.children = self.merge_inline_sequences(node.children)
@@ -42,6 +51,14 @@ class BlockTextMerger(NodeVisitor):
 
     def visit_Paragraph(self, node, scope):
         self.process_blocknode(node, scope)
+
+    def visit_BlockText(self, node, scope):
+        # a tight item's line: the breaks it opens or ends on separate nothing
+        while node.children and isinstance(node.children[0], TextTerminal):
+            node.children.pop(0)
+        while node.children and isinstance(node.children[-1], TextTerminal):
+            node.children.pop()
+        self.generic_visit(node, scope)
 
     def visit_Heading(self, node, scope):
         self.process_blocknode(node, scope)
@@ -123,13 +140,19 @@ class BlockTextMerger(NodeVisitor):
 
     @staticmethod
     def is_blank(node):
+        """A break between two of a paragraph's pieces, or text of spaces."""
+        if isinstance(node, TextTerminal):
+            return True
         if not isinstance(node, BlockText):
             return False
         return all(c.is_blank() for c in node.children)
 
     @staticmethod
     def strip_edge(blocks, leading):
-        """Trim the whitespace left over next to the extracted image."""
+        """Trim the breaks and the whitespace left over next to the
+        extracted image."""
+        while blocks and isinstance(blocks[0 if leading else -1], TextTerminal):
+            blocks.pop(0 if leading else -1)
         if not blocks:
             return
         block = blocks[0] if leading else blocks[-1]

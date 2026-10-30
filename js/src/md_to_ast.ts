@@ -1,6 +1,6 @@
 // From Markdown to the tree every output renders — `inkletter/md_to_ast.py`.
 
-import MarkdownIt from 'markdown-it';
+import MarkdownIt, { type StateCore } from 'markdown-it';
 import {
   Attributes,
   BlankLine,
@@ -13,6 +13,7 @@ import {
   Emphasis,
   Hashtag,
   Heading,
+  IMAGE_DATA,
   Image,
   ImageLink,
   InlineHtml,
@@ -21,6 +22,7 @@ import {
   List,
   ListItem,
   LiteralText,
+  runsSomething,
   MailLink,
   Mention,
   type Node,
@@ -65,7 +67,7 @@ const ALT_SPELLINGS: Readonly<Record<string, string>> = { softbreak: ' ', hardbr
 
 // The containers whose blocks may have blank lines between them — and whose
 // last block, not the container, says where it ends.
-const CONTAINERS = ['root', 'blockquote', 'bullet_list', 'ordered_list', 'list_item'];
+const CONTAINERS = ['blockquote', 'bullet_list', 'ordered_list', 'list_item'];
 
 type Built = Node | Node[];
 type Build = (node: SyntaxTreeNode) => Built;
@@ -146,12 +148,17 @@ export class ASTBuilder {
   }
 
   fence(node: SyntaxTreeNode): BlockCode {
-    return new BlockCode(node.content, strip(node.info) || null);
+    return new BlockCode(ASTBuilder.codeOf(node), strip(node.info) || null);
   }
 
   code_block(node: SyntaxTreeNode): BlockCode {
-    // indented code ends on its last line, its line breaks aside
-    return new BlockCode(node.content.replace(/\n+$/, ''), null);
+    return new BlockCode(ASTBuilder.codeOf(node), null);
+  }
+
+  static codeOf(node: SyntaxTreeNode): string {
+    // its lines, the break that ends the last one aside — fenced or indented
+    // alike
+    return node.content.endsWith('\n') ? node.content.slice(0, -1) : node.content;
   }
 
   html_block(node: SyntaxTreeNode): BlockHtml {
@@ -165,12 +172,19 @@ export class ASTBuilder {
   // --- Lists ---
 
   bullet_list(node: SyntaxTreeNode): List {
-    return new List(this.items(node), false);
+    return new List(this.items(node), false, null, this.gaps(node));
   }
 
   ordered_list(node: SyntaxTreeNode): List {
     const start = node.attr('start');
-    return new List(this.items(node), true, start === null ? null : Number(start));
+    return new List(this.items(node), true, start === null ? null : Number(start), this.gaps(node));
+  }
+
+  /** The blank lines between each item of a list and the next — none in a
+   *  tight list, the author's own in a loose one. */
+  gaps(node: SyntaxTreeNode): number[] {
+    const items = node.children;
+    return items.slice(1).map((after, index) => after.map[0] - ASTBuilder.endOf(items[index]!));
   }
 
   items(node: SyntaxTreeNode): (ListItem | TaskListItem)[] {
@@ -267,10 +281,11 @@ export class ASTBuilder {
     return new LineBreak();
   }
 
-  link(node: SyntaxTreeNode): Node {
+  link(node: SyntaxTreeNode): Built {
     const url = node.attr('href') ?? '';
     const title = node.attr('title');
     const text = this.built(node.children);
+    if (runsSomething(url)) return text;
     // What the target's scheme names — an entity, for a URN — becomes its
     // own node here, once, rather than being recognised again by every
     // visitor that walks past a link.
@@ -283,10 +298,14 @@ export class ASTBuilder {
     return new ASTBuilder.DEFAULT_LINK(text, url, title);
   }
 
-  image(node: SyntaxTreeNode): Image {
+  image(node: SyntaxTreeNode): Image | LiteralText {
+    const src = node.attr('src') ?? '';
+    if (runsSomething(src) && !IMAGE_DATA.test(src)) {
+      return new LiteralText(ASTBuilder.altText(node.children));
+    }
     const attributes = (node.meta.ink_attributes ?? {}) as ImageAttributes;
     return new Image(
-      node.attr('src') ?? '',
+      src,
       ASTBuilder.altText(node.children),
       node.attr('title'),
       new Attributes(attributes.width ?? null, attributes.height ?? null, attributes.align ?? null),
@@ -329,7 +348,23 @@ export function createMarkdown(linkAttributes = true): MarkdownIt {
   // an item, without a marker, is its own block.
   markdown.use(typedListsPlugin);
   if (linkAttributes) markdown.use(linkAttributesPlugin);
+  // A paragraph or a heading is trimmed of every space at its edges, a
+  // no-break one included, as markdown-it-py trims it with Python's own
+  // `strip`: CommonMark's JS keeps it, and the two readings must agree.
+  markdown.core.ruler.before('inline', 'trim_blocks', trimBlocks);
   return markdown;
+}
+
+/** The edges of each paragraph's, heading's and cell's source, trimmed as
+ *  Python trims them, before its inline content is read: an entity written
+ *  as such (`&nbsp;`) stays. */
+function trimBlocks(state: StateCore): void {
+  state.tokens.forEach((token, at) => {
+    const opening = state.tokens[at - 1]?.type;
+    if (token.type === 'inline' && ['paragraph_open', 'heading_open', 'th_open', 'td_open'].includes(opening ?? '')) {
+      token.content = strip(token.content);
+    }
+  });
 }
 
 function acceptAnyLink(): boolean {

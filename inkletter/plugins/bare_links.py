@@ -1,30 +1,40 @@
 """An address written in the text without brackets — in full or as a domain
-— read as a link to itself."""
+— read as a link to itself.
+
+| Written                | Rule                                                 |
+|------------------------|------------------------------------------------------|
+| `https://exemple.fr/…` | inline, at its `:` — read whole before any mark, so  |
+|                        | `https://a.fr/*x*` keeps its stars (markdown-it's    |
+|                        | own linkify rule works the same way)                 |
+| `exemple.fr/…`         | core, in the text once its marks are read: nothing   |
+|                        | announces a domain to an inline rule                 |
+"""
 
 import re
 
+from markdown_it.common.utils import unescapeAll
 from markdown_it.token import Token
 
 from inkletter.plugins.bare_domains import ASSUMED_SCHEME, BARE_DOMAIN
 
 # An address written without brackets, which CommonMark reads as text and
 # every reader as a link: read as one, so the URL factory shortens it and
-# the counter charges it like any other. It never ends on `*`, `_` or `~`
-# (GFM's autolink rule), or `**https://exemple.fr**` would swallow its
-# closing marks. A final `)` is matched, and weighed below.
-BARE_URL = re.compile(r"""https?:\/\/[^\s<]+[^<.,:;"'\]\s*_~]""")
-
-# What a token leaves just before the text that follows it, for a rule that
-# needs to see what an address is written against: a mark's own spelling,
-# and these for the tokens that have none.
-SPELLED_ENDS = {
-    "link_close": ")",
-    "image": ")",
-    "code_inline": "`",
-    "softbreak": "\n",
-    "hardbreak": "\n",
-    "hashtag": "#",
-}
+# the counter charges it like any other. Where it starts and ends is
+# LinkedIn's, measured in its own composer:
+#
+# | Around the address                 | Read                                 |
+# |------------------------------------|--------------------------------------|
+# | after a space, the start, `(`, `"` | an address — and after a mark        |
+# |                                    | (`*`, `_`, `~`), which the post      |
+# |                                    | drops (GFM's own rule)               |
+# | after a letter, `«`, `“`, `'`, `-` | text: `xhttps://…`, `«https://…»`    |
+# | ending on `.`, `,`, `:`, `;`, `"`, | the sign is the sentence's, not the  |
+# | `'`, `?`, `!`, `]`, `*`, `_`, `~`  | address's — nor `**`'s around it     |
+#
+# A final `)` is matched, and weighed below.
+BARE_URL = re.compile(r"""(?<![^\s(*_~"])https?:\/\/[^\s<]+[^<.,:;"'\]\s*_~?!]""")
+# The scheme the text before a `:` ends on.
+SCHEME = re.compile(r"https?$")
 
 
 def without_a_sentence_parenthesis(text):
@@ -72,8 +82,10 @@ def runs(tokens):
 
 
 def spelled_before(tokens, index):
-    """The character the source holds just before `tokens[index]` — what a
-    lookbehind on an address needs once the text is cut into tokens."""
+    """The character the source holds just before `tokens[index]`, when the
+    domain's lookbehind needs it: the end of a text, or an escaped
+    character (`\\.exemple.com` is no domain). Every other token ends on a
+    sign the lookbehind lets by."""
     if index == 0:
         return ""
     previous = tokens[index - 1]
@@ -81,30 +93,52 @@ def spelled_before(tokens, index):
         return previous.content[-1:]
     if previous.type == "text_special":
         return previous.markup[-1:]
-    if previous.type in SPELLED_ENDS:
-        return SPELLED_ENDS[previous.type]
-    return previous.markup[-1:]
+    return ""
+
+
+# --- In full: inline, at its `:` ---
+
+
+def bare_url(state, silent):
+    """An address in full, read when the text reaches its `:` — its scheme
+    already written, waiting to be taken back."""
+    if state.linkLevel > 0 or not state.src.startswith("://", state.pos):
+        return False
+    scheme = SCHEME.search(state.pending)
+    if scheme is None:
+        return False
+    start = state.pos - len(scheme.group(0))
+    match = BARE_URL.match(state.src, start)
+    if match is None:
+        return False
+    written = without_a_sentence_parenthesis(match.group(0))
+    if not silent:
+        state.pending = state.pending[: -len(scheme.group(0))]
+        # its entities read, like the text around it
+        url = unescapeAll(written)
+        state.push("link_open", "a", 1).attrs = {"href": state.md.normalizeLink(url)}
+        state.push("text", "", 0).content = url
+        state.push("link_close", "a", -1)
+    state.pos = start + len(written)
+    return True
+
+
+# --- As a domain: in the text, once its marks are read ---
 
 
 def next_address(text, position):
-    """The first bare address of `text` at or after `position`: its start,
-    the text written and the URL it leads to; None when there is none. A
-    full address wins a tie with a domain inside it."""
-    found = [
-        (match.start(), rank, match.group(0), scheme)
-        for rank, (pattern, scheme) in enumerate(((BARE_URL, ""), (BARE_DOMAIN, ASSUMED_SCHEME)))
-        if (match := pattern.search(text, position))
-    ]
-    if not found:
+    """The first domain of `text` at or after `position`: its start, the
+    text written and the URL it leads to; None when there is none."""
+    match = BARE_DOMAIN.search(text, position)
+    if match is None:
         return None
-    start, _, written, scheme = min(found)
-    written = without_a_sentence_parenthesis(written)
-    return start, written, scheme + written
+    written = without_a_sentence_parenthesis(match.group(0))
+    return match.start(), written, ASSUMED_SCHEME + written
 
 
-def linked(token, before, md):
-    """A text token cut at its bare addresses: the text between them, and
-    each address as a link labelled with what was written."""
+def linked(md, token, before):
+    """A text token cut at its domains: the text between them, and each
+    domain as a link labelled with what was written."""
     text = before + token.content
     position, cut = len(before), []
     while address := next_address(text, position):
@@ -121,9 +155,9 @@ def linked(token, before, md):
     return cut
 
 
-def bare_links(state):
-    """Reads the bare addresses of every run of text — but inside a link's
-    label, written in Markdown or by hand, which holds no link."""
+def bare_domains(state):
+    """Reads the domains of every run of text — but inside a link's label,
+    written in Markdown or by hand, which holds no link."""
     for block in state.tokens:
         if block.type != "inline":
             continue
@@ -132,13 +166,14 @@ def bare_links(state):
         for index, token in enumerate(tokens):
             depth += link_depth(token)
             if token.type == "text" and depth == 0:
-                children += linked(token, spelled_before(tokens, index), state.md)
+                children += linked(state.md, token, spelled_before(tokens, index))
             else:
                 children.append(token)
         block.children = children
 
 
 def bare_links_plugin(md):
+    md.inline.ruler.before("linkify", "bare_url", bare_url)
     # before the escapes join the text around them: an escaped character
     # is not part of an address
-    md.core.ruler.before("text_join", "bare_links", bare_links)
+    md.core.ruler.before("text_join", "bare_domains", bare_domains)

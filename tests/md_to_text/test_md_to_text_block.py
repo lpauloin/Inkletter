@@ -109,3 +109,7 @@ def test_a_list_right_under_a_quote_follows_it():
     actual = parse_markdown_to_text("> Citée\n- un point")
     print(actual)
     assert actual == "> Citée\n\n- un point\n"
+
+
+def test_an_empty_quote_between_blocks_adds_no_blank_line():
+    assert parse_markdown_to_text("a\n\n>\n\nb") == "a\n\nb\n"

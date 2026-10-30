@@ -143,7 +143,11 @@ def test_a_sharp_without_its_space_is_no_heading_but_a_hashtag(ast):
     assert hashtags(doc) == ["Titre"]
 
 
-@pytest.mark.parametrize("text", ["#2026", "C#", "a#b", "&#39;", "##", "\\#pas", "# ", "#"])
+# Where a tag starts and what it holds are LinkedIn's, measured in its own
+# composer: not after an ASCII letter or digit, `_`, `&` or `/`.
+@pytest.mark.parametrize(
+    "text", ["C#", "a#b", "2#deux", "_#mot", "/#mot", "&#39;", "##", "\\#pas", "# ", "#"]
+)
 def test_what_is_not_a_hashtag_makes_no_node(ast, text):
     assert hashtags(ast(text)) == []
 
@@ -153,6 +157,11 @@ def test_what_is_not_a_hashtag_makes_no_node(ast, text):
     [
         ("(#marketing)", ["marketing"]),
         ("#un #deux", ["un", "deux"]),
+        ("Merci ##tag", ["tag"]),
+        ("é#accent", ["accent"]),
+        ("#2026", ["2026"]),
+        ("-#tiret .#point @#arobase", ["tiret", "point", "arobase"]),
+        ("#tag#autre", ["tag"]),
         ("#étude2026", ["étude2026"]),
         ("#mot_clé_2026", ["mot_clé_2026"]),
     ],

@@ -30,13 +30,16 @@ def test_nested_list():
 def test_task_list_uses_checkboxes():
     actual = parse_markdown_to_html_fragment("- [x] done\n- [ ] to do")
     print(actual)
-    assert actual == "<ul><li>☑ done</li><li>☐ to do</li></ul>"
+    assert (
+        actual
+        == '<ul><li style="list-style-type: none">☑ done</li><li style="list-style-type: none">☐ to do</li></ul>'
+    )
 
 
 def test_mixed_task_and_normal_list():
     actual = parse_markdown_to_html_fragment("- [x] done\n- normal")
     print(actual)
-    assert actual == "<ul><li>☑ done</li><li>normal</li></ul>"
+    assert actual == '<ul><li style="list-style-type: none">☑ done</li><li>normal</li></ul>'
 
 
 def test_a_loose_list_keeps_its_paragraphs():
@@ -63,7 +66,7 @@ def test_a_quote_inside_a_list():
 def test_code_inside_a_list():
     actual = parse_markdown_to_html_fragment("- item\n\n  ```\n  <b>x</b>\n  ```")
     print(actual)
-    assert "<pre><code>&lt;b&gt;x&lt;/b&gt;\n</code></pre>" in actual
+    assert "<pre><code>&lt;b&gt;x&lt;/b&gt;</code></pre>" in actual
 
 
 def test_a_deeply_nested_list():
@@ -83,7 +86,10 @@ def test_a_deeply_nested_list():
     [
         ("- Étapes\nAprès", "<ul><li>Étapes</li></ul><p>Après</p>"),
         ("1. Étapes\nAprès", "<ol><li>Étapes</li></ol><p>Après</p>"),
-        ("- [ ] Étapes\nAprès", "<ul><li>☐ Étapes</li></ul><p>Après</p>"),
+        (
+            "- [ ] Étapes\nAprès",
+            '<ul><li style="list-style-type: none">☐ Étapes</li></ul><p>Après</p>',
+        ),
     ],
 )
 def test_a_line_typed_after_an_item_is_a_block_of_its_own(markdown_text, expected):
@@ -114,3 +120,8 @@ def test_a_block_after_a_blank_line_ends_the_list():
     actual = parse_markdown_to_html_fragment("1. un\n2. deux\n\n> Une citation")
     print(actual)
     assert actual == "<ol><li>un</li><li>deux</li></ol><blockquote><p>Une citation</p></blockquote>"
+
+
+def test_a_box_in_a_numbered_list_stands_for_its_number():
+    actual = parse_markdown_to_html_fragment("3. [ ] a\n4. b")
+    assert actual == '<ol start="3"><li style="list-style-type: none">☐ a</li><li>b</li></ol>'

@@ -5,7 +5,7 @@ Everything else is a Link, which says its scheme for whoever asks."""
 import pytest
 
 from inkletter.ast import *
-from inkletter.md_to_ast import ASTBuilder
+from inkletter.md_to_ast import ASTBuilder, runs_something
 
 
 def walk(node):
@@ -218,13 +218,37 @@ def test_each_kind_of_link_prints_what_it_is(ast):
     ]
 
 
-def test_a_target_the_splitter_refuses_has_no_scheme(monkeypatch):
-    # which targets the splitter refuses depends on the Python — so the
-    # refusal is staged, and what must hold is that it never surfaces
-    import inkletter.ast
+def test_a_scheme_is_what_is_written_before_the_colon():
+    # read off the target as written, whatever its host holds
+    assert Link.scheme_of("http://[::1") == "http"
+    assert Link.scheme_of("HTTPS://exemple.fr") == "https"
+    assert Link.scheme_of("/chemin") == ""
+    assert Link.scheme_of("1http://a.fr") == ""
 
-    def refuse(target):
-        raise ValueError("Invalid IPv6 URL")
 
-    monkeypatch.setattr(inkletter.ast, "urlsplit", refuse)
-    assert Link.scheme_of("http://[::1") == ""
+def test_a_mail_or_a_number_is_what_follows_its_scheme():
+    assert MailLink([], "mailto:a@exemple.fr?subject=Bonjour").address == "a@exemple.fr"
+    assert TelLink([], "tel:+33102030405").number == "+33102030405"
+
+
+@pytest.mark.parametrize(
+    ("target", "runs"),
+    [
+        ("javascript:alert(1)", True),
+        ("DATA:text/plain,x", True),
+        ("file:///a", True),
+        ("https://a.fr", False),
+        ("/a", False),
+    ],
+)
+def test_what_runs_something(target, runs):
+    assert runs_something(target) is runs
+
+
+@pytest.mark.parametrize(
+    "target", [" javascript:x", "java\tscript:x", "\x01javascript:x", "javascript :x"]
+)
+def test_a_scheme_is_read_as_a_browser_reads_it(target):
+    # what a browser drops — tabs, line breaks, edge spaces and controls —
+    # never hides a scheme; a space inside one is no scheme at all
+    assert runs_something(target) is (target != "javascript :x")

@@ -39,16 +39,24 @@ export class BlockTextMerger extends NodeVisitor {
       merged.push(child);
     }
     BlockTextMerger.flush(buffer, merged);
+    // the breaks a paragraph opens or ends on separate nothing
+    while (merged[0] instanceof TextTerminal) merged.shift();
+    while (merged.at(-1) instanceof TextTerminal) merged.pop();
     return merged;
   }
 
-  /** The run gathered so far as a BlockText, the breaks at its edges aside —
-   *  an image between two lines leaves one on either side. */
+  /** The run gathered so far as a BlockText, the breaks at its edges beside
+   *  it — an image on a line of its own keeps the breaks around it, one
+   *  inside a line has none. */
   static flush(buffer: Node[], merged: Node[]): void {
-    while (buffer[0] instanceof TextTerminal) buffer.shift();
-    while (buffer.at(-1) instanceof TextTerminal) buffer.pop();
+    const leading: Node[] = [];
+    const trailing: Node[] = [];
+    while (buffer[0] instanceof TextTerminal) leading.push(buffer.shift()!);
+    while (buffer.at(-1) instanceof TextTerminal) trailing.unshift(buffer.pop()!);
+    merged.push(...leading);
     if (buffer.length) merged.push(new BlockText([...buffer]));
     buffer.length = 0;
+    merged.push(...trailing);
   }
 
   processBlocknode(node: BlockNode, scope: ScopeStack): void {
@@ -58,6 +66,13 @@ export class BlockTextMerger extends NodeVisitor {
 
   visit_Paragraph(node: BlockNode, scope: ScopeStack): void {
     this.processBlocknode(node, scope);
+  }
+
+  visit_BlockText(node: BlockText, scope: ScopeStack): void {
+    // a tight item's line: the breaks it opens or ends on separate nothing
+    while (node.children[0] instanceof TextTerminal) node.children.shift();
+    while (node.children.at(-1) instanceof TextTerminal) node.children.pop();
+    this.genericVisit(node, scope);
   }
 
   visit_Heading(node: BlockNode, scope: ScopeStack): void {
@@ -148,12 +163,19 @@ export class BlockTextMerger extends NodeVisitor {
     return new Button(link.children, link.href, link.title);
   }
 
+  /** A break between two of a paragraph's pieces, or text of spaces. */
   static isBlank(node: Node): boolean {
+    if (node instanceof TextTerminal) return true;
     return node instanceof BlockText && node.children.every((child) => child.isBlank());
   }
 
-  /** Trim the whitespace left over next to the extracted image. */
+  /** Trim the breaks and the whitespace left over next to the extracted
+   *  image. */
   static stripEdge(blocks: Node[], leading: boolean): void {
+    while ((leading ? blocks[0] : blocks.at(-1)) instanceof TextTerminal) {
+      if (leading) blocks.shift();
+      else blocks.pop();
+    }
     const block = leading ? blocks[0] : blocks.at(-1);
     if (!(block instanceof BlockText) || !block.children.length) return;
     const text = leading ? block.children[0] : block.children.at(-1);

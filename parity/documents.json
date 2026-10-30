@@ -3629,6 +3629,102 @@
     {
       "name": "refused: an alignment that is not one",
       "source": "[![a](i.png)](https://exemple.fr){align=top}"
+    },
+    {
+      "name": "loose bullet list",
+      "source": "- Un\n\n- Deux\n\n\n- Trois"
+    },
+    {
+      "name": "loose task list between paragraphs",
+      "source": "Avant\n\n- [ ] Un\n\n- [x] Deux\n\nAprès"
+    },
+    {
+      "name": "loose nested list",
+      "source": "1. Un\n   - a\n\n   - b\n\n2. Deux"
+    },
+    {
+      "name": "no-break space opening a paragraph",
+      "source": " a"
+    },
+    {
+      "name": "no-break space ending a paragraph",
+      "source": "a "
+    },
+    {
+      "name": "no-break space opening an item",
+      "source": "-  a"
+    },
+    {
+      "name": "no-break space ending a heading",
+      "source": "# a "
+    },
+    {
+      "name": "a no-break space alone",
+      "source": " "
+    },
+    {
+      "name": "a no-break space written as an entity",
+      "source": "&nbsp;a"
+    },
+    {
+      "name": "French spacing kept inside a line",
+      "source": "Bonjour ! Ça va ?"
+    },
+    {
+      "name": "a quote opening an item",
+      "source": "- > a\n  > b\n1. > c"
+    },
+    {
+      "name": "a hard break opening a paragraph",
+      "source": "**\\\na**\n\nb\\\n"
+    },
+    {
+      "name": "a next-line character at a cell's edges",
+      "source": "| a | b |\n|---|---|\n| x |  |"
+    },
+    {
+      "name": "an item whose first block writes nothing",
+      "source": "- <!-- c -->\n  a\n- > <!-- c -->\n  > b\n-\n  c"
+    },
+    {
+      "name": "quotes nested on an item's line",
+      "source": "- > > a\n  > > b"
+    },
+    {
+      "name": "a hard break opening a tight item",
+      "source": "- \\\n  a\n- b"
+    },
+    {
+      "name": "blocks showing nothing on an item's line",
+      "source": "- >\n\n  a\n- #\n\n  b\n- >\n  > #\n  > c"
+    },
+    {
+      "name": "an empty quote between blocks",
+      "source": "a\n\n>\n\nb\n\n> <!-- c -->\n\nd"
+    },
+    {
+      "name": "a label made of a hashtag",
+      "source": "[#tag](https://x.com) et [#contact](mailto:a@b.fr)"
+    },
+    {
+      "name": "a mention's name holding a hashtag",
+      "source": "Merci [Equipe #rh](urn:li:organization:1)"
+    },
+    {
+      "name": "a break under a mark in a label",
+      "source": "un [*a\nb*](https://x.com) deux [**Ac\nme**](urn:li:organization:1)"
+    },
+    {
+      "name": "spaces at a label's edges under its marks",
+      "source": "voir [**Acme&#32;**](urn:li:organization:1) et [**exemple.com&#32;**](https://exemple.com) et [<b> Acme</b>](urn:li:organization:2)"
+    },
+    {
+      "name": "a mention naming nobody",
+      "source": "Merci [](urn:li:organization:1) et [ ](urn:li:organization:2) !"
+    },
+    {
+      "name": "hand-written anchors hiding a scheme",
+      "source": "<a href=\" javascript:alert(1)\">x</a> <a href=\"java\tscript:alert(1)\">y</a> <a href=\"/b\">z</a>"
     }
   ]
 }

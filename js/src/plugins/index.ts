@@ -5,7 +5,8 @@
 // | Plugin                 | Module            | Rule            | What it reads                         |
 // |------------------------|-------------------|-----------------|---------------------------------------|
 // | `hashtagPlugin`        | `hashtags`        | inline, `#`     | `#tag`, before any mark inside it     |
-// | `bareLinksPlugin`      | `bare_links`      | core            | `https://…` and `exemple.com`         |
+// | `bareLinksPlugin`      | `bare_links`      | inline, `:`;    | `https://…`, at its `:`; `exemple.com`|
+// |                        |                   | core            | in the text                           |
 // | `taskListsPlugin`      | `task_lists`      | core            | `[ ]` and `[x]` opening a list item   |
 // | `typedListsPlugin`     | `typed_lists`     | block, ends `p` | a list ends where its author stopped  |
 // | `linkAttributesPlugin` | `link_attributes` | inline, `{`     | `{width=96px}` after an image         |

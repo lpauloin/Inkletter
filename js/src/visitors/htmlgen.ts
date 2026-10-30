@@ -2,10 +2,10 @@
 // document, to be set inside another one — `inkletter/visitors/htmlgen.py`.
 //
 // No theme applies: the page around the fragment styles it — of the
-// annotations, only the hand-written anchors are read. Safe to set inside a page that trusts nothing the author typed: every
-// text is escaped, raw HTML is dropped, a link to any scheme but those of
-// `LINKED_SCHEMES` is written as its label, and an image is its alternative
-// text. A hand-written anchor is a link, its tag rebuilt from its address
+// annotations, only the hand-written anchors and a task's box are read.
+// Safe to set inside a page that trusts nothing the author typed: every
+// text is escaped, raw HTML is dropped, a target that runs something is
+// never a link (`runsSomething`), and an image is its alternative text. A hand-written anchor is a link, its tag rebuilt from its address
 // alone. A line break the author typed stays one.
 
 import {
@@ -18,8 +18,8 @@ import {
   type Emphasis,
   type Hashtag,
   type Heading,
-  Image,
-  ImageLink,
+  type Image,
+  type ImageLink,
   type ImageRow,
   type InlineHtml,
   Link,
@@ -38,19 +38,16 @@ import {
   type TableRow,
   type TaskListItem,
 } from '../ast.js';
-import { htmlEscape, strip } from '../stdlib.js';
+import { htmlEscape } from '../stdlib.js';
 import { NodeVisitor } from './generic.js';
 import type { ScopeStack } from './scope.js';
 
-// The schemes a fragment links to; any other target is written as its label.
-const LINKED_SCHEMES = ['', 'http', 'https', 'mailto', 'tel'];
 
 export class HtmlFragmentCodegen extends NodeVisitor {
   parts: string[] = [];
-  // Hand-written anchors opened and not closed yet, each saying whether its
-  // tag was written — a scheme the fragment does not link to opens none: the
-  // block they sit in closes them, whatever the author forgot.
-  openAnchors: boolean[] = [];
+  // Hand-written anchors opened and not closed yet: the block they sit in
+  // closes them, whatever the author forgot.
+  openAnchors = 0;
 
   getHtml(): string {
     return this.parts.join('');
@@ -67,10 +64,11 @@ export class HtmlFragmentCodegen extends NodeVisitor {
   wrapped(tag: string, node: Node, scope: ScopeStack, attributes = ''): void {
     const start = this.parts.length;
     this.write(`<${tag}${attributes}>`);
+    this.checkbox(node);
     const opened = this.openAnchors;
-    this.openAnchors = [];
+    this.openAnchors = 0;
     this.genericVisit(node, scope);
-    this.write('</a>'.repeat(this.openAnchors.filter(Boolean).length));
+    this.write('</a>'.repeat(this.openAnchors));
     this.openAnchors = opened;
     if (tag === 'p' && this.parts.slice(start + 1).join('') === '') {
       // a paragraph with nothing to read — an image without its alternative
@@ -93,7 +91,14 @@ export class HtmlFragmentCodegen extends NodeVisitor {
 
   visit_BlockText(node: BlockText, scope: ScopeStack): void {
     // the text of a tight list's item: no paragraph of its own
+    this.checkbox(node);
     this.genericVisit(node, scope);
+  }
+
+  /** The box a task item's first line opens on. */
+  checkbox(node: Node): void {
+    const box = node.annotations.checkbox;
+    if (typeof box === 'string' && box) this.text(`${box} `);
   }
 
   visit_Heading(node: Heading, scope: ScopeStack): void {
@@ -137,13 +142,14 @@ export class HtmlFragmentCodegen extends NodeVisitor {
   visit_InlineHtml(node: InlineHtml): void {
     // the tags vanish, the text between them stays — except an anchor,
     // rebuilt from its address alone
+    if (node.annotations.anchor_nested) return;
     const href = node.annotations.anchor_opens;
     if (typeof href === 'string') {
-      const linked = LINKED_SCHEMES.includes(Link.schemeOf(href));
-      if (linked) this.write(`<a href="${htmlEscape(href)}">`);
-      this.openAnchors.push(linked);
-    } else if (node.annotations.anchor_href && this.openAnchors.length) {
-      if (this.openAnchors.pop()) this.write('</a>');
+      this.write(`<a href="${htmlEscape(href)}">`);
+      this.openAnchors += 1;
+    } else if (node.annotations.anchor_href && this.openAnchors) {
+      this.write('</a>');
+      this.openAnchors -= 1;
     }
   }
 
@@ -177,10 +183,6 @@ export class HtmlFragmentCodegen extends NodeVisitor {
   }
 
   link(node: Link, scope: ScopeStack): void {
-    if (!LINKED_SCHEMES.includes(node.scheme)) {
-      this.genericVisit(node, scope);
-      return;
-    }
     if (node.children.every((child) => child.isBlank())) {
       // nothing to click on: the address is its own label
       this.write(`<a href="${htmlEscape(node.href)}">`);
@@ -202,16 +204,20 @@ export class HtmlFragmentCodegen extends NodeVisitor {
   // --- Images and layout conventions ---
 
   visit_Image(node: Image): void {
-    if (HtmlFragmentCodegen.altOf(node)) this.text(node.altText);
+    if (node.saysSomething) this.text(node.altText);
   }
 
-  visit_ImageLink(node: ImageLink, scope: ScopeStack): void {
-    this.visit(node.img, scope);
+  visit_ImageLink(node: ImageLink): void {
+    // its alternative text, as the link it was
+    if (!node.saysSomething) return;
+    this.write(`<a href="${htmlEscape(node.href)}">`);
+    this.text(node.img.altText);
+    this.write('</a>');
   }
 
   visit_ImageRow(node: ImageRow, scope: ScopeStack): void {
     // one line per image that says something, as the text output does
-    const alts = node.children.filter((image) => HtmlFragmentCodegen.altOf(image));
+    const alts = node.children.filter((image) => image.saysSomething);
     if (!alts.length) return;
     this.write('<p>');
     alts.forEach((image, index) => {
@@ -223,7 +229,7 @@ export class HtmlFragmentCodegen extends NodeVisitor {
 
   visit_MediaObject(node: MediaObject, scope: ScopeStack): void {
     // the image's alternative text, then the text beside it
-    if (HtmlFragmentCodegen.altOf(node.image)) {
+    if (node.image.saysSomething) {
       this.write('<p>');
       this.visit(node.image, scope);
       this.write('</p>');
@@ -233,17 +239,7 @@ export class HtmlFragmentCodegen extends NodeVisitor {
     this.write('</p>');
   }
 
-  /** Whether an image, linked or not, has an alternative text to show. */
-  static altOf(image: Node): boolean {
-    const img = image instanceof ImageLink ? image.img : image;
-    return img instanceof Image && Boolean(strip(img.altText));
-  }
-
   visit_Button(node: Button, scope: ScopeStack): void {
-    if (!LINKED_SCHEMES.includes(Link.schemeOf(node.href))) {
-      this.wrapped('p', node, scope);
-      return;
-    }
     this.write(`<p><a href="${htmlEscape(node.href)}"><strong>`);
     this.genericVisit(node, scope);
     this.write('</strong></a></p>');
@@ -264,10 +260,8 @@ export class HtmlFragmentCodegen extends NodeVisitor {
   }
 
   visit_TaskListItem(node: TaskListItem, scope: ScopeStack): void {
-    this.write('<li>');
-    this.text(node.checked ? '☑ ' : '☐ ');
-    this.genericVisit(node, scope);
-    this.write('</li>');
+    // the box stands for the marker, in a numbered list as in another
+    this.wrapped('li', node, scope, ' style="list-style-type: none"');
   }
 
   // --- Tables ---

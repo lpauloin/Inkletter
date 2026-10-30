@@ -3,6 +3,7 @@ import json
 import re
 import tempfile
 import webbrowser
+from functools import partial
 from pathlib import Path
 
 import click
@@ -19,6 +20,11 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 #: The named slots of the preview page. Substituted in one pass, so a
 #: value holding the text of another slot is never itself substituted.
 PREVIEW_SLOTS = re.compile(r"\{\{ (MD_CONTENT|MJML_CONTENT|HTML_CONTENT) \}\}")
+
+
+def slot_value(values, match):
+    """What fills the slot a match found."""
+    return values[match.group(1)]
 
 
 def render_preview(markdown_text, mjml_code, html_output):
@@ -39,7 +45,8 @@ def render_preview(markdown_text, mjml_code, html_output):
         "MJML_CONTENT": html.escape(mjml_code),
         "HTML_CONTENT": embedded,
     }
-    return PREVIEW_SLOTS.sub(lambda match: values[match.group(1)], page)
+    # one pass: a slot spelled inside what fills another is left as written
+    return PREVIEW_SLOTS.sub(partial(slot_value, values), page)
 
 
 @click.group()

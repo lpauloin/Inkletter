@@ -1,4 +1,6 @@
-from inkletter import URLFactory
+import pytest
+
+from inkletter import URLFactory, render_linkedin
 from inkletter.md_to_linkedin import parse_markdown_to_linkedin
 
 
@@ -205,3 +207,99 @@ def test_a_label_holding_code_reads_as_its_text():
 def test_a_hand_written_anchor_spells_out_its_address():
     actual = parse_markdown_to_linkedin('Voir <a href="https://exemple.fr">le site</a> ici.')
     assert actual == "Voir le site : https://exemple.fr ici."
+
+
+def test_a_bare_address_keeps_the_marks_written_inside_it():
+    # read whole before any mark, as GitHub reads one: its stars are its own
+    actual = parse_markdown_to_linkedin("Voir https://exemple.fr/*etoiles* merci", max_length=None)
+    print(actual)
+    assert actual == "Voir https://exemple.fr/*etoiles* merci"
+
+
+def test_a_bare_address_keeps_its_underscores_and_tildes():
+    for written in ("https://exemple.fr/_x_", "https://exemple.fr/a~~b~~"):
+        assert (
+            parse_markdown_to_linkedin(f"Voir {written} ici", max_length=None)
+            == f"Voir {written} ici"
+        )
+
+
+# Where an address starts and ends is LinkedIn's, measured in its own
+# composer: the address it asks a preview for.
+
+
+@pytest.mark.parametrize(
+    ("written", "address"),
+    [
+        ("Voir https://exemple.fr/question? fin", "https://exemple.fr/question"),
+        ("Voir https://exemple.fr/cri! fin", "https://exemple.fr/cri"),
+        ("Voir https://exemple.fr/point. fin", "https://exemple.fr/point"),
+        ('Voir "https://exemple.fr/droit" fin', "https://exemple.fr/droit"),
+        ("Voir (https://exemple.fr/ouvrante) fin", "https://exemple.fr/ouvrante"),
+        ("Voir « https://exemple.fr/espace » fin", "https://exemple.fr/espace"),
+        ("Voir https://exemple.fr/a?b=1&c=2 fin", "https://exemple.fr/a?b=1&c=2"),
+    ],
+)
+def test_an_address_ends_where_the_feed_ends_it(written, address):
+    segments = [s for line in render_linkedin(written).lines for s in line.segments]
+    assert [s.display for s in segments if s.kind == "link"] == [address]
+
+
+@pytest.mark.parametrize(
+    "written",
+    [
+        "Voir «https://exemple.fr/francais» fin",
+        "Voir xhttps://exemple.fr/colle fin",
+        "Voir -https://exemple.fr/tiret",
+    ],
+)
+def test_an_address_glued_to_what_the_feed_reads_as_a_word_is_text(written):
+    segments = [s for line in render_linkedin(written).lines for s in line.segments]
+    assert [s for s in segments if s.kind == "link"] == []
+
+
+@pytest.mark.parametrize(
+    "target", ["javascript:alert(1)", "JavaScript:alert(document)", "data:text/plain,bonjour"]
+)
+def test_a_link_that_runs_something_is_its_words(target):
+    assert (
+        parse_markdown_to_linkedin(f"Lisez [notre étude]({target}).", max_length=None)
+        == "Lisez notre étude."
+    )
+
+
+def test_a_hand_written_anchor_that_runs_something_is_its_words():
+    assert parse_markdown_to_linkedin('Voir <a href="javascript:alert(1)">ici</a>.') == "Voir ici."
+
+
+def test_a_hand_written_anchor_around_an_image_spells_its_address():
+    assert (
+        parse_markdown_to_linkedin('<a href="https://x.com">![x](https://i.com/x.png)</a>')
+        == "![x](https://i.com/x.png) : https://x.com"
+    )
+
+
+def test_a_label_or_a_name_made_of_a_hashtag_keeps_its_words():
+    assert parse_markdown_to_linkedin("[#tag](https://x.com)") == "#tag : https://x.com"
+    assert (
+        parse_markdown_to_linkedin("[Equipe #rh](urn:li:organization:1)")
+        == "@[urn:li:organization:1|Equipe #rh]"
+    )
+
+
+def test_a_break_under_a_mark_in_a_label_is_a_space():
+    assert (
+        parse_markdown_to_linkedin("un [*a\nb*](https://x.com) deux")
+        == "un a b : https://x.com deux"
+    )
+    assert (
+        parse_markdown_to_linkedin("[**Ac\nme**](urn:li:organization:1)")
+        == "@[urn:li:organization:1|Ac me]"
+    )
+
+
+def test_a_label_spelling_its_address_under_a_mark_is_the_address():
+    assert (
+        parse_markdown_to_linkedin("voir [**exemple.com&#32;**](https://exemple.com) ok")
+        == "voir https://exemple.com ok"
+    )

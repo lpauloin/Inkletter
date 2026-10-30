@@ -4,12 +4,14 @@
 export { escapeMarkdown } from './escaping.js';
 export { LengthError, MarkupError, ThemeError } from './exceptions.js';
 export { type AstOptions, createMarkdown, parseMarkdownToAst, readMarkdown } from './md_to_ast.js';
+export { runsSomething } from './ast.js';
 export { parseMarkdownToHtml, parseMjmlToHtml } from './md_to_html.js';
 export { type HtmlFragmentOptions, parseMarkdownToHtmlFragment } from './md_to_html_fragment.js';
 export { type LinkedinOptions, parseMarkdownToLinkedin, renderLinkedin } from './md_to_linkedin.js';
 export { LinkedinRender } from './visitors/linkedingen.js';
 export type { Line, Segment, SegmentKind } from './codeblock.js';
 export { BARE_DOMAIN, EXTENSIONS, isBareDomain, isSpelledBy } from './plugins/bare_domains.js';
+export { HASHTAG } from './plugins/hashtags.js';
 // The tree and the visitor, for an application that lays a document out its
 // own way — an editing surface reading the text as the render reads it.
 export * as ast from './ast.js';

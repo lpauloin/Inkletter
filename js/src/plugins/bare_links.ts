@@ -1,29 +1,30 @@
 // An address written in the text without brackets — in full or as a domain
 // — read as a link to itself: `inkletter/plugins/bare_links.py`.
+//
+// | Written                | Rule                                                 |
+// |------------------------|------------------------------------------------------|
+// | `https://exemple.fr/…` | inline, at its `:` — read whole before any mark, so  |
+// |                        | `https://a.fr/*x*` keeps its stars (markdown-it's    |
+// |                        | own linkify rule works the same way)                 |
+// | `exemple.fr/…`         | core, in the text once its marks are read: nothing   |
+// |                        | announces a domain to an inline rule                 |
 
 import type MarkdownIt from 'markdown-it';
-import type { StateCore, Token } from 'markdown-it';
+import type { StateCore, StateInline, Token } from 'markdown-it';
 import { SPACE } from '../stdlib.js';
-import { ASSUMED_SCHEME, BARE_DOMAIN } from './bare_domains.js';
+import { ASSUMED_SCHEME, DOMAIN_PATTERN } from './bare_domains.js';
 
-// An address written without brackets, which CommonMark reads as text and
-// every reader as a link: read as one, so the URL factory shortens it and
-// the counter charges it like any other. It never ends on `*`, `_` or `~`
-// (GFM's autolink rule), or `**https://exemple.fr**` would swallow its
-// closing marks. A final `)` is matched, and weighed below.
-const BARE_URL = new RegExp(`https?:\\/\\/[^${SPACE}<]+[^<.,:;"'\\]${SPACE}*_~]`, 'gu');
+// The domains of a run of text, searched from a position.
+const DOMAINS = new RegExp(DOMAIN_PATTERN, 'gu');
 
-// What a token leaves just before the text that follows it, for a rule that
-// needs to see what an address is written against: a mark's own spelling,
-// and these for the tokens that have none.
-const SPELLED_ENDS: Readonly<Record<string, string>> = {
-  link_close: ')',
-  image: ')',
-  code_inline: '`',
-  softbreak: '\n',
-  hardbreak: '\n',
-  hashtag: '#',
-};
+// An address written without brackets, read as a link so the URL factory
+// shortens it and the counter charges it like any other. Where it starts and
+// ends is LinkedIn's, measured in its own composer and laid out in
+// `inkletter/plugins/bare_links.py`: after a space, the start, `(`, `"` or a
+// mark; never ending on the sentence's sign (`.,:;"'?!]`) nor on a mark.
+const BARE_URL = new RegExp(`(?<![^${SPACE}(*_~"])https?:\\/\\/[^${SPACE}<]+[^<.,:;"'\\]${SPACE}*_~?!]`, 'uy');
+// The scheme the text before a `:` ends on.
+const SCHEME = /https?$/;
 
 /** GFM's parenthesis rule: a closing parenthesis at the end belongs to the
  *  address only when an opening one inside it is waiting for it. */
@@ -77,15 +78,49 @@ function lastChar(value: string): string {
   return Array.from(value).at(-1) ?? '';
 }
 
-/** The character the source holds just before `tokens[index]` — what a
- *  lookbehind on an address needs once the text is cut into tokens. */
+/** The character the source holds just before `tokens[index]`, when the
+ *  domain's lookbehind needs it: the end of a text, or an escaped character
+ *  (`\.exemple.com` is no domain). Every other token ends on a sign the
+ *  lookbehind lets by. */
 function spelledBefore(tokens: Token[], index: number): string {
   const previous = tokens[index - 1];
   if (!previous) return '';
   if (previous.type === 'text' || previous.type === 'html_inline') return lastChar(previous.content);
   if (previous.type === 'text_special') return lastChar(previous.markup);
-  return SPELLED_ENDS[previous.type] ?? lastChar(previous.markup);
+  return '';
 }
+
+// --- In full: inline, at its `:` ---
+
+/** The inline state as markdown-it fills it: its types leave out
+ *  `linkLevel`, how deep the text sits in a link's label — the guard its own
+ *  linkify rule reads. */
+type LinkAwareState = StateInline & { linkLevel: number };
+
+/** An address in full, read when the text reaches its `:` — its scheme
+ *  already written, waiting to be taken back. */
+function bareUrl(state: StateInline, silent: boolean): boolean {
+  if ((state as LinkAwareState).linkLevel > 0 || !state.src.startsWith('://', state.pos)) return false;
+  const scheme = SCHEME.exec(state.pending)?.[0];
+  if (scheme === undefined) return false;
+  const start = state.pos - scheme.length;
+  BARE_URL.lastIndex = start;
+  const match = BARE_URL.exec(state.src);
+  if (!match) return false;
+  const written = withoutASentenceParenthesis(match[0]);
+  if (!silent) {
+    state.pending = state.pending.slice(0, -scheme.length);
+    // its entities read, like the text around it
+    const url = state.md.utils.unescapeAll(written);
+    state.push('link_open', 'a', 1).attrs = [['href', state.md.normalizeLink(url)]];
+    state.push('text', '', 0).content = url;
+    state.push('link_close', 'a', -1);
+  }
+  state.pos = start + written.length;
+  return true;
+}
+
+// --- As a domain: in the text, once its marks are read ---
 
 interface Address {
   start: number;
@@ -93,25 +128,17 @@ interface Address {
   url: string;
 }
 
-/** The first bare address of `value` at or after `position`. A full address
- *  wins a tie with a domain inside it. */
+/** The first domain of `value` at or after `position`. */
 function nextAddress(value: string, position: number): Address | null {
-  let best: { start: number; written: string; scheme: string } | null = null;
-  for (const [pattern, scheme] of [
-    [BARE_URL, ''],
-    [BARE_DOMAIN, ASSUMED_SCHEME],
-  ] as const) {
-    pattern.lastIndex = position;
-    const match = pattern.exec(value);
-    if (match && (best === null || match.index < best.start)) best = { start: match.index, written: match[0], scheme };
-  }
-  if (best === null) return null;
-  const written = withoutASentenceParenthesis(best.written);
-  return { start: best.start, written, url: best.scheme + written };
+  DOMAINS.lastIndex = position;
+  const match = DOMAINS.exec(value);
+  if (!match) return null;
+  const written = withoutASentenceParenthesis(match[0]);
+  return { start: match.index, written, url: ASSUMED_SCHEME + written };
 }
 
-/** A text token cut at its bare addresses: the text between them, and each
- *  address as a link labelled with what was written. */
+/** A text token cut at its domains: the text between them, and each domain
+ *  as a link labelled with what was written. */
 function linked(state: StateCore, token: Token, before: string): Token[] {
   const value = before + token.content;
   let position = before.length;
@@ -129,9 +156,9 @@ function linked(state: StateCore, token: Token, before: string): Token[] {
   return cut;
 }
 
-/** Reads the bare addresses of every run of text — but inside a link's
- *  label, written in Markdown or by hand, which holds no link. */
-function bareLinks(state: StateCore): void {
+/** Reads the domains of every run of text — but inside a link's label,
+ *  written in Markdown or by hand, which holds no link. */
+function bareDomains(state: StateCore): void {
   for (const block of state.tokens) {
     if (block.type !== 'inline' || !block.children) continue;
     const tokens = runs(state, block.children);
@@ -147,7 +174,8 @@ function bareLinks(state: StateCore): void {
 }
 
 export function bareLinksPlugin(md: MarkdownIt): void {
+  md.inline.ruler.before('linkify', 'bare_url', bareUrl);
   // before the escapes join the text around them: an escaped character is
   // not part of an address
-  md.core.ruler.before('text_join', 'bare_links', bareLinks);
+  md.core.ruler.before('text_join', 'bare_domains', bareDomains);
 }

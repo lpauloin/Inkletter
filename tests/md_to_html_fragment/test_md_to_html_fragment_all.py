@@ -94,12 +94,12 @@ She will own the rendering platform.
         "<h6>Level six</h6>"
         "<hr>"
         "<blockquote><p>A quote on two<br>lines.</p><blockquote><p>A nested quote.</p></blockquote><ul><li>a list in a quote</li><li>with two items</li></ul></blockquote>"
-        '<pre><code>def hello(name):\n    print("hi", name)\n\nhello("world")\n</code></pre>'
+        '<pre><code>def hello(name):\n    print("hi", name)\n\nhello("world")</code></pre>'
         "<pre><code>an indented code block</code></pre>"
         "<ol><li>first ordered item</li><li>second one,<br>soft-wrapped</li><li>renumbered anyway</li></ol>"
-        '<ul><li>unordered item<ul><li>nested item</li></ul></li><li>☑ a done task</li><li>☐ a pending task</li><li>a <strong><a href="https://example.com/list">bold link in a list</a></strong> stays a link</li></ul>'
+        '<ul><li>unordered item<ul><li>nested item</li></ul></li><li style="list-style-type: none">☑ a done task</li><li style="list-style-type: none">☐ a pending task</li><li>a <strong><a href="https://example.com/list">bold link in a list</a></strong> stays a link</li></ul>'
         '<table><thead><tr><th style="text-align: left">Left</th><th style="text-align: center">Center</th><th style="text-align: right">Right</th></tr></thead><tbody><tr><td style="text-align: left">ab</td><td style="text-align: center">cd</td><td style="text-align: right">ef</td></tr><tr><td style="text-align: left">a <strong>bold</strong> cell</td><td style="text-align: center">x</td><td style="text-align: right">12345</td></tr></tbody></table>'
-        "<p>First view<br>Second view<br>Logo</p>"
+        '<p>First view<br>Second view<br><a href="https://example.com">Logo</a></p>'
         "<p>Portrait</p>"
         "<p>Jane joined the team this week.<br>She will own the rendering platform.</p>"
         '<p><a href="https://example.com/story"><strong>Read the full story</strong></a></p>'

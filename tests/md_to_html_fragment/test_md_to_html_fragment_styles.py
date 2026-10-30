@@ -248,7 +248,10 @@ def test_styles_in_an_ordered_list_with_a_link():
 def test_styles_in_a_task_list():
     actual = parse_markdown_to_html_fragment("- [x] **done**\n- [ ] *to do*")
     print(actual)
-    assert actual == "<ul><li>☑ <strong>done</strong></li><li>☐ <em>to do</em></li></ul>"
+    assert (
+        actual
+        == '<ul><li style="list-style-type: none">☑ <strong>done</strong></li><li style="list-style-type: none">☐ <em>to do</em></li></ul>'
+    )
 
 
 def test_styles_in_a_quote():
@@ -278,7 +281,7 @@ def test_styles_in_a_nested_list():
 def test_no_style_reaches_a_code_block():
     actual = parse_markdown_to_html_fragment("```\n**not bold** *nor italic*\n```")
     print(actual)
-    assert actual == "<pre><code>**not bold** *nor italic*\n</code></pre>"
+    assert actual == "<pre><code>**not bold** *nor italic*</code></pre>"
 
 
 # --- Marks that do not close, or style nothing ---

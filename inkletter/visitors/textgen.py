@@ -19,12 +19,14 @@ class TextCodegen(NodeVisitor):
 
     Sibling of the MJML Codegen, built on the same CodeBlock machinery,
     and the base of the LinkedIn output, which keeps its lines and
-    changes its choices. Themes and annotations do not apply: plain text
-    has no styling. A fragment that needs a width before landing in the
-    output (padded table cells, an underline as wide as its title) is
-    visited into a nested CodeBlock, resolved to text, shaped, then
-    written to the current block; a quote needs none, its marker being a
-    line prefix the resolver puts there.
+    changes its choices. Themes and styles do not apply: plain text has no
+    styling; of the annotations, it reads what the document says — an
+    item's rank, a hand-written anchor, a label that is an address. A
+    fragment that needs a width before landing in the output (padded table
+    cells, an underline as wide as its title) is visited into a nested
+    CodeBlock, resolved to text, shaped, then written to the current block;
+    a quote needs none, its marker being a line prefix the resolver puts
+    there.
     """
 
     def __init__(self, bullet=BULLET):
@@ -48,14 +50,19 @@ class TextCodegen(NodeVisitor):
             self.write(text)
         self.current.add_newline()
 
-    def close_line(self):
-        """End the current line if the last element left it open."""
+    def line_open(self):
+        """Whether the last element left the current line open."""
         for element in reversed(self.current.elements):
             if isinstance(element, (Newline, CodeBlock)):
-                return  # nested blocks are always attached closed
+                return False  # nested blocks are always attached closed
             if isinstance(element, TextElement):
-                self.current.add_newline()
-                return
+                return True
+        return False
+
+    def close_line(self):
+        """End the current line if the last element left it open."""
+        if self.line_open():
+            self.current.add_newline()
 
     def render_block(self, node, scope):
         """The node's output as its own CodeBlock, line closed."""
@@ -66,12 +73,34 @@ class TextCodegen(NodeVisitor):
 
     def emit_blocks(self, nodes, scope):
         """Emit the visible blocks separated by one blank line."""
-        blocks = [self.render_block(node, scope) for node in nodes]
-        visible = [block for block in blocks if block.elements]
-        for index, block in enumerate(visible):
-            if index:
+        written = False
+        for node in nodes:
+            if not written and self.line_open():
+                # the first block continues a line already open — an item's
+                # marker, a quote's — and writes what it opens with there
+                if self.wrote(node, scope):
+                    self.close_line()
+                    written = True
+                continue
+            block = self.render_block(node, scope)
+            if not shows_text(block.elements):
+                continue
+            if written:
                 self.line()
             self.current.add_codeblock(block)
+            written = True
+        return written
+
+    def wrote(self, node, scope):
+        """Visit a node where the writing stands; whether it wrote words. What
+        a visit that wrote none left — a break, an indent, a quote's mark — is
+        taken back, the line kept for what comes next."""
+        before = len(self.current.elements)
+        self.visit(node, scope)
+        if shows_text(self.current.elements[before:]):
+            return True
+        del self.current.elements[before:]
+        return False
 
     @contextmanager
     def nested(self):
@@ -94,10 +123,11 @@ class TextCodegen(NodeVisitor):
 
     def visit_Paragraph(self, node, scope):
         self.generic_visit(node, scope)
+        self.close_line()
 
     def visit_BlockText(self, node, scope):
+        # a run of a line: whoever holds it ends the line
         self.generic_visit(node, scope)
-        self.line()
 
     def visit_Heading(self, node, scope):
         with self.nested() as block:
@@ -114,10 +144,17 @@ class TextCodegen(NodeVisitor):
 
     def visit_BlockQuote(self, node, scope):
         # the marker is a prefix on every line of the quote, blank ones
-        # included — the resolver puts it there, no string goes round
+        # included — the resolver puts it there, no string goes round; on a
+        # line already open (an item's marker), it is written there
+        before = len(self.current.elements)
+        if self.line_open():
+            self.write("> ")
         self.current.add_indent("> ")
-        self.emit_blocks(node.children, scope)
+        written = self.emit_blocks(node.children, scope)
         self.current.add_dedent()
+        if not written:
+            # a quote of nothing leaves no mark
+            del self.current.elements[before:]
 
     def visit_BlockCode(self, node, scope):
         for line in node.code.splitlines():
@@ -161,6 +198,9 @@ class TextCodegen(NodeVisitor):
         self.generic_visit(node, scope)
 
     def visit_UrlLink(self, node, scope):
+        # The label beside the address unless it spells it: compared once
+        # a factory has rewritten the address, so a shortened link still
+        # says, in words, where it leads.
         label = self.resolve_inline(node.children, scope)
         if not label or is_spelled_by(node.href, label):
             self.write(node.href)
@@ -176,11 +216,10 @@ class TextCodegen(NodeVisitor):
     def named(self, node, target, scope):
         # the address or the number alone when the label is it — a bare
         # `<bonjour@exemple.fr>` — rather than twice, once with its scheme
-        label = self.resolve_inline(node.children, scope)
-        if not label or label in (target, node.href):
+        if node.annotations["label_is_address"]:
             self.write(target)
         else:
-            self.write(f"{label} <{node.href}>")
+            self.write(f"{self.resolve_inline(node.children, scope)} <{node.href}>")
 
     def visit_LineBreak(self, node, scope):
         self.line()
@@ -191,23 +230,25 @@ class TextCodegen(NodeVisitor):
     # --- Images and layout conventions ---
 
     def visit_Image(self, node, scope):
-        if node.alt_text:
-            self.line(node.alt_text)
+        if node.says_something:
+            self.write(node.alt_text)
 
     def visit_ImageLink(self, node, scope):
-        alt = node.img.alt_text
-        if alt:
-            self.line(f"{alt} <{node.href}>")
+        if node.says_something:
+            self.write(f"{node.img.alt_text} <{node.href}>")
         else:
-            self.line(node.href)
+            self.write(node.href)
 
     def visit_ImageRow(self, node, scope):
+        # one line per image
         for image in node.children:
             self.visit(image, scope)
+            self.close_line()
 
     def visit_MediaObject(self, node, scope):
         self.visit(node.image, scope)
         if self.current.elements:  # blank line only below a visible alt
+            self.close_line()
             self.line()
         self.emit_blocks(node.children, scope)
 
@@ -220,22 +261,35 @@ class TextCodegen(NodeVisitor):
 
     # --- Lists ---
 
+    def blank_lines_before(self, node, index):
+        """The blank lines written before an item: in a text, none — a list
+        reads as one block, loose or tight."""
+        return 0
+
     def visit_List(self, node, scope):
-        number = node.start if node.ordered and node.start else 1
-        for item in node.elements:
-            if isinstance(item, TaskListItem):
-                marker = "[x] " if item.checked else "[ ] "
-            elif node.ordered:
-                marker = f"{number}. "
-                number += 1
-            else:
-                marker = self.bullet
-            self.write(marker)
-            self.current.add_indent()
-            for child in item.children:
-                self.visit(child, scope)
-            self.close_line()
-            self.current.add_dedent()
+        for index, item in enumerate(node.elements):
+            for _ in range(self.blank_lines_before(node, index)):
+                self.line()
+            self.visit(item, scope)
+
+    def visit_ListItem(self, node, scope):
+        number = node.annotations.get("number")
+        self.item(node, self.bullet if number is None else f"{number}. ", scope)
+
+    def visit_TaskListItem(self, node, scope):
+        self.item(node, "[x] " if node.checked else "[ ] ", scope)
+
+    def item(self, node, marker, scope):
+        """An item on its marker, what it holds indented under it."""
+        self.write(marker)
+        self.current.add_indent()
+        for child in node.children:
+            # a block that writes nothing leaves the line to the next one
+            if self.wrote(child, scope):
+                self.close_line()
+        # an empty item still ends on its marker's line
+        self.close_line()
+        self.current.add_dedent()
 
     # --- Tables ---
 
@@ -254,30 +308,42 @@ class TextCodegen(NodeVisitor):
         widths = [
             max(len(line[i]) if i < len(line) else 0 for line in grid) for i in range(columns)
         ]
-
-        def pad(value, width, align):
-            if align == "right":
-                return value.rjust(width)
-            if align == "center":
-                return value.center(width)
-            return value.ljust(width)
-
-        def emit_row(line):
-            padded = [
-                pad(
-                    line[i] if i < len(line) else "",
-                    widths[i],
-                    aligns[i] if i < len(aligns) else None,
-                )
-                for i in range(columns)
-            ]
-            self.line(" | ".join(padded).rstrip())
-
         if header:
-            emit_row(grid[0])
+            self.row(grid[0], widths, aligns)
             self.line("-+-".join("-" * width for width in widths))
             body = grid[1:]
         else:
             body = grid
         for line in body:
-            emit_row(line)
+            self.row(line, widths, aligns)
+
+    def row(self, line, widths, aligns):
+        """One line of a table, each cell padded to its column."""
+        padded = [
+            pad(
+                line[i] if i < len(line) else "",
+                width,
+                aligns[i] if i < len(aligns) else None,
+            )
+            for i, width in enumerate(widths)
+        ]
+        self.line(" | ".join(padded).rstrip())
+
+
+def pad(value, width, align):
+    """A cell's text at its column's width, on the side its alignment says."""
+    if align == "right":
+        return value.rjust(width)
+    if align == "center":
+        return value.center(width)
+    return value.ljust(width)
+
+
+def shows_text(elements):
+    """Whether elements hold words a reader sees, nested blocks included."""
+    for element in elements:
+        if isinstance(element, TextElement) and element.text.strip():
+            return True
+        if isinstance(element, CodeBlock) and shows_text(element.elements):
+            return True
+    return False

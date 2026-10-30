@@ -3,9 +3,6 @@ from html import escape
 from inkletter.ast import *
 from inkletter.visitors.generic import NodeVisitor
 
-# The schemes a fragment links to; any other target is written as its label.
-LINKED_SCHEMES = ("", "http", "https", "mailto", "tel")
-
 
 class HtmlFragmentCodegen(NodeVisitor):
     """Renders the normalized AST as a fragment of HTML — the inside of a
@@ -14,11 +11,11 @@ class HtmlFragmentCodegen(NodeVisitor):
 
     Sibling of the plain-text output. No theme applies: the page around
     the fragment styles it — of the annotations, only the hand-written
-    anchors are read. What it writes is safe to set
+    anchors and a task's box are read. What it writes is safe to set
     inside a page that trusts nothing the author typed: every text is
-    escaped, raw HTML — inline or block — is dropped, a link to any scheme
-    but those of `LINKED_SCHEMES` is written as its label, and an image is
-    its alternative text: whatever renders the fragment never fetches
+    escaped, raw HTML — inline or block — is dropped, a target that runs
+    something is never a link (`runs_something`), and an image is its
+    alternative text: whatever renders the fragment never fetches
     anything for it. A hand-written anchor is a link, as a Markdown one,
     its tag rebuilt from its address alone. A line break the author typed
     stays one, as a post keeps it.
@@ -27,11 +24,9 @@ class HtmlFragmentCodegen(NodeVisitor):
     def __init__(self):
         super().__init__()
         self.parts = []
-        # Hand-written anchors opened and not closed yet, each saying
-        # whether its tag was written — a scheme the fragment does not
-        # link to opens none: the block they sit in closes them, whatever
-        # the author forgot.
-        self.open_anchors = []
+        # Hand-written anchors opened and not closed yet: the block they sit
+        # in closes them, whatever the author forgot.
+        self.open_anchors = 0
 
     def get_html(self):
         return "".join(self.parts)
@@ -45,9 +40,10 @@ class HtmlFragmentCodegen(NodeVisitor):
     def wrapped(self, tag, node, scope, attributes=""):
         start = len(self.parts)
         self.write(f"<{tag}{attributes}>")
-        opened, self.open_anchors = self.open_anchors, []
+        self.checkbox(node)
+        opened, self.open_anchors = self.open_anchors, 0
         self.generic_visit(node, scope)
-        self.write("</a>" * self.open_anchors.count(True))
+        self.write("</a>" * self.open_anchors)
         self.open_anchors = opened
         if tag == "p" and "".join(self.parts[start + 1 :]) == "":
             # a paragraph with nothing to read — an image without its
@@ -66,7 +62,14 @@ class HtmlFragmentCodegen(NodeVisitor):
 
     def visit_BlockText(self, node, scope):
         # the text of a tight list's item: no paragraph of its own
+        self.checkbox(node)
         self.generic_visit(node, scope)
+
+    def checkbox(self, node):
+        """The box a task item's first line opens on."""
+        box = node.annotations.get("checkbox")
+        if box:
+            self.text(box + " ")
 
     def visit_Heading(self, node, scope):
         self.wrapped(f"h{node.level}", node, scope)
@@ -105,15 +108,15 @@ class HtmlFragmentCodegen(NodeVisitor):
     def visit_InlineHtml(self, node, scope):
         # the tags vanish, the text between them stays — except an anchor,
         # rebuilt from its address alone
+        if node.annotations.get("anchor_nested"):
+            return
         href = node.annotations.get("anchor_opens")
         if href is not None:
-            linked = Link.scheme_of(href) in LINKED_SCHEMES
-            if linked:
-                self.write(f'<a href="{escape(href)}">')
-            self.open_anchors.append(linked)
+            self.write(f'<a href="{escape(href)}">')
+            self.open_anchors += 1
         elif node.annotations.get("anchor_href") and self.open_anchors:
-            if self.open_anchors.pop():
-                self.write("</a>")
+            self.write("</a>")
+            self.open_anchors -= 1
 
     def visit_Emphasis(self, node, scope):
         self.wrapped("em", node, scope)
@@ -138,9 +141,6 @@ class HtmlFragmentCodegen(NodeVisitor):
         self.generic_visit(node, scope)
 
     def link(self, node, scope):
-        if node.scheme not in LINKED_SCHEMES:
-            self.generic_visit(node, scope)
-            return
         if all(child.is_blank() for child in node.children):
             # nothing to click on: the address is its own label
             self.write(f'<a href="{escape(node.href)}">')
@@ -158,15 +158,19 @@ class HtmlFragmentCodegen(NodeVisitor):
     # --- Images and layout conventions ---
 
     def visit_Image(self, node, scope):
-        if self.alt_of(node):
+        if node.says_something:
             self.text(node.alt_text)
 
     def visit_ImageLink(self, node, scope):
-        self.visit(node.img, scope)
+        # its alternative text, as the link it was
+        if node.says_something:
+            self.write(f'<a href="{escape(node.href)}">')
+            self.text(node.img.alt_text)
+            self.write("</a>")
 
     def visit_ImageRow(self, node, scope):
         # one line per image that says something, as the text output does
-        alts = [image for image in node.children if self.alt_of(image)]
+        alts = [image for image in node.children if image.says_something]
         if not alts:
             return
         self.write("<p>")
@@ -178,7 +182,7 @@ class HtmlFragmentCodegen(NodeVisitor):
 
     def visit_MediaObject(self, node, scope):
         # the image's alternative text, then the text beside it
-        if self.alt_of(node.image):
+        if node.image.says_something:
             self.write("<p>")
             self.visit(node.image, scope)
             self.write("</p>")
@@ -187,16 +191,7 @@ class HtmlFragmentCodegen(NodeVisitor):
             self.visit(child, scope)
         self.write("</p>")
 
-    @staticmethod
-    def alt_of(image):
-        """Whether an image, linked or not, has an alternative text to show."""
-        image = image.img if isinstance(image, ImageLink) else image
-        return bool(image.alt_text.strip())
-
     def visit_Button(self, node, scope):
-        if Link.scheme_of(node.href) not in LINKED_SCHEMES:
-            self.wrapped("p", node, scope)
-            return
         self.write(f'<p><a href="{escape(node.href)}"><strong>')
         self.generic_visit(node, scope)
         self.write("</strong></a></p>")
@@ -214,10 +209,8 @@ class HtmlFragmentCodegen(NodeVisitor):
         self.wrapped("li", node, scope)
 
     def visit_TaskListItem(self, node, scope):
-        self.write("<li>")
-        self.text("☑ " if node.checked else "☐ ")
-        self.generic_visit(node, scope)
-        self.write("</li>")
+        # the box stands for the marker, in a numbered list as in another
+        self.wrapped("li", node, scope, ' style="list-style-type: none"')
 
     # --- Tables ---
 

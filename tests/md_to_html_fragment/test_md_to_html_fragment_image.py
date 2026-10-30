@@ -17,10 +17,16 @@ def test_image_without_alt_disappears():
     assert actual.startswith("<p>before</p>") and actual.endswith("<p>after</p>")
 
 
-def test_linked_image_is_its_alt():
+def test_linked_image_is_its_alt_as_the_link_it_was():
     actual = parse_markdown_to_html_fragment("[![Logo](https://x.com/l.png)](https://example.com)")
     print(actual)
-    assert actual == "<p>Logo</p>"
+    assert actual == '<p><a href="https://example.com">Logo</a></p>'
+
+
+def test_linked_image_without_alt_leaves_nothing():
+    actual = parse_markdown_to_html_fragment("[![](https://x.com/l.png)](https://example.com)")
+    print(actual)
+    assert actual == ""
 
 
 def test_image_title_is_ignored():

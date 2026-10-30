@@ -1,4 +1,26 @@
-from urllib.parse import urlsplit
+import re
+
+# A scheme: a letter, then letters, digits, `+`, `-` or `.`, before a `:`.
+SCHEME = re.compile(r"([A-Za-z][A-Za-z0-9+.\-]*):")
+
+# What runs something rather than locating it: a link to one is its words,
+# in every output — an image's own `data:` aside. markdown-it's own list.
+RUNS_SOMETHING = ("javascript", "vbscript", "file", "data")
+IMAGE_DATA = re.compile(r"data:image/(gif|png|jpeg|webp);", re.IGNORECASE)
+
+
+# What a browser leaves out of an address before reading its scheme: every
+# tab and line break, and the spaces and control characters at its ends.
+URL_IGNORED = re.compile(r"[\t\n\r]")
+URL_EDGES = "".join(chr(code) for code in range(0x21))
+
+
+def runs_something(target: str) -> bool:
+    """Whether a target runs something rather than locating it — a link to
+    one is its words, in every output. Its scheme is read as a browser reads
+    it: ` javascript:` and `java⇥script:` run as `javascript:` does."""
+    read = URL_IGNORED.sub("", target).strip(URL_EDGES)
+    return Link.scheme_of(read) in RUNS_SOMETHING
 
 
 class Node:
@@ -11,6 +33,11 @@ class Node:
     def is_blank(self):
         """Nothing to read: a break, or text made of whitespace."""
         return False
+
+    def plain_text(self):
+        """What a node reads as, with no rendering: enough to tell a label
+        that is an address from one that is words."""
+        return "".join(child.plain_text() for child in self.get_children())
 
     def __repr__(self):
         return f"{self.__class__.__name__}()"
@@ -47,6 +74,9 @@ class LiteralText(Text):
     def is_blank(self):
         return not self.value.strip()
 
+    def plain_text(self):
+        return self.value
+
     def __repr__(self):
         return f"LiteralText('{self.value}')"
 
@@ -55,6 +85,9 @@ class CodeSpan(Text):
     def __init__(self, code):
         self.code = code
         super().__init__()
+
+    def plain_text(self):
+        return self.code
 
     def __repr__(self):
         return f"CodeSpan(code='{self.code}')"
@@ -71,6 +104,9 @@ class Hashtag(Text):
     def __init__(self, name):
         super().__init__()
         self.name = name
+
+    def plain_text(self):
+        return f"#{self.name}"
 
     def __repr__(self):
         return f"Hashtag(name='{self.name}')"
@@ -123,13 +159,17 @@ class Link(TextBlock):
     @staticmethod
     def scheme_of(target):
         """The scheme a target starts with, lower-cased — `https`,
-        `mailto`, `urn` — and `""` for a path relative to nothing, or for
-        a target the standard splitter refuses (an unclosed IPv6 bracket,
-        say): what it is not, at least, is an address."""
-        try:
-            return urlsplit(target).scheme.lower()
-        except ValueError:
-            return ""
+        `mailto`, `urn` — and `""` for a path relative to nothing."""
+        match = SCHEME.match(target)
+        return match.group(1).lower() if match else ""
+
+    @staticmethod
+    def after_scheme(target):
+        """What a `mailto:` or a `tel:` names: the target after its scheme,
+        up to a query or a fragment."""
+        match = SCHEME.match(target)
+        rest = target[match.end() :] if match else target
+        return re.split(r"[?#]", rest, maxsplit=1)[0]
 
     # Each kind says its scheme; only an address has to read it off its
     # target, which may be `http`, `https` or none at all.
@@ -183,7 +223,7 @@ class MailLink(Link):
 
     @property
     def address(self):
-        return urlsplit(self.href).path
+        return self.after_scheme(self.href)
 
     def __repr__(self):
         return f"MailLink(address='{self.address}')"
@@ -196,7 +236,7 @@ class TelLink(Link):
 
     @property
     def number(self):
-        return urlsplit(self.href).path
+        return self.after_scheme(self.href)
 
     def __repr__(self):
         return f"TelLink(number='{self.number}')"
@@ -291,6 +331,14 @@ class Image(Node):
     def scheme(self):
         return Link.scheme_of(self.url)
 
+    def plain_text(self):
+        return self.alt_text
+
+    @property
+    def says_something(self):
+        """Whether it has an alternative text to show where it is not seen."""
+        return bool(self.alt_text.strip())
+
     def __repr__(self):
         return f"Image(url='{self.url}', title='{self.title}', alt_text='{self.alt_text}')"
 
@@ -305,6 +353,10 @@ class ImageLink(Node):
     @property
     def scheme(self):
         return Link.scheme_of(self.href)
+
+    @property
+    def says_something(self):
+        return self.img.says_something
 
     def get_children(self):
         return [self.img]
@@ -401,11 +453,13 @@ class BlankLine(Terminal):
 
 
 class List(Node):
-    def __init__(self, elements, ordered=False, start=None):
+    def __init__(self, elements, ordered=False, start=None, gaps=None):
         super().__init__()
         self.elements = elements
         self.ordered = ordered
         self.start = start
+        # the blank lines the author left between each item and the next
+        self.gaps = gaps or [0] * max(len(elements) - 1, 0)
 
     def get_children(self):
         return self.elements

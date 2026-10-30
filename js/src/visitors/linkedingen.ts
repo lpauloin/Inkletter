@@ -6,30 +6,34 @@
 
 import {
   BlankLine,
-  CodeSpan,
+  type CodeSpan,
   type Document,
   type Hashtag,
   type Heading,
   type Image,
   type ImageLink,
   type InlineHtml,
-  Link,
-  LiteralText,
+  type Link,
+  type List,
+  type ListItem,
+  type LiteralText,
   type MailLink,
   type MediaObject,
   type Mention,
   type Node,
   type Annotations,
   type Table,
+  type TaskListItem,
   type TelLink,
+  ThematicBreak,
   type UrlLink,
 } from '../ast.js';
 import { CodeBlockResolver, type Line, type SegmentKind } from '../codeblock.js';
 import { costOfLink, costOfMention, costOfText } from '../counting.js';
-import { isBareDomain, isSpelledBy } from '../plugins/bare_domains.js';
-import { rstrip, strip, unquote } from '../stdlib.js';
+import { isSpelledBy } from '../plugins/bare_domains.js';
+import { rstrip, unquote } from '../stdlib.js';
 import type { ScopeStack } from './scope.js';
-import { TextCodegen } from './textgen.js';
+import { showsText, TextCodegen } from './textgen.js';
 
 const BULLET = '• ';
 const CELL_SEPARATOR = ' — ';
@@ -108,6 +112,9 @@ export class LinkedinRender {
     readonly unrenderedFormatting: boolean,
     /** A heading written: the feed shows none, look-alikes or not. */
     readonly unrenderedHeadings: boolean,
+    /** The styles written on words — `bold`, `italic`, `strikethrough` — none
+     *  of which the feed has, look-alikes or not: what a warning names. */
+    readonly styles: ReadonlySet<string>,
   ) {}
 
   /** The post as the feed shows it, on one string: what a quote of it reads
@@ -118,17 +125,7 @@ export class LinkedinRender {
 }
 
 export class LinkedinCodegen extends TextCodegen {
-  /** What a node reads as, with no rendering. */
-  static plainText(node: Node): string {
-    if (node instanceof LiteralText) return node.value;
-    if (node instanceof CodeSpan) return node.code;
-    return node.getChildren().map((child) => LinkedinCodegen.plainText(child)).join('');
-  }
-
   override resolver = new CodeBlockResolver(2, 0, costOfText);
-  // what was written that the feed will not show
-  styledWords = false;
-  headings = false;
 
   constructor(
     private readonly unicodeStyling = false,
@@ -148,7 +145,6 @@ export class LinkedinCodegen extends TextCodegen {
    *  substitutes are wanted. Only words: a marker or an address never. */
   writeStyled(text: string, annotations: Annotations): void {
     const styles = annotations.styles instanceof Set && annotations.styles.size ? annotations.styles : null;
-    if (styles && strip(text)) this.styledWords = true;
     if (this.unicodeStyling && styles) this.write(substitute(text, styles));
     else this.write(text);
   }
@@ -170,17 +166,34 @@ export class LinkedinCodegen extends TextCodegen {
       text,
       this.resolver.length,
       this.resolver.writtenLines,
-      this.styledWords && !this.unicodeStyling,
-      this.headings,
+      document.stylesWritten.size > 0 && !this.unicodeStyling,
+      document.hasHeadings,
+      new Set(document.stylesWritten),
     );
   }
 
   // --- Blocks ---
 
+  /** An item on its marker, its blocks separated by the blank lines their
+   *  author left, as a post is sent. */
+  override item(node: ListItem | TaskListItem, marker: string, scope: ScopeStack): void {
+    this.write(marker);
+    this.current.addIndent();
+    this.emitBlocks(node.children, scope);
+    this.closeLine();
+    this.current.addDedent();
+  }
+
+  /** The blank lines the author left before an item of a loose list: a
+   *  post is sent as it was typed. */
+  override blankLinesBefore(node: List, index: number): number {
+    return index ? node.gaps[index - 1]! : 0;
+  }
+
   /** Blocks separated by the blank lines their author left: the BlankLine
    *  between two blocks is the separation itself, and the lines a document
    *  opens or ends on separate nothing. */
-  override emitBlocks(nodes: Node[], scope: ScopeStack): void {
+  override emitBlocks(nodes: Node[], scope: ScopeStack): boolean {
     let written = false;
     let blank = 0;
     for (const node of nodes) {
@@ -188,23 +201,37 @@ export class LinkedinCodegen extends TextCodegen {
         blank = Math.max(blank, node.lines);
         continue;
       }
+      if (node instanceof ThematicBreak) {
+        // a feed draws no rule: what it separates, a blank line does
+        blank = Math.max(blank, 1);
+        continue;
+      }
+      if (!written && this.lineOpen()) {
+        // the first block continues a line already open — an item's marker —
+        // and writes what it opens with there
+        if (this.wrote(node, scope)) {
+          this.closeLine();
+          written = true;
+          blank = 0;
+        }
+        continue;
+      }
       const block = this.renderBlock(node, scope);
-      if (!block.elements.length) continue;
+      if (!showsText(block.elements)) continue;
       if (written) for (let line = 0; line < blank; line += 1) this.line();
       this.current.addCodeblock(block);
       written = true;
       blank = 0;
     }
+    return written;
   }
 
   /** The text on its line, and no underline. */
   override visit_Heading(node: Heading, scope: ScopeStack): void {
-    this.headings = true;
     this.genericVisit(node, scope);
     this.closeLine();
   }
 
-  override visit_ThematicBreak(): void {} // forty dashes across a feed are noise; the blank line stays
 
   /** One line per row, cells joined by a dash. */
   override visit_Table(node: Table, scope: ScopeStack): void {
@@ -234,7 +261,8 @@ export class LinkedinCodegen extends TextCodegen {
   /** `@[<urn>|<name>]`, weighed at the name alone; a name the marker cannot
    *  carry goes out as plain text. */
   visit_Mention(node: Mention): void {
-    const name = LinkedinCodegen.plainText(node);
+    const name = node.plainText();
+    if (!name) return; // a marker naming nobody would show nothing and cost nothing
     if (MARKER_DELIMITERS.some((delimiter) => name.includes(delimiter))) {
       this.write(`@${name}`);
       return;
@@ -244,16 +272,11 @@ export class LinkedinCodegen extends TextCodegen {
 
   /** `label : url`, and the url alone when the label is one too. */
   override visit_UrlLink(node: UrlLink, scope: ScopeStack): void {
-    const label = LinkedinCodegen.plainText(node);
-    if (label && label !== node.href && !LinkedinCodegen.isAnAddress(label)) {
+    if (!node.annotations.label_is_address) {
       this.genericVisit(node, scope);
       this.write(LABEL_SEPARATOR);
     }
-    this.writeLink(node.href, label);
-  }
-
-  static isAnAddress(label: string): boolean {
-    return ['http', 'https'].includes(Link.schemeOf(label)) || isBareDomain(label);
+    this.writeLink(node.href, node.plainText());
   }
 
   override visit_MailLink(node: MailLink, scope: ScopeStack): void {
@@ -266,8 +289,7 @@ export class LinkedinCodegen extends TextCodegen {
 
   /** `label : target`, and the target alone when the label is it. */
   override named(node: Link, target: string, scope: ScopeStack): void {
-    const label = LinkedinCodegen.plainText(node);
-    if (label && label !== target && label !== node.href) {
+    if (!node.annotations.label_is_address) {
       this.genericVisit(node, scope);
       this.write(LABEL_SEPARATOR);
     }
@@ -295,12 +317,12 @@ export class LinkedinCodegen extends TextCodegen {
 
   override visit_ImageLink(node: ImageLink): void {
     this.write(`[![${node.img.altText}](${node.img.url})](${node.href})`);
-    this.closeLine();
   }
 
   override visit_MediaObject(node: MediaObject, scope: ScopeStack): void {
-    // the image beside its text, written as one paragraph: one blank line
-    // between them as in every output
-    super.emitBlocks([node.image, ...node.children], scope);
+    // the image beside its text, one blank line between them as in every
+    // output, where the author put the image: before its text, or after it
+    const blocks = [node.image, new BlankLine(1), ...node.children];
+    this.emitBlocks(node.side === 'left' ? blocks : blocks.reverse(), scope);
   }
 }

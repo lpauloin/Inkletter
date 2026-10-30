@@ -165,6 +165,22 @@ def test_a_scheme_spelled_with_a_percent_is_no_scheme():
     assert actual == '<p><a href="java%73cript:alert(1)">click</a></p>'
 
 
+def test_a_scheme_that_locates_something_is_a_link():
+    # one rule for every output: only what runs something is refused
+    actual = parse_markdown_to_html_fragment("[écrire](sms:+33600000000)")
+    print(actual)
+    assert actual == '<p><a href="sms:+33600000000">écrire</a></p>'
+
+
+@pytest.mark.parametrize("target", ["javascript:alert(1)", "data:text/html,x"])
+def test_a_hand_written_anchor_that_runs_something_is_its_words(target):
+    actual = parse_markdown_to_html_fragment(
+        f'Voir <a href="{target}">ici</a> <a href="/b">là</a>.'
+    )
+    print(actual)
+    assert actual == '<p>Voir ici <a href="/b">là</a>.</p>'
+
+
 @pytest.mark.parametrize("target", ["javascript:alert(1)", "data:text/html,x"])
 def test_an_autolink_to_a_scheme_that_runs_something_is_text(target):
     actual = parse_markdown_to_html_fragment(f"<{target}>")
@@ -230,3 +246,35 @@ def test_a_label_cannot_open_a_tag():
 
 
 # --- Marks that do not close, or style nothing ---
+
+
+def test_a_hand_written_anchor_is_rebuilt_inside_a_mark_or_a_cell():
+    assert (
+        parse_markdown_to_html_fragment('**<a href="https://b.com">y</a>**')
+        == '<p><strong><a href="https://b.com">y</a></strong></p>'
+    )
+    assert '<th><a href="https://x.com">y</a></th>' in parse_markdown_to_html_fragment(
+        '| <a href="https://x.com">y</a> |\n|---|'
+    )
+
+
+def test_an_anchor_inside_another_is_its_words():
+    actual = parse_markdown_to_html_fragment(
+        '<a href="https://a.com">x <a href="https://b.com">y</a> z</a>'
+    )
+    assert actual == '<p><a href="https://a.com">x y z</a></p>'
+
+
+def test_an_image_on_its_own_line_keeps_the_breaks_around_it():
+    actual = parse_markdown_to_html_fragment("a\n![al](https://i.com/a.png)\nb")
+    assert actual == "<p>a<br>al<br>b</p>"
+
+
+@pytest.mark.parametrize(
+    "target",
+    [" javascript:alert(1)", "java\tscript:alert(1)", "\njavascript:alert(1)", "JAVA\rSCRIPT:x"],
+)
+def test_a_hand_written_anchor_running_something_is_refused_as_a_browser_reads_it(target):
+    actual = parse_markdown_to_html_fragment(f'<a href="{target}">x</a> <a href="/b">y</a>')
+    assert '<a href="/b">y</a>' in actual
+    assert actual.count("<a ") == 1

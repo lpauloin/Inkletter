@@ -121,10 +121,13 @@ CommonMark:
 | In the Markdown          | In the post                                   |
 |--------------------------|-----------------------------------------------|
 | a link                   | `label : https://…` — no angle brackets       |
-| a bare address           | itself, once: it is a link like any other —   |
-|                          | never ending on `*`, `_` or `~`, so bold      |
-|                          | around it stays bold; a final `)` is its own  |
-|                          | only when it closes one inside                |
+| a bare address           | itself, once: it is a link like any other,    |
+|                          | read before the marks inside it — started and |
+|                          | ended where LinkedIn does: after a space, `(` |
+|                          | or `"`, never glued to a word or a `«`; never |
+|                          | ending on `.` `?` `!` nor on `*`, `_`, `~`,   |
+|                          | so bold around it stays bold; a final `)` is  |
+|                          | its own only when it closes one inside        |
 | a domain without scheme  | a link to `https://` plus what was written:   |
 |                          | `www.` and any ending, or a name ending on a  |
 |                          | listed extension (`.com`, `.fr`, `.io`, …),   |
@@ -154,8 +157,10 @@ It goes out as `@[urn:li:organization:12345678|Acme]`, the form a
 publishing API resolves into a real, blue, clickable mention. That is the
 single form Inkletter emits: LinkedIn's own read-back notation
 `@[Name](urn:…)` is *not* it — written into a post it goes inert and makes
-the rest of the text escape itself. A name is passed through untouched,
-because the match is exact and case-sensitive. A name containing `|` or
+the rest of the text escape itself. A name keeps its letters and its case,
+because the match is exact and case-sensitive; only the spaces at its ends
+go, and a line break inside it becomes a space, as every output lays a name
+on one line. An empty name writes nothing. A name containing `|` or
 `]` cannot be expressed — they delimit the marker and nothing escapes them
 — so that one goes out as `@Name`, plain text.
 
@@ -172,12 +177,13 @@ resolving; neither is a hashtag, which in look-alikes would be another
 tag, nor the label of a bold link on its own — a call to action is a
 line of text — nor an emoji, which a stroke would break.
 
-**A hashtag is read as one, before the marks inside it.** `#` at the start
-of a word, then letters, digits or underscores with a letter among them:
-`#2026` stays a number, `C#` a language, `#équipe_rh` one tag rather than a
-name with an italic in it — and `# heading`, space and all, is a heading as
-it always was. Every output writes it as written; an email may colour it
-(`[hashtags]` in the theme).
+**A hashtag is read as LinkedIn reads one, before the marks inside it** —
+measured in its own composer. `#`, then letters, digits or underscores, not
+glued to an ASCII letter or digit, `_`, `&` or `/`: `#équipe_rh` is one tag
+rather than a name with an italic in it, `Merci ##tag` holds `#tag`, `#2026`
+is a tag as on the feed, `C#` a language — and `# heading`, space and all,
+is a heading as it always was. Every output writes it as written; an email
+may colour it (`[hashtags]` in the theme).
 
 **Length is counted the way the platform counts it**, in UTF-16 code
 units — an emoji costs 2, a skin tone 4, a Unicode bold letter 2 — on a
@@ -213,9 +219,10 @@ A preview needs more than the string. `render_linkedin` gives the post,
 what LinkedIn counts for it, its lines fragment by fragment — what each
 is (text, a mention, a hashtag, a link), what the feed shows of it (a
 mention's name rather than its marker, an address as written, its letters
-decoded) and what it costs — and whether bold, italic or a heading were
-written that the feed will not show. It refuses nothing: the caller
-weighs `length` against its own ceiling.
+decoded) and what it costs — whether bold, italic or a heading were
+written that the feed will not show, and which styles were written at all
+(`styles`: what a warning names, look-alikes or not). It refuses nothing:
+the caller weighs `length` against its own ceiling.
 
 ```python
 from inkletter import render_linkedin
@@ -228,7 +235,13 @@ render.lines[0].segments
 # (Segment(kind="text", display="Merci à ", cost=8),
 #  Segment(kind="mention", display="Acme", cost=4), …)
 render.unrendered_formatting, render.unrendered_headings
+render.styles  # frozenset({"bold"})
 ```
+
+A target that runs something rather than locating it — `javascript:`,
+`vbscript:`, `file:`, `data:` but an image's — is never a link in any
+output: its words stand in. An editor asks the same question before it
+writes one (`runs_something` in Python, `runsSomething` in JavaScript).
 
 ## An HTML fragment
 
@@ -244,9 +257,10 @@ parse_markdown_to_html_fragment("A **bold** word\nand a line of its own.")
 
 No theme applies: the page around it styles it. It is safe to set inside
 a page that trusts nothing the author typed — every text is escaped, raw
-HTML is dropped, a link to anything but `http`, `https`, `mailto` or `tel`
-is written as its label, and an image is its alternative text, so that
-whatever renders the fragment never fetches anything for it.
+HTML is dropped, a link that runs something (`javascript:`, `vbscript:`,
+`file:`, `data:` — its scheme read as a browser reads it, spaces and tabs
+left out) is written as its label, and an image is its alternative text,
+so that whatever renders the fragment never fetches anything for it.
 
 ## Django templates
 

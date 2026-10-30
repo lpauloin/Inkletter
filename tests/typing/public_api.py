@@ -18,6 +18,7 @@ from inkletter import (
     parse_markdown_to_text,
     parse_mjml_to_html,
     render_linkedin,
+    runs_something,
 )
 
 
@@ -46,7 +47,7 @@ def every_output(markdown: str) -> list[str]:
     ]
 
 
-def what_the_feed_shows(markdown: str) -> tuple[str, int, bool, bool, list[str]]:
+def what_the_feed_shows(markdown: str) -> tuple[str, int, bool, bool, frozenset[str], list[str]]:
     render: LinkedinRender = render_linkedin(markdown, url_factory=Tagging())
     kinds = [segment.kind for line in render.lines for segment in line.segments]
     return (
@@ -54,8 +55,14 @@ def what_the_feed_shows(markdown: str) -> tuple[str, int, bool, bool, list[str]]
         render.length,
         render.unrendered_formatting,
         render.unrendered_headings,
+        render.styles,
         kinds,
     )
+
+
+def what_a_link_bar_refuses(address: str) -> bool:
+    linked: bool = not runs_something(address)
+    return linked
 
 
 def what_a_refusal_says(markdown: str) -> int:
