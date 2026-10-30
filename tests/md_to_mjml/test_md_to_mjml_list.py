@@ -267,3 +267,45 @@ def test_mixed_task_and_normal_list_keeps_bullets():
     print("expected:")
     print(expected)
     assert actual == expected
+
+
+# --- A list ends where its author stopped writing it ---
+
+
+def test_a_line_typed_after_an_item_is_a_block_of_its_own():
+    expected_content = """\
+<mj-text>
+  <ul>
+    <li>
+      Étapes
+    </li>
+  </ul>
+</mj-text>
+<mj-text>
+  Après
+</mj-text>"""
+    actual = parse_markdown_to_mjml("- Étapes\nAprès")
+    print(actual)
+    assert actual == wrap_mjml_body(expected_content)
+
+
+def test_lists_of_two_kinds_typed_line_after_line_are_two_lists():
+    actual = parse_markdown_to_mjml("- Un\n1. Deux")
+    print(actual)
+    assert actual == wrap_mjml_body(
+        """\
+<mj-text>
+  <ul>
+    <li>
+      Un
+    </li>
+  </ul>
+</mj-text>
+<mj-text>
+  <ol>
+    <li>
+      Deux
+    </li>
+  </ol>
+</mj-text>"""
+    )

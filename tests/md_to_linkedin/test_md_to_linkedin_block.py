@@ -121,10 +121,26 @@ def test_blank_lines_between_any_two_blocks_are_kept():
     assert parse_markdown_to_linkedin("Un\n\n\n> b") == "Un\n\n\n> b"
 
 
-def test_a_list_reads_the_blank_lines_that_follow_it_as_its_own():
-    # they belong to the list's own parsing — a loose list eats them — so
-    # the run between a list and what follows stays the single break
-    assert parse_markdown_to_linkedin("- a\n\n\n> b") == "• a\n\n> b"
+def test_the_blank_lines_after_a_list_are_the_authors():
+    assert parse_markdown_to_linkedin("- a\n\n\n> b") == "• a\n\n\n> b"
+    assert parse_markdown_to_linkedin("- a\n\nb") == "• a\n\nb"
+
+
+def test_a_line_typed_after_a_list_follows_it_without_a_blank_line():
+    assert parse_markdown_to_linkedin("- Étapes\nAprès") == "• Étapes\nAprès"
+    assert parse_markdown_to_linkedin("1. Étapes\nAprès") == "1. Étapes\nAprès"
+    assert parse_markdown_to_linkedin("- [ ] Étapes\nAprès") == "[ ] Étapes\nAprès"
+
+
+def test_a_list_typed_after_a_line_follows_it_without_a_blank_line():
+    assert (
+        parse_markdown_to_linkedin("Voici :\n- Un point\nMerci.") == "Voici :\n• Un point\nMerci."
+    )
+
+
+def test_lists_of_two_kinds_typed_line_after_line_stay_line_after_line():
+    assert parse_markdown_to_linkedin("- Un\n1. Deux\n- Trois") == "• Un\n1. Deux\n• Trois"
+    assert parse_markdown_to_linkedin("1. Un\n- [ ] Deux\n1. Trois") == "1. Un\n[ ] Deux\n1. Trois"
 
 
 def test_the_blank_lines_a_document_opens_or_ends_on_separate_nothing():
@@ -148,3 +164,21 @@ def test_a_blank_line_costs_the_newline_it_is(measured):
 
 def test_a_run_a_document_opens_on_costs_nothing(measured):
     assert measured("\n\n\nUn") == measured("Un")
+
+
+def test_the_blank_lines_after_an_indented_code_block_are_the_authors():
+    actual = parse_markdown_to_linkedin("Avant :\n\n    code\n\nAprès", max_length=None)
+    print(actual)
+    assert actual == "Avant :\n\n    code\n\nAprès"
+
+
+def test_a_heading_right_under_a_quote_is_its_own_line():
+    actual = parse_markdown_to_linkedin("> a\n## b", max_length=None)
+    print(actual)
+    assert actual == "> a\nb"
+
+
+def test_a_list_right_under_a_quote_follows_it():
+    actual = parse_markdown_to_linkedin("> Citée\n- un point", max_length=None)
+    print(actual)
+    assert actual == "> Citée\n• un point"

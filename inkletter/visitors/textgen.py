@@ -1,13 +1,13 @@
 from contextlib import contextmanager
 
 from inkletter.ast import *
-from inkletter.bare_domains import is_spelled_by
 from inkletter.codeblock import (
     CodeBlock,
     CodeBlockResolver,
     Newline,
     TextElement,
 )
+from inkletter.plugins.bare_domains import is_spelled_by
 from inkletter.visitors.generic import NodeVisitor
 
 DIVIDER = "-" * 40
@@ -191,12 +191,11 @@ class TextCodegen(NodeVisitor):
     # --- Images and layout conventions ---
 
     def visit_Image(self, node, scope):
-        alt = node.alt_text.value if node.alt_text else ""
-        if alt:
-            self.line(alt)
+        if node.alt_text:
+            self.line(node.alt_text)
 
     def visit_ImageLink(self, node, scope):
-        alt = node.img.alt_text.value if node.img.alt_text else ""
+        alt = node.img.alt_text
         if alt:
             self.line(f"{alt} <{node.href}>")
         else:

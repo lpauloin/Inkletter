@@ -43,7 +43,6 @@ def test_table(ast):
 
     for row, expected_cells in zip(rows, expected_row_texts, strict=True):
         assert isinstance(row, TableRow)
-        assert row.is_header is False
         assert len(row.row) == 2
 
         for cell, expected_text in zip(row.row, expected_cells, strict=True):
@@ -91,7 +90,6 @@ def test_table_with_alignment(ast):
 
     for row, row_texts in zip(rows, expected_body_texts, strict=True):
         assert isinstance(row, TableRow)
-        assert row.is_header is False
         assert len(row.row) == 3
 
         for cell, expected_text, expected_align in zip(row.row, row_texts, alignments, strict=True):

@@ -18,9 +18,9 @@ class URLFactory:
     # document, so that a post is counted for what will be published even
     # before the short links exist. Left as None, each address counts for
     # what it says.
-    link_length = None
+    link_length: int | None = None
 
-    def rewrite_link(self, url, is_button=False, is_bold=False):
+    def rewrite_link(self, url: str, is_button: bool = False, is_bold: bool = False) -> str:
         """Click URLs: links, image links, buttons.
 
         What the document says about a link travels with it: `is_button`
@@ -32,7 +32,7 @@ class URLFactory:
         """
         return url
 
-    def rewrite_image(self, url):
+    def rewrite_image(self, url: str) -> str:
         """Image source URLs."""
         return url
 
@@ -47,17 +47,17 @@ class BitlyShortener(URLFactory):
 
     API = "https://api-ssl.bitly.com/v4/shorten"
 
-    def __init__(self, token, domain="bit.ly"):
+    def __init__(self, token: str, domain: str = "bit.ly") -> None:
         self.token = token
         self.domain = domain
-        self._cache = {}
+        self._cache: dict[str, str] = {}
 
-    def rewrite_link(self, url, is_button=False, is_bold=False):
+    def rewrite_link(self, url: str, is_button: bool = False, is_bold: bool = False) -> str:
         if url not in self._cache:
             self._cache[url] = self.shorten(url)
         return self._cache[url]
 
-    def shorten(self, url):
+    def shorten(self, url: str) -> str:
         request = Request(
             self.API,
             data=json.dumps({"long_url": url, "domain": self.domain}).encode("utf-8"),
@@ -67,4 +67,4 @@ class BitlyShortener(URLFactory):
             },
         )
         with urlopen(request) as response:
-            return json.loads(response.read())["link"]
+            return str(json.loads(response.read())["link"])

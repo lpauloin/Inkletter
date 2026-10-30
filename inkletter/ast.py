@@ -234,9 +234,9 @@ class BlockQuote(BlockNode):
         return "BlockQuote()"
 
 
-class BlockCode(BlockNode):
-    def __init__(self, code=None, language=None, children=None):
-        super().__init__(children)
+class BlockCode(Node):
+    def __init__(self, code, language=None):
+        super().__init__()
         self.code = code
         self.language = language
 
@@ -278,9 +278,11 @@ class Attributes(Node):
 
 
 class Image(Node):
-    def __init__(self, url, alt_text=None, title=None, attributes=None):
+    def __init__(self, url, alt_text="", title=None, attributes=None):
         super().__init__()
         self.url = url
+        # what the image says to whoever cannot see it: text alone, an HTML
+        # alt holding no markup
         self.alt_text = alt_text
         self.title = title
         self.attributes = attributes if attributes is not None else Attributes()
@@ -289,15 +291,8 @@ class Image(Node):
     def scheme(self):
         return Link.scheme_of(self.url)
 
-    def get_children(self):
-        if self.alt_text is None:
-            return []
-        if isinstance(self.alt_text, list):
-            return self.alt_text
-        return [self.alt_text]
-
     def __repr__(self):
-        return f"Image(url='{self.url}', title='{self.title}', alt_text='{self.alt_text}'"
+        return f"Image(url='{self.url}', title='{self.title}', alt_text='{self.alt_text}')"
 
 
 class ImageLink(Node):
@@ -373,8 +368,6 @@ class TextTerminal(Text, Terminal):
     def is_blank(self):
         return True
 
-    pass
-
 
 class ThematicBreak(Terminal):
     def __repr__(self):
@@ -391,7 +384,7 @@ class SoftBreak(TextTerminal):
         return "SoftBreak()"
 
 
-class BlankLine(TextTerminal):
+class BlankLine(Terminal):
     """The lines an author left between two blocks. Markdown reads them as
     one break — a document says nothing by the rest — and keeps the count
     for an output that does: a post goes out as it was typed."""
@@ -456,16 +449,15 @@ class Table(Node):
 
 
 class TableRow(Node):
-    def __init__(self, row, is_header=False):
+    def __init__(self, row):
         super().__init__()
         self.row = row
-        self.is_header = is_header
 
     def get_children(self):
         return self.row
 
     def __repr__(self):
-        return f"TableRow(is_header={self.is_header})"
+        return "TableRow()"
 
 
 class TableCell(BlockNode):

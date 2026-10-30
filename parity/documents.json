@@ -1,0 +1,3634 @@
+{
+  "documents": [
+    {
+      "name": "heading without underline",
+      "source": "# Notre étude\n\nDu texte."
+    },
+    {
+      "name": "every heading level",
+      "source": "# Un\n\n###### Six"
+    },
+    {
+      "name": "setext heading",
+      "source": "Titre\n=====\n\nSous-titre\n----------\n\nTexte."
+    },
+    {
+      "name": "bullet list",
+      "source": "- une\n- deux"
+    },
+    {
+      "name": "bullet list with stars and pluses",
+      "source": "* une\n* deux\n\n+ trois"
+    },
+    {
+      "name": "numbered list",
+      "source": "1. une\n2. deux"
+    },
+    {
+      "name": "numbered list starting at three",
+      "source": "3. trois\n4. quatre"
+    },
+    {
+      "name": "numbered list starting at zero",
+      "source": "0. zéro\n1. un"
+    },
+    {
+      "name": "numbered list with parentheses",
+      "source": "1) une\n2) deux"
+    },
+    {
+      "name": "nested list",
+      "source": "- une\n  - dedans\n- deux"
+    },
+    {
+      "name": "deeply nested list",
+      "source": "- a\n  - b\n    - c\n- d"
+    },
+    {
+      "name": "loose list",
+      "source": "- une\n\n- deux\n\n- trois"
+    },
+    {
+      "name": "list item with two paragraphs",
+      "source": "- une\n\n  suite de la une\n- deux"
+    },
+    {
+      "name": "task list",
+      "source": "- [x] fait\n- [ ] à faire"
+    },
+    {
+      "name": "table",
+      "source": "| Canal | Part |\n|---|---|\n| Email | 42 % |"
+    },
+    {
+      "name": "table with an empty cell",
+      "source": "| a | | c |\n|---|---|---|\n| 1 | 2 | |"
+    },
+    {
+      "name": "horizontal rule",
+      "source": "Avant\n\n---\n\nAprès"
+    },
+    {
+      "name": "star rule",
+      "source": "Avant\n\n***\n\nAprès"
+    },
+    {
+      "name": "lone bold link",
+      "source": "**[Réserver](https://exemple.fr/rdv)**",
+      "link_length": 26
+    },
+    {
+      "name": "quote",
+      "source": "> Une citation."
+    },
+    {
+      "name": "quote on two lines",
+      "source": "> Une citation sur\n> deux lignes."
+    },
+    {
+      "name": "quote with two paragraphs",
+      "source": "> Un.\n>\n> Deux."
+    },
+    {
+      "name": "nested quote",
+      "source": "> Dehors\n>\n> > Dedans"
+    },
+    {
+      "name": "quote holding a list",
+      "source": "> - une\n> - deux"
+    },
+    {
+      "name": "fenced code block",
+      "source": "```python\nprint(1)\n```"
+    },
+    {
+      "name": "code block with a blank line",
+      "source": "```\na\n\nb\n```"
+    },
+    {
+      "name": "indented code block",
+      "source": "Texte.\n\n    code indenté\n    deux"
+    },
+    {
+      "name": "trailing whitespace",
+      "source": "Du texte.  \n\n\n"
+    },
+    {
+      "name": "link",
+      "source": "Voir [notre étude](https://exemple.fr/etude) ici.",
+      "link_length": 26
+    },
+    {
+      "name": "link without link length",
+      "source": "Voir [notre étude](https://exemple.fr/etude) ici."
+    },
+    {
+      "name": "bare address",
+      "source": "Tout est sur https://exemple.fr/page aujourd'hui.",
+      "link_length": 26
+    },
+    {
+      "name": "bare address with trailing dot",
+      "source": "Voir https://exemple.fr/page.",
+      "link_length": 26
+    },
+    {
+      "name": "bare address in parentheses",
+      "source": "(voir https://exemple.fr/page)",
+      "link_length": 26
+    },
+    {
+      "name": "bare address with query",
+      "source": "https://exemple.fr/p?a=1&b=2#ancre",
+      "link_length": 26
+    },
+    {
+      "name": "www address is a link",
+      "source": "Voir www.exemple.fr aujourd'hui.",
+      "link_length": 26
+    },
+    {
+      "name": "angle bracket autolink",
+      "source": "Voir <https://exemple.fr/page>.",
+      "link_length": 26
+    },
+    {
+      "name": "email autolink",
+      "source": "Écrivez <contact@exemple.fr>.",
+      "link_length": 26
+    },
+    {
+      "name": "mailto link",
+      "source": "[Écrire](mailto:contact@exemple.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "link to a path",
+      "source": "[la page](/offres)",
+      "link_length": 26
+    },
+    {
+      "name": "reference link",
+      "source": "Voir [l'étude][1].\n\n[1]: https://exemple.fr/etude",
+      "link_length": 26
+    },
+    {
+      "name": "link label spread over two lines",
+      "source": "[un\nlien](https://exemple.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "padded label",
+      "source": "[ là ](https://exemple.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "label that is the address",
+      "source": "[https://exemple.fr](https://exemple.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "label that is another address",
+      "source": "[https://a.fr](https://b.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "empty label",
+      "source": "[](https://exemple.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "link with a title",
+      "source": "[là](https://exemple.fr \"Un titre\")",
+      "link_length": 26
+    },
+    {
+      "name": "address with accents",
+      "source": "Voir https://exemple.fr/étude-été",
+      "link_length": 26
+    },
+    {
+      "name": "address with parentheses",
+      "source": "Voir https://fr.wikipedia.org/wiki/Paris_(ville)",
+      "link_length": 26
+    },
+    {
+      "name": "two links",
+      "source": "[a](https://a.fr) et [b](https://b.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "styles removed",
+      "source": "Du **gras**, de l'*italique*, du ~~barré~~."
+    },
+    {
+      "name": "underscore styles",
+      "source": "Du __gras__ et de l'_italique_."
+    },
+    {
+      "name": "single tilde",
+      "source": "Un ~tilde~ seul."
+    },
+    {
+      "name": "unicode bold",
+      "source": "Du **gras**.",
+      "unicode_styling": true
+    },
+    {
+      "name": "unicode italic and strike",
+      "source": "*ita* ~~bar~~",
+      "unicode_styling": true
+    },
+    {
+      "name": "unicode only touches letters",
+      "source": "**Étude 2026 !**",
+      "unicode_styling": true
+    },
+    {
+      "name": "unicode nested styles",
+      "source": "***gras italique***",
+      "unicode_styling": true
+    },
+    {
+      "name": "unicode link label",
+      "source": "**[Réserver](https://exemple.fr/rdv)**",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "mention inside bold with unicode",
+      "source": "**Merci [Acme](urn:li:organization:12345678)**",
+      "unicode_styling": true
+    },
+    {
+      "name": "hashtags",
+      "source": "Notre #étude et #Marketing2026."
+    },
+    {
+      "name": "hashtag at the start of a line",
+      "source": "#PRISM est là.\n#Second"
+    },
+    {
+      "name": "lone hash",
+      "source": "#\n\nTexte."
+    },
+    {
+      "name": "reserved characters",
+      "source": "Un (aparté) et un tilde ~ ici."
+    },
+    {
+      "name": "more reserved characters",
+      "source": "a | b { c } [d] <e> \\ f"
+    },
+    {
+      "name": "code span",
+      "source": "La commande `inkletter preview`."
+    },
+    {
+      "name": "code span with spaces",
+      "source": "`` `a` `` et ` b `"
+    },
+    {
+      "name": "mention",
+      "source": "Merci à [Acme](urn:li:organization:12345678) !"
+    },
+    {
+      "name": "person mention",
+      "source": "[Jean Dupont](urn:li:person:ABC123)"
+    },
+    {
+      "name": "mention name verbatim",
+      "source": "[L'Œil & Cie (Paris)](urn:li:organization:1)"
+    },
+    {
+      "name": "mention with a pipe",
+      "source": "[Acme | Digital](urn:li:organization:1)"
+    },
+    {
+      "name": "mention with a bracket",
+      "source": "[Acme \\] Co](urn:li:organization:1)"
+    },
+    {
+      "name": "padded mention",
+      "source": "[ Acme ](urn:li:organization:1)"
+    },
+    {
+      "name": "mention in a heading",
+      "source": "# Merci [Acme](urn:li:organization:12345678)"
+    },
+    {
+      "name": "mention in a table cell",
+      "source": "| [Acme](urn:li:organization:12345678) | b |\n|---|---|\n| 1 | 2 |"
+    },
+    {
+      "name": "link in a table cell",
+      "source": "| a | [là](https://exemple.fr/tres/longue/adresse) |\n|---|---|",
+      "link_length": 23
+    },
+    {
+      "name": "link in a quote",
+      "source": "> Voir [là](https://exemple.fr/tres/longue/adresse)",
+      "link_length": 23
+    },
+    {
+      "name": "image",
+      "source": "![La couverture](https://exemple.fr/c.png)"
+    },
+    {
+      "name": "clickable image",
+      "source": "[![Bannière](https://exemple.fr/b.png)](https://exemple.fr/offre)",
+      "link_length": 26
+    },
+    {
+      "name": "image beside text",
+      "source": "![Jean](https://exemple.fr/j.png) Jean nous rejoint."
+    },
+    {
+      "name": "text then image",
+      "source": "Jean nous rejoint. ![Jean](https://exemple.fr/j.png)"
+    },
+    {
+      "name": "image inside text",
+      "source": "Avant ![x](https://exemple.fr/x.png) après."
+    },
+    {
+      "name": "image row",
+      "source": "![a](https://e.fr/a.png) ![b](https://e.fr/b.png)"
+    },
+    {
+      "name": "image with attributes",
+      "source": "![a](asset:vis_1){width=320px align=left}"
+    },
+    {
+      "name": "image with a brace that is text",
+      "source": "![a](asset:vis_1) {beta}"
+    },
+    {
+      "name": "empty document",
+      "source": ""
+    },
+    {
+      "name": "only spaces",
+      "source": "   \n\n  "
+    },
+    {
+      "name": "first comment",
+      "source": "Le rapport complet : [ici](https://exemple.fr/rapport)",
+      "link_length": 26
+    },
+    {
+      "name": "full document",
+      "source": "# Notre étude 2026 est sortie\n\nUn paragraphe avec de l'*italique*, du **gras**, du ~~barré~~, un `code`,\nune adresse nue https://exemple.fr/nu et un [lien](https://exemple.fr/lu).\n\n## Ce qu'elle dit\n\n- une puce\n- une autre, avec une sous-liste :\n  - imbriquée\n\n1. un premier\n2. un second\n\n> Une citation sur\n> deux lignes.\n\n| Canal | Part |\n|-------|------|\n| Email | 42 % |\n\n**[Télécharger l'étude](https://exemple.fr/telecharger)**\n\n---\n\nMerci à [Acme](urn:li:organization:12345678) 👋 #étude\n"
+    },
+    {
+      "name": "precomposed accent",
+      "source": "é"
+    },
+    {
+      "name": "decomposed accent",
+      "source": "étude"
+    },
+    {
+      "name": "basic plane emoji",
+      "source": "☀"
+    },
+    {
+      "name": "astral emoji",
+      "source": "😀"
+    },
+    {
+      "name": "emoji with selector",
+      "source": "❤️"
+    },
+    {
+      "name": "skin tone",
+      "source": "👍🏽"
+    },
+    {
+      "name": "flag",
+      "source": "🇫🇷"
+    },
+    {
+      "name": "family",
+      "source": "👨‍👩‍👧"
+    },
+    {
+      "name": "unicode bold typed in",
+      "source": "𝗴𝗿𝗮𝘀"
+    },
+    {
+      "name": "combining strike typed in",
+      "source": "s̶t̶r̶i̶k̶e̶"
+    },
+    {
+      "name": "typographic quotes",
+      "source": "l’été « ok »"
+    },
+    {
+      "name": "double spaces and a tab",
+      "source": "a  b\tc "
+    },
+    {
+      "name": "crlf",
+      "source": "a\r\nb\r\n\r\nc"
+    },
+    {
+      "name": "bullet typed as a dot",
+      "source": "• Un point"
+    },
+    {
+      "name": "reseller marker typed in",
+      "source": "@[urn:li:organization:105581663|Croco.code]"
+    },
+    {
+      "name": "linkedin api markup typed in",
+      "source": "@[Croco.code](urn:li:organization:17922235)"
+    },
+    {
+      "name": "short lines post",
+      "source": "Une idée.\n\nUne autre.\n\nEt une troisième, plus longue que les deux autres réunies, pour voir.\n\n👉 Un point\n👉 Un autre point\n\n#PRISM #Marketing"
+    },
+    {
+      "name": "many blank lines",
+      "source": "Un.\n\n\n\n\nDeux."
+    },
+    {
+      "name": "soft breaks",
+      "source": "Ligne un\nLigne deux\nLigne trois"
+    },
+    {
+      "name": "hard break with two spaces",
+      "source": "Ligne un  \nLigne deux"
+    },
+    {
+      "name": "hard break with a backslash",
+      "source": "Ligne un\\\nLigne deux"
+    },
+    {
+      "name": "leading spaces on a continuation line",
+      "source": "Ligne un\n   Ligne deux"
+    },
+    {
+      "name": "escaped star",
+      "source": "Un \\*astérisque\\* échappé."
+    },
+    {
+      "name": "multiplication",
+      "source": "2 * 3 * 4 = 24"
+    },
+    {
+      "name": "snake case",
+      "source": "un_mot_composé et un autre_"
+    },
+    {
+      "name": "unclosed emphasis",
+      "source": "*pas fermé et **pas non plus"
+    },
+    {
+      "name": "entities",
+      "source": "Tom &amp; Jerry &lt;3 &copy; &eacute;t&eacute; &#233;"
+    },
+    {
+      "name": "inline html",
+      "source": "Du <b>gras</b> en HTML."
+    },
+    {
+      "name": "html anchor",
+      "source": "Voir <a href=\"https://exemple.fr/a\">ce lien</a> ici.",
+      "link_length": 26
+    },
+    {
+      "name": "html block",
+      "source": "<div>\nbloc\n</div>\n\nTexte."
+    },
+    {
+      "name": "long line",
+      "source": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+    },
+    {
+      "name": "call to action in the middle",
+      "source": "Avant.\n\n**[Réserver](https://exemple.fr/rdv)**\n\nAprès.",
+      "link_length": 26
+    },
+    {
+      "name": "heading then list",
+      "source": "## Trois points\n- un\n- deux\n- trois"
+    },
+    {
+      "name": "list then paragraph",
+      "source": "- un\n- deux\nsuite paresseuse"
+    },
+    {
+      "name": "emoji list",
+      "source": "✅ Un\n✅ Deux\n✅ Trois"
+    },
+    {
+      "name": "numbered paragraph that is not a list",
+      "source": "2026. Une année."
+    },
+    {
+      "name": "dash line that is not a list",
+      "source": "-pas une liste"
+    },
+    {
+      "name": "ampersand in a link",
+      "source": "[A & B](https://exemple.fr/?a=1&b=2)",
+      "link_length": 26
+    },
+    {
+      "name": "emphasis inside a word",
+      "source": "un*mot*ici et un__autre__là"
+    },
+    {
+      "name": "bold inside italic",
+      "source": "*un **gras** dedans*"
+    },
+    {
+      "name": "strike inside bold",
+      "source": "**un ~~barré~~ dedans**"
+    },
+    {
+      "name": "unicode strike inside bold",
+      "source": "**un ~~barré~~ dedans**",
+      "unicode_styling": true
+    },
+    {
+      "name": "unicode strike on a link",
+      "source": "~~[lien](https://exemple.fr)~~",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "bold label link",
+      "source": "[**gras**](https://exemple.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "code in a link label",
+      "source": "[`code`](https://exemple.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "brackets in a label",
+      "source": "[a [b] c](https://exemple.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "link with angle href",
+      "source": "[là](<https://exemple.fr/a b>)",
+      "link_length": 26
+    },
+    {
+      "name": "link with escaped paren",
+      "source": "[là](https://exemple.fr/a\\)b)",
+      "link_length": 26
+    },
+    {
+      "name": "reference image",
+      "source": "![alt][img]\n\n[img]: https://exemple.fr/i.png"
+    },
+    {
+      "name": "image with bold alt",
+      "source": "![un **gras**](https://exemple.fr/i.png)"
+    },
+    {
+      "name": "heading with an image",
+      "source": "# Titre ![a](https://e.fr/a.png)"
+    },
+    {
+      "name": "heading with trailing hashes",
+      "source": "## Titre ##"
+    },
+    {
+      "name": "heading with a hashtag",
+      "source": "# Notre #étude"
+    },
+    {
+      "name": "hashtag heading without space",
+      "source": "#Titre sans espace"
+    },
+    {
+      "name": "list item with a code block",
+      "source": "- une\n\n  ```\n  code\n  ```\n- deux"
+    },
+    {
+      "name": "list item with a quote",
+      "source": "- une\n  > citée\n- deux"
+    },
+    {
+      "name": "ordered list from ten",
+      "source": "10. dix\n11. onze"
+    },
+    {
+      "name": "list with a blank line then text",
+      "source": "- une\n- deux\n\nParagraphe."
+    },
+    {
+      "name": "mixed bullets",
+      "source": "- une\n* deux"
+    },
+    {
+      "name": "tab indented continuation",
+      "source": "- une\n\tsuite"
+    },
+    {
+      "name": "quote then text",
+      "source": "> Citée\n\nNon citée"
+    },
+    {
+      "name": "lazy quote",
+      "source": "> Citée\nparesseuse"
+    },
+    {
+      "name": "quote with a code block",
+      "source": "> ```\n> code\n> ```"
+    },
+    {
+      "name": "table with escaped pipe",
+      "source": "| a \\| b | c |\n|---|---|\n| 1 | 2 |"
+    },
+    {
+      "name": "table with inline styles",
+      "source": "| **a** | *b* |\n|---|---|\n| `c` | [d](https://e.fr) |",
+      "link_length": 26
+    },
+    {
+      "name": "table with alignment",
+      "source": "| a | b |\n|:---|---:|\n| 1 | 2 |"
+    },
+    {
+      "name": "code span with html",
+      "source": "`<b>` et `&amp;`"
+    },
+    {
+      "name": "code span across lines",
+      "source": "`un\ncode`"
+    },
+    {
+      "name": "html comment",
+      "source": "Avant <!-- commentaire --> après."
+    },
+    {
+      "name": "self closing html",
+      "source": "Un<br/>deux"
+    },
+    {
+      "name": "html anchor without closing",
+      "source": "Voir <a href=\"https://e.fr\">ici",
+      "link_length": 26
+    },
+    {
+      "name": "two html anchors",
+      "source": "<a href=\"https://a.fr\">a</a> et <a href=\"https://b.fr\">b</a>",
+      "link_length": 26
+    },
+    {
+      "name": "stars alone",
+      "source": "**"
+    },
+    {
+      "name": "underscores alone",
+      "source": "___"
+    },
+    {
+      "name": "emoji in a label",
+      "source": "[👉 ici](https://exemple.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "emoji mention name",
+      "source": "[Café ☕](urn:li:organization:9)"
+    },
+    {
+      "name": "mention in a link label",
+      "source": "[voir [Acme](urn:li:organization:1)](https://exemple.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "long address",
+      "source": "https://exemple.fr/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "link_length": 26
+    },
+    {
+      "name": "address then comma",
+      "source": "Voir https://exemple.fr/a, puis la suite.",
+      "link_length": 26
+    },
+    {
+      "name": "address in bold",
+      "source": "**https://exemple.fr/a**",
+      "link_length": 26
+    },
+    {
+      "name": "address in a code span",
+      "source": "`https://exemple.fr/a`",
+      "link_length": 26
+    },
+    {
+      "name": "address in angle brackets with accents",
+      "source": "<https://exemple.fr/été>",
+      "link_length": 26
+    },
+    {
+      "name": "ftp address",
+      "source": "ftp://exemple.fr/a et http://exemple.fr/b",
+      "link_length": 26
+    },
+    {
+      "name": "numeric entities",
+      "source": "&#x1F600; &#128512; &#0;"
+    },
+    {
+      "name": "entity without semicolon",
+      "source": "&copy 2026 &amp"
+    },
+    {
+      "name": "backslash at the end",
+      "source": "Fin\\"
+    },
+    {
+      "name": "escaped hash",
+      "source": "\\# pas un titre"
+    },
+    {
+      "name": "escaped bracket link",
+      "source": "\\[pas un lien](https://exemple.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "two spaces at the end of the post",
+      "source": "Fin  "
+    },
+    {
+      "name": "blank lines at the start",
+      "source": "\n\n\nDébut"
+    },
+    {
+      "name": "spaces before a paragraph",
+      "source": "   Trois espaces."
+    },
+    {
+      "name": "four spaces before a paragraph",
+      "source": "    Quatre espaces."
+    },
+    {
+      "name": "setext with a long underline",
+      "source": "Titre\n=========="
+    },
+    {
+      "name": "dash under a paragraph line",
+      "source": "Texte\n---"
+    },
+    {
+      "name": "thematic break between lists",
+      "source": "- a\n\n---\n\n- b"
+    },
+    {
+      "name": "post with everything short",
+      "source": "🚀 Grande nouvelle !\n\nNous lançons **PRISM** aujourd'hui.\n\n→ Plus rapide\n→ Plus simple\n→ Plus juste\n\nMerci à [Acme](urn:li:organization:12345678) pour leur confiance.\n\nEn savoir plus : https://prism.example/lancement\n\n#lancement #SaaS",
+      "link_length": 26
+    },
+    {
+      "name": "quote then heading without a blank line",
+      "source": "> a\n## b"
+    },
+    {
+      "name": "two-line quote then heading",
+      "source": "> a\n> b\n# c"
+    },
+    {
+      "name": "bullet then a dot line",
+      "source": "* un\n• deux"
+    },
+    {
+      "name": "numbered then bullet then a dot line",
+      "source": "1. un\n* deux\n• trois"
+    },
+    {
+      "name": "bullet then an emoji line",
+      "source": "- un\n👉 deux"
+    },
+    {
+      "name": "bold holding a multiplication",
+      "source": "**a 2*3** b"
+    },
+    {
+      "name": "two bolds around multiplications",
+      "source": "**x 2*3** **2*3 y**"
+    },
+    {
+      "name": "multiplication before an italic",
+      "source": "a 2*3 b *c*"
+    },
+    {
+      "name": "rule of three",
+      "source": "2*3 &**"
+    },
+    {
+      "name": "rule of three with bold",
+      "source": "**a*b**c*"
+    },
+    {
+      "name": "table right under a line",
+      "source": "Nos chiffres :\n| Canal | Part |\n|---|---|\n| Email | 42 % |"
+    },
+    {
+      "name": "quote then list closed by a heading",
+      "source": "> Citée\n- un point\n# Titre"
+    },
+    {
+      "name": "numbered list nested once",
+      "source": "1. un\n    1. a\n    2. b\n2. deux"
+    },
+    {
+      "name": "numbered list nested twice",
+      "source": "1. un\n    1. a\n        1. i\n2. deux"
+    },
+    {
+      "name": "bullet under a numbered line",
+      "source": "1. un\n    - a\n    - b\n2. deux"
+    },
+    {
+      "name": "numbered under a bulleted line",
+      "source": "- un\n    1. a\n    2. b\n- deux"
+    },
+    {
+      "name": "checklist nested under a bullet",
+      "source": "- un\n    - [ ] à faire\n    - [x] fait"
+    },
+    {
+      "name": "nested list coming back out",
+      "source": "1. un\n    1. a\n2. deux\n    1. b\n3. trois"
+    },
+    {
+      "name": "numbered list starting away from one",
+      "source": "3. trois\n4. quatre"
+    },
+    {
+      "name": "nested list under an empty item",
+      "source": "- un\n    - a\n- "
+    },
+    {
+      "name": "stress: numbered list, every item bold (styled)",
+      "source": "1. **un**\n2. **deux**\n3. **trois**",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: numbered list, every item bold (plain)",
+      "source": "1. **un**\n2. **deux**\n3. **trois**"
+    },
+    {
+      "name": "stress: bullets, every item bold (styled)",
+      "source": "- **un**\n- **deux**\n- **trois**",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: bullets, every item bold (plain)",
+      "source": "- **un**\n- **deux**\n- **trois**"
+    },
+    {
+      "name": "stress: checklist, every item bold (styled)",
+      "source": "- [ ] **un**\n- [ ] **deux**\n- [ ] **trois**",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: checklist, every item bold (plain)",
+      "source": "- [ ] **un**\n- [ ] **deux**\n- [ ] **trois**"
+    },
+    {
+      "name": "stress: checked item in italics (styled)",
+      "source": "- [x] *faire*",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: checked item in italics (plain)",
+      "source": "- [x] *faire*"
+    },
+    {
+      "name": "stress: item split after bold, renumbered (styled)",
+      "source": "1. **un**\n2. **deux**\n3. **x**\n4. **trois**",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: item split after bold, renumbered (plain)",
+      "source": "1. **un**\n2. **deux**\n3. **x**\n4. **trois**"
+    },
+    {
+      "name": "stress: bold then italic overlapping (styled)",
+      "source": "**abc*de****fgh*",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: bold then italic overlapping (plain)",
+      "source": "**abc*de****fgh*"
+    },
+    {
+      "name": "stress: bold with a hole (styled)",
+      "source": "**ab**cde**fgh**",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: bold with a hole (plain)",
+      "source": "**ab**cde**fgh**"
+    },
+    {
+      "name": "stress: strike on one line of two (styled)",
+      "source": "~~un~~\ndeux",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: strike on one line of two (plain)",
+      "source": "~~un~~\ndeux"
+    },
+    {
+      "name": "stress: bold carried over Enter, then off (styled)",
+      "source": "**a**\n**b**c",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: bold carried over Enter, then off (plain)",
+      "source": "**a**\n**b**c"
+    },
+    {
+      "name": "stress: a bold letter inside a word (styled)",
+      "source": "a**X**bc",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: a bold letter inside a word (plain)",
+      "source": "a**X**bc"
+    },
+    {
+      "name": "stress: emoji cutting a bold word in an item (styled)",
+      "source": "1. **gr**🔥**as**",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: emoji cutting a bold word in an item (plain)",
+      "source": "1. **gr**🔥**as**"
+    },
+    {
+      "name": "stress: emoji, composed accents and Arabic in a bold item (styled)",
+      "source": "1. **é🥰 مرحبا é**",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: emoji, composed accents and Arabic in a bold item (plain)",
+      "source": "1. **é🥰 مرحبا é**"
+    },
+    {
+      "name": "stress: style across a plain line and an item (styled)",
+      "source": "pl**at**\n1. **it**em",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: style across a plain line and an item (plain)",
+      "source": "pl**at**\n1. **it**em"
+    },
+    {
+      "name": "stress: a link in a bold item (styled)",
+      "source": "1. **voir** **[ici](https://exemple.fr)**",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: a link in a bold item (plain)",
+      "source": "1. **voir** **[ici](https://exemple.fr)**"
+    },
+    {
+      "name": "stress: a page mention opening an item (styled)",
+      "source": "1. [Croco.code](urn:li:organization:6834198) arrive",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: a page mention opening an item (plain)",
+      "source": "1. [Croco.code](urn:li:organization:6834198) arrive"
+    },
+    {
+      "name": "stress: list closed, then blank lines (styled)",
+      "source": "1. un\n2. deux\n3. trois\n\n\n\nfin",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: list closed, then blank lines (plain)",
+      "source": "1. un\n2. deux\n3. trois\n\n\n\nfin"
+    },
+    {
+      "name": "stress: a CTA after a list (styled)",
+      "source": "1. un\n2. deux\n3. trois\n**[Lire](https://exemple.fr)**",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: a CTA after a list (plain)",
+      "source": "1. un\n2. deux\n3. trois\n**[Lire](https://exemple.fr)**"
+    },
+    {
+      "name": "stress: nested item, everything bold (styled)",
+      "source": "1. **un**\n    1. **deux**\n2. **trois**",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: nested item, everything bold (plain)",
+      "source": "1. **un**\n    1. **deux**\n2. **trois**"
+    },
+    {
+      "name": "stress: an item of spaces only (styled)",
+      "source": "1.    ",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: an item of spaces only (plain)",
+      "source": "1.    "
+    },
+    {
+      "name": "stress: bold across items, each its own (styled)",
+      "source": "1. la pre**mière**\n2. **la deu**xième\n3. la troisième",
+      "unicode_styling": true
+    },
+    {
+      "name": "stress: bold across items, each its own (plain)",
+      "source": "1. la pre**mière**\n2. **la deu**xième\n3. la troisième"
+    },
+    {
+      "name": "domain link: 'exemple.com' (plain)",
+      "source": "exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'exemple.com' (plain) (no link length)",
+      "source": "exemple.com"
+    },
+    {
+      "name": "domain link: 'exemple.com' (styled)",
+      "source": "exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com ici' (plain)",
+      "source": "voir exemple.com ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com ici' (plain) (no link length)",
+      "source": "voir exemple.com ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com ici' (styled)",
+      "source": "voir exemple.com ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '👉Découvrez Exemple : exemple.com' (plain)",
+      "source": "👉Découvrez Exemple : exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '👉Découvrez Exemple : exemple.com' (plain) (no link length)",
+      "source": "👉Découvrez Exemple : exemple.com"
+    },
+    {
+      "name": "domain link: '👉Découvrez Exemple : exemple.com' (styled)",
+      "source": "👉Découvrez Exemple : exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '👉exemple.com' (plain)",
+      "source": "👉exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '👉exemple.com' (plain) (no link length)",
+      "source": "👉exemple.com"
+    },
+    {
+      "name": "domain link: '👉exemple.com' (styled)",
+      "source": "👉exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: \"l'app.exemple.com\" (plain)",
+      "source": "l'app.exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: \"l'app.exemple.com\" (plain) (no link length)",
+      "source": "l'app.exemple.com"
+    },
+    {
+      "name": "domain link: \"l'app.exemple.com\" (styled)",
+      "source": "l'app.exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '«exemple.com»' (plain)",
+      "source": "«exemple.com»",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '«exemple.com»' (plain) (no link length)",
+      "source": "«exemple.com»"
+    },
+    {
+      "name": "domain link: '«exemple.com»' (styled)",
+      "source": "«exemple.com»",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '\"exemple.com\"' (plain)",
+      "source": "\"exemple.com\"",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '\"exemple.com\"' (plain) (no link length)",
+      "source": "\"exemple.com\""
+    },
+    {
+      "name": "domain link: '\"exemple.com\"' (styled)",
+      "source": "\"exemple.com\"",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir\\nexemple.com\\nici' (plain)",
+      "source": "voir\nexemple.com\nici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir\\nexemple.com\\nici' (plain) (no link length)",
+      "source": "voir\nexemple.com\nici"
+    },
+    {
+      "name": "domain link: 'voir\\nexemple.com\\nici' (styled)",
+      "source": "voir\nexemple.com\nici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir Exemple.com ici' (plain)",
+      "source": "voir Exemple.com ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir Exemple.com ici' (plain) (no link length)",
+      "source": "voir Exemple.com ici"
+    },
+    {
+      "name": "domain link: 'voir Exemple.com ici' (styled)",
+      "source": "voir Exemple.com ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir EXEMPLE.com ici' (plain)",
+      "source": "voir EXEMPLE.com ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir EXEMPLE.com ici' (plain) (no link length)",
+      "source": "voir EXEMPLE.com ici"
+    },
+    {
+      "name": "domain link: 'voir EXEMPLE.com ici' (styled)",
+      "source": "voir EXEMPLE.com ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir app.exemple.com ici' (plain)",
+      "source": "voir app.exemple.com ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir app.exemple.com ici' (plain) (no link length)",
+      "source": "voir app.exemple.com ici"
+    },
+    {
+      "name": "domain link: 'voir app.exemple.com ici' (styled)",
+      "source": "voir app.exemple.com ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.co.uk ici' (plain)",
+      "source": "voir exemple.co.uk ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.co.uk ici' (plain) (no link length)",
+      "source": "voir exemple.co.uk ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.co.uk ici' (styled)",
+      "source": "voir exemple.co.uk ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir mon-site.fr ici' (plain)",
+      "source": "voir mon-site.fr ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir mon-site.fr ici' (plain) (no link length)",
+      "source": "voir mon-site.fr ici"
+    },
+    {
+      "name": "domain link: 'voir mon-site.fr ici' (styled)",
+      "source": "voir mon-site.fr ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir xn--caf-dma.fr ici' (plain)",
+      "source": "voir xn--caf-dma.fr ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir xn--caf-dma.fr ici' (plain) (no link length)",
+      "source": "voir xn--caf-dma.fr ici"
+    },
+    {
+      "name": "domain link: 'voir xn--caf-dma.fr ici' (styled)",
+      "source": "voir xn--caf-dma.fr ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir 3suisses.fr ici' (plain)",
+      "source": "voir 3suisses.fr ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir 3suisses.fr ici' (plain) (no link length)",
+      "source": "voir 3suisses.fr ici"
+    },
+    {
+      "name": "domain link: 'voir 3suisses.fr ici' (styled)",
+      "source": "voir 3suisses.fr ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir www.exemple.com ici' (plain)",
+      "source": "voir www.exemple.com ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir www.exemple.com ici' (plain) (no link length)",
+      "source": "voir www.exemple.com ici"
+    },
+    {
+      "name": "domain link: 'voir www.exemple.com ici' (styled)",
+      "source": "voir www.exemple.com ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir www.exemple.museum ici' (plain)",
+      "source": "voir www.exemple.museum ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir www.exemple.museum ici' (plain) (no link length)",
+      "source": "voir www.exemple.museum ici"
+    },
+    {
+      "name": "domain link: 'voir www.exemple.museum ici' (styled)",
+      "source": "voir www.exemple.museum ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir www.exemple.fr/page ici' (plain)",
+      "source": "voir www.exemple.fr/page ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir www.exemple.fr/page ici' (plain) (no link length)",
+      "source": "voir www.exemple.fr/page ici"
+    },
+    {
+      "name": "domain link: 'voir www.exemple.fr/page ici' (styled)",
+      "source": "voir www.exemple.fr/page ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir www.exemple.com.au ici' (plain)",
+      "source": "voir www.exemple.com.au ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir www.exemple.com.au ici' (plain) (no link length)",
+      "source": "voir www.exemple.com.au ici"
+    },
+    {
+      "name": "domain link: 'voir www.exemple.com.au ici' (styled)",
+      "source": "voir www.exemple.com.au ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/ ici' (plain)",
+      "source": "voir exemple.com/ ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/ ici' (plain) (no link length)",
+      "source": "voir exemple.com/ ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/ ici' (styled)",
+      "source": "voir exemple.com/ ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/tarifs ici' (plain)",
+      "source": "voir exemple.com/tarifs ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/tarifs ici' (plain) (no link length)",
+      "source": "voir exemple.com/tarifs ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/tarifs ici' (styled)",
+      "source": "voir exemple.com/tarifs ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/tarifs?x=1 ici' (plain)",
+      "source": "voir exemple.com/tarifs?x=1 ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/tarifs?x=1 ici' (plain) (no link length)",
+      "source": "voir exemple.com/tarifs?x=1 ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/tarifs?x=1 ici' (styled)",
+      "source": "voir exemple.com/tarifs?x=1 ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/tarifs?x=1&y=2#prix ici' (plain)",
+      "source": "voir exemple.com/tarifs?x=1&y=2#prix ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/tarifs?x=1&y=2#prix ici' (plain) (no link length)",
+      "source": "voir exemple.com/tarifs?x=1&y=2#prix ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/tarifs?x=1&y=2#prix ici' (styled)",
+      "source": "voir exemple.com/tarifs?x=1&y=2#prix ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com?utm_source=linkedin ici' (plain)",
+      "source": "voir exemple.com?utm_source=linkedin ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com?utm_source=linkedin ici' (plain) (no link length)",
+      "source": "voir exemple.com?utm_source=linkedin ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com?utm_source=linkedin ici' (styled)",
+      "source": "voir exemple.com?utm_source=linkedin ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com#prix ici' (plain)",
+      "source": "voir exemple.com#prix ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com#prix ici' (plain) (no link length)",
+      "source": "voir exemple.com#prix ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com#prix ici' (styled)",
+      "source": "voir exemple.com#prix ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com:8080 ici' (plain)",
+      "source": "voir exemple.com:8080 ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com:8080 ici' (plain) (no link length)",
+      "source": "voir exemple.com:8080 ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com:8080 ici' (styled)",
+      "source": "voir exemple.com:8080 ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com:8080/a ici' (plain)",
+      "source": "voir exemple.com:8080/a ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com:8080/a ici' (plain) (no link length)",
+      "source": "voir exemple.com:8080/a ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com:8080/a ici' (styled)",
+      "source": "voir exemple.com:8080/a ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/a*b ici' (plain)",
+      "source": "voir exemple.com/a*b ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/a*b ici' (plain) (no link length)",
+      "source": "voir exemple.com/a*b ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/a*b ici' (styled)",
+      "source": "voir exemple.com/a*b ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/un_chemin ici' (plain)",
+      "source": "voir exemple.com/un_chemin ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/un_chemin ici' (plain) (no link length)",
+      "source": "voir exemple.com/un_chemin ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/un_chemin ici' (styled)",
+      "source": "voir exemple.com/un_chemin ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/a.zip ici' (plain)",
+      "source": "voir exemple.com/a.zip ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/a.zip ici' (plain) (no link length)",
+      "source": "voir exemple.com/a.zip ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/a.zip ici' (styled)",
+      "source": "voir exemple.com/a.zip ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com. Ensuite' (plain)",
+      "source": "voir exemple.com. Ensuite",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com. Ensuite' (plain) (no link length)",
+      "source": "voir exemple.com. Ensuite"
+    },
+    {
+      "name": "domain link: 'voir exemple.com. Ensuite' (styled)",
+      "source": "voir exemple.com. Ensuite",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com, puis' (plain)",
+      "source": "voir exemple.com, puis",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com, puis' (plain) (no link length)",
+      "source": "voir exemple.com, puis"
+    },
+    {
+      "name": "domain link: 'voir exemple.com, puis' (styled)",
+      "source": "voir exemple.com, puis",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com: la suite' (plain)",
+      "source": "voir exemple.com: la suite",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com: la suite' (plain) (no link length)",
+      "source": "voir exemple.com: la suite"
+    },
+    {
+      "name": "domain link: 'voir exemple.com: la suite' (styled)",
+      "source": "voir exemple.com: la suite",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com; la suite' (plain)",
+      "source": "voir exemple.com; la suite",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com; la suite' (plain) (no link length)",
+      "source": "voir exemple.com; la suite"
+    },
+    {
+      "name": "domain link: 'voir exemple.com; la suite' (styled)",
+      "source": "voir exemple.com; la suite",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'tu connais exemple.com?' (plain)",
+      "source": "tu connais exemple.com?",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'tu connais exemple.com?' (plain) (no link length)",
+      "source": "tu connais exemple.com?"
+    },
+    {
+      "name": "domain link: 'tu connais exemple.com?' (styled)",
+      "source": "tu connais exemple.com?",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'tu connais exemple.com ?' (plain)",
+      "source": "tu connais exemple.com ?",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'tu connais exemple.com ?' (plain) (no link length)",
+      "source": "tu connais exemple.com ?"
+    },
+    {
+      "name": "domain link: 'tu connais exemple.com ?' (styled)",
+      "source": "tu connais exemple.com ?",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'allez sur exemple.com!' (plain)",
+      "source": "allez sur exemple.com!",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'allez sur exemple.com!' (plain) (no link length)",
+      "source": "allez sur exemple.com!"
+    },
+    {
+      "name": "domain link: 'allez sur exemple.com!' (styled)",
+      "source": "allez sur exemple.com!",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/tarifs?x=1. Ensuite' (plain)",
+      "source": "voir exemple.com/tarifs?x=1. Ensuite",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/tarifs?x=1. Ensuite' (plain) (no link length)",
+      "source": "voir exemple.com/tarifs?x=1. Ensuite"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/tarifs?x=1. Ensuite' (styled)",
+      "source": "voir exemple.com/tarifs?x=1. Ensuite",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'tu as vu exemple.com/tarifs?' (plain)",
+      "source": "tu as vu exemple.com/tarifs?",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'tu as vu exemple.com/tarifs?' (plain) (no link length)",
+      "source": "tu as vu exemple.com/tarifs?"
+    },
+    {
+      "name": "domain link: 'tu as vu exemple.com/tarifs?' (styled)",
+      "source": "tu as vu exemple.com/tarifs?",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'allez sur exemple.com/tarifs!' (plain)",
+      "source": "allez sur exemple.com/tarifs!",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'allez sur exemple.com/tarifs!' (plain) (no link length)",
+      "source": "allez sur exemple.com/tarifs!"
+    },
+    {
+      "name": "domain link: 'allez sur exemple.com/tarifs!' (styled)",
+      "source": "allez sur exemple.com/tarifs!",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/page_ ici' (plain)",
+      "source": "voir exemple.com/page_ ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/page_ ici' (plain) (no link length)",
+      "source": "voir exemple.com/page_ ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/page_ ici' (styled)",
+      "source": "voir exemple.com/page_ ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/page~ ici' (plain)",
+      "source": "voir exemple.com/page~ ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/page~ ici' (plain) (no link length)",
+      "source": "voir exemple.com/page~ ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/page~ ici' (styled)",
+      "source": "voir exemple.com/page~ ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '(exemple.com)' (plain)",
+      "source": "(exemple.com)",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '(exemple.com)' (plain) (no link length)",
+      "source": "(exemple.com)"
+    },
+    {
+      "name": "domain link: '(exemple.com)' (styled)",
+      "source": "(exemple.com)",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '(voir exemple.com/tarifs) ensuite' (plain)",
+      "source": "(voir exemple.com/tarifs) ensuite",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '(voir exemple.com/tarifs) ensuite' (plain) (no link length)",
+      "source": "(voir exemple.com/tarifs) ensuite"
+    },
+    {
+      "name": "domain link: '(voir exemple.com/tarifs) ensuite' (styled)",
+      "source": "(voir exemple.com/tarifs) ensuite",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/b_(c) ensuite' (plain)",
+      "source": "voir exemple.com/b_(c) ensuite",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/b_(c) ensuite' (plain) (no link length)",
+      "source": "voir exemple.com/b_(c) ensuite"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/b_(c) ensuite' (styled)",
+      "source": "voir exemple.com/b_(c) ensuite",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '(voir exemple.com/b_(c)) ensuite' (plain)",
+      "source": "(voir exemple.com/b_(c)) ensuite",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '(voir exemple.com/b_(c)) ensuite' (plain) (no link length)",
+      "source": "(voir exemple.com/b_(c)) ensuite"
+    },
+    {
+      "name": "domain link: '(voir exemple.com/b_(c)) ensuite' (styled)",
+      "source": "(voir exemple.com/b_(c)) ensuite",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/b)) ensuite' (plain)",
+      "source": "voir exemple.com/b)) ensuite",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/b)) ensuite' (plain) (no link length)",
+      "source": "voir exemple.com/b)) ensuite"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/b)) ensuite' (styled)",
+      "source": "voir exemple.com/b)) ensuite",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'mon_site.com' (plain)",
+      "source": "mon_site.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'mon_site.com' (plain) (no link length)",
+      "source": "mon_site.com"
+    },
+    {
+      "name": "domain link: 'mon_site.com' (styled)",
+      "source": "mon_site.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '\\\\_exemple.com' (plain)",
+      "source": "\\_exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '\\\\_exemple.com' (plain) (no link length)",
+      "source": "\\_exemple.com"
+    },
+    {
+      "name": "domain link: '\\\\_exemple.com' (styled)",
+      "source": "\\_exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com\\\\_x ici' (plain)",
+      "source": "voir exemple.com\\_x ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com\\\\_x ici' (plain) (no link length)",
+      "source": "voir exemple.com\\_x ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com\\\\_x ici' (styled)",
+      "source": "voir exemple.com\\_x ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '\\\\.exemple.com' (plain)",
+      "source": "\\.exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '\\\\.exemple.com' (plain) (no link length)",
+      "source": "\\.exemple.com"
+    },
+    {
+      "name": "domain link: '\\\\.exemple.com' (styled)",
+      "source": "\\.exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '\\\\-exemple.com' (plain)",
+      "source": "\\-exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: '\\\\-exemple.com' (plain) (no link length)",
+      "source": "\\-exemple.com"
+    },
+    {
+      "name": "domain link: '\\\\-exemple.com' (styled)",
+      "source": "\\-exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/chemin/très/long/éà ici' (plain)",
+      "source": "voir exemple.com/chemin/très/long/éà ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain link: 'voir exemple.com/chemin/très/long/éà ici' (plain) (no link length)",
+      "source": "voir exemple.com/chemin/très/long/éà ici"
+    },
+    {
+      "name": "domain link: 'voir exemple.com/chemin/très/long/éà ici' (styled)",
+      "source": "voir exemple.com/chemin/très/long/éà ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: \"C'est fini.De retour lundi\" (plain)",
+      "source": "C'est fini.De retour lundi",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: \"C'est fini.De retour lundi\" (plain) (no link length)",
+      "source": "C'est fini.De retour lundi"
+    },
+    {
+      "name": "domain text: \"C'est fini.De retour lundi\" (styled)",
+      "source": "C'est fini.De retour lundi",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: \"C'est fini.Com\" (plain)",
+      "source": "C'est fini.Com",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: \"C'est fini.Com\" (plain) (no link length)",
+      "source": "C'est fini.Com"
+    },
+    {
+      "name": "domain text: \"C'est fini.Com\" (styled)",
+      "source": "C'est fini.Com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'EXEMPLE.COM' (plain)",
+      "source": "EXEMPLE.COM",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'EXEMPLE.COM' (plain) (no link length)",
+      "source": "EXEMPLE.COM"
+    },
+    {
+      "name": "domain text: 'EXEMPLE.COM' (styled)",
+      "source": "EXEMPLE.COM",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.com.La suite' (plain)",
+      "source": "exemple.com.La suite",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.com.La suite' (plain) (no link length)",
+      "source": "exemple.com.La suite"
+    },
+    {
+      "name": "domain text: 'exemple.com.La suite' (styled)",
+      "source": "exemple.com.La suite",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'readme.md' (plain)",
+      "source": "readme.md",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'readme.md' (plain) (no link length)",
+      "source": "readme.md"
+    },
+    {
+      "name": "domain text: 'readme.md' (styled)",
+      "source": "readme.md",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'node.js' (plain)",
+      "source": "node.js",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'node.js' (plain) (no link length)",
+      "source": "node.js"
+    },
+    {
+      "name": "domain text: 'node.js' (styled)",
+      "source": "node.js",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'archive.zip' (plain)",
+      "source": "archive.zip",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'archive.zip' (plain) (no link length)",
+      "source": "archive.zip"
+    },
+    {
+      "name": "domain text: 'archive.zip' (styled)",
+      "source": "archive.zip",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'script.py' (plain)",
+      "source": "script.py",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'script.py' (plain) (no link length)",
+      "source": "script.py"
+    },
+    {
+      "name": "domain text: 'script.py' (styled)",
+      "source": "script.py",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.me' (plain)",
+      "source": "exemple.me",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.me' (plain) (no link length)",
+      "source": "exemple.me"
+    },
+    {
+      "name": "domain text: 'exemple.me' (styled)",
+      "source": "exemple.me",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'voila.la' (plain)",
+      "source": "voila.la",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'voila.la' (plain) (no link length)",
+      "source": "voila.la"
+    },
+    {
+      "name": "domain text: 'voila.la' (styled)",
+      "source": "voila.la",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.museum' (plain)",
+      "source": "exemple.museum",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.museum' (plain) (no link length)",
+      "source": "exemple.museum"
+    },
+    {
+      "name": "domain text: 'exemple.museum' (styled)",
+      "source": "exemple.museum",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.community' (plain)",
+      "source": "exemple.community",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.community' (plain) (no link length)",
+      "source": "exemple.community"
+    },
+    {
+      "name": "domain text: 'exemple.community' (styled)",
+      "source": "exemple.community",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.comme' (plain)",
+      "source": "exemple.comme",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.comme' (plain) (no link length)",
+      "source": "exemple.comme"
+    },
+    {
+      "name": "domain text: 'exemple.comme' (styled)",
+      "source": "exemple.comme",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.com2' (plain)",
+      "source": "exemple.com2",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.com2' (plain) (no link length)",
+      "source": "exemple.com2"
+    },
+    {
+      "name": "domain text: 'exemple.com2' (styled)",
+      "source": "exemple.com2",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.com-x' (plain)",
+      "source": "exemple.com-x",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.com-x' (plain) (no link length)",
+      "source": "exemple.com-x"
+    },
+    {
+      "name": "domain text: 'exemple.com-x' (styled)",
+      "source": "exemple.com-x",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.com.zip' (plain)",
+      "source": "exemple.com.zip",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.com.zip' (plain) (no link length)",
+      "source": "exemple.com.zip"
+    },
+    {
+      "name": "domain text: 'exemple.com.zip' (styled)",
+      "source": "exemple.com.zip",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.com.au' (plain)",
+      "source": "exemple.com.au",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple.com.au' (plain) (no link length)",
+      "source": "exemple.com.au"
+    },
+    {
+      "name": "domain text: 'exemple.com.au' (styled)",
+      "source": "exemple.com.au",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'a@exemple.com' (plain)",
+      "source": "a@exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'a@exemple.com' (plain) (no link length)",
+      "source": "a@exemple.com"
+    },
+    {
+      "name": "domain text: 'a@exemple.com' (styled)",
+      "source": "a@exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'prenom.nom@exemple.com' (plain)",
+      "source": "prenom.nom@exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'prenom.nom@exemple.com' (plain) (no link length)",
+      "source": "prenom.nom@exemple.com"
+    },
+    {
+      "name": "domain text: 'prenom.nom@exemple.com' (styled)",
+      "source": "prenom.nom@exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'jean.fr@exemple.zz' (plain)",
+      "source": "jean.fr@exemple.zz",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'jean.fr@exemple.zz' (plain) (no link length)",
+      "source": "jean.fr@exemple.zz"
+    },
+    {
+      "name": "domain text: 'jean.fr@exemple.zz' (styled)",
+      "source": "jean.fr@exemple.zz",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: '-exemple.com' (plain)",
+      "source": "-exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: '-exemple.com' (plain) (no link length)",
+      "source": "-exemple.com"
+    },
+    {
+      "name": "domain text: '-exemple.com' (styled)",
+      "source": "-exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: '.exemple.com' (plain)",
+      "source": ".exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: '.exemple.com' (plain) (no link length)",
+      "source": ".exemple.com"
+    },
+    {
+      "name": "domain text: '.exemple.com' (styled)",
+      "source": ".exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: '/exemple.com' (plain)",
+      "source": "/exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: '/exemple.com' (plain) (no link length)",
+      "source": "/exemple.com"
+    },
+    {
+      "name": "domain text: '/exemple.com' (styled)",
+      "source": "/exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'chemin/exemple.com' (plain)",
+      "source": "chemin/exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'chemin/exemple.com' (plain) (no link length)",
+      "source": "chemin/exemple.com"
+    },
+    {
+      "name": "domain text: 'chemin/exemple.com' (styled)",
+      "source": "chemin/exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'a-.io' (plain)",
+      "source": "a-.io",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'a-.io' (plain) (no link length)",
+      "source": "a-.io"
+    },
+    {
+      "name": "domain text: 'a-.io' (styled)",
+      "source": "a-.io",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'café.fr' (plain)",
+      "source": "café.fr",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'café.fr' (plain) (no link length)",
+      "source": "café.fr"
+    },
+    {
+      "name": "domain text: 'café.fr' (styled)",
+      "source": "café.fr",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'écafe.fr' (plain)",
+      "source": "écafe.fr",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'écafe.fr' (plain) (no link length)",
+      "source": "écafe.fr"
+    },
+    {
+      "name": "domain text: 'écafe.fr' (styled)",
+      "source": "écafe.fr",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'www' (plain)",
+      "source": "www",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'www' (plain) (no link length)",
+      "source": "www"
+    },
+    {
+      "name": "domain text: 'www' (styled)",
+      "source": "www",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'www.exemple' (plain)",
+      "source": "www.exemple",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'www.exemple' (plain) (no link length)",
+      "source": "www.exemple"
+    },
+    {
+      "name": "domain text: 'www.exemple' (styled)",
+      "source": "www.exemple",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple .com' (plain)",
+      "source": "exemple .com",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple .com' (plain) (no link length)",
+      "source": "exemple .com"
+    },
+    {
+      "name": "domain text: 'exemple .com' (styled)",
+      "source": "exemple .com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple. com' (plain)",
+      "source": "exemple. com",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'exemple. com' (plain) (no link length)",
+      "source": "exemple. com"
+    },
+    {
+      "name": "domain text: 'exemple. com' (styled)",
+      "source": "exemple. com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'com' (plain)",
+      "source": "com",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'com' (plain) (no link length)",
+      "source": "com"
+    },
+    {
+      "name": "domain text: 'com' (styled)",
+      "source": "com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: '.com' (plain)",
+      "source": ".com",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: '.com' (plain) (no link length)",
+      "source": ".com"
+    },
+    {
+      "name": "domain text: '.com' (styled)",
+      "source": ".com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: '1.5' (plain)",
+      "source": "1.5",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: '1.5' (plain) (no link length)",
+      "source": "1.5"
+    },
+    {
+      "name": "domain text: '1.5' (styled)",
+      "source": "1.5",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'v1.2' (plain)",
+      "source": "v1.2",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'v1.2' (plain) (no link length)",
+      "source": "v1.2"
+    },
+    {
+      "name": "domain text: 'v1.2' (styled)",
+      "source": "v1.2",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'etc.' (plain)",
+      "source": "etc.",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'etc.' (plain) (no link length)",
+      "source": "etc."
+    },
+    {
+      "name": "domain text: 'etc.' (styled)",
+      "source": "etc.",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'p.ex.' (plain)",
+      "source": "p.ex.",
+      "link_length": 26
+    },
+    {
+      "name": "domain text: 'p.ex.' (plain) (no link length)",
+      "source": "p.ex."
+    },
+    {
+      "name": "domain text: 'p.ex.' (styled)",
+      "source": "p.ex.",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '`exemple.com`' (plain)",
+      "source": "`exemple.com`",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '`exemple.com`' (plain) (no link length)",
+      "source": "`exemple.com`"
+    },
+    {
+      "name": "domain around: '`exemple.com`' (styled)",
+      "source": "`exemple.com`",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'voir https://exemple.com/a.com/b.fr ici' (plain)",
+      "source": "voir https://exemple.com/a.com/b.fr ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'voir https://exemple.com/a.com/b.fr ici' (plain) (no link length)",
+      "source": "voir https://exemple.com/a.com/b.fr ici"
+    },
+    {
+      "name": "domain around: 'voir https://exemple.com/a.com/b.fr ici' (styled)",
+      "source": "voir https://exemple.com/a.com/b.fr ici",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'https://exemple.com/a et exemple.fr, www.b.org' (plain)",
+      "source": "https://exemple.com/a et exemple.fr, www.b.org",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'https://exemple.com/a et exemple.fr, www.b.org' (plain) (no link length)",
+      "source": "https://exemple.com/a et exemple.fr, www.b.org"
+    },
+    {
+      "name": "domain around: 'https://exemple.com/a et exemple.fr, www.b.org' (styled)",
+      "source": "https://exemple.com/a et exemple.fr, www.b.org",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[voir exemple.com](https://autre.fr)' (plain)",
+      "source": "[voir exemple.com](https://autre.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[voir exemple.com](https://autre.fr)' (plain) (no link length)",
+      "source": "[voir exemple.com](https://autre.fr)"
+    },
+    {
+      "name": "domain around: '[voir exemple.com](https://autre.fr)' (styled)",
+      "source": "[voir exemple.com](https://autre.fr)",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[là](exemple.com)' (plain)",
+      "source": "[là](exemple.com)",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[là](exemple.com)' (plain) (no link length)",
+      "source": "[là](exemple.com)"
+    },
+    {
+      "name": "domain around: '[là](exemple.com)' (styled)",
+      "source": "[là](exemple.com)",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[exemple.com](https://exemple.com/tarifs)' (plain)",
+      "source": "[exemple.com](https://exemple.com/tarifs)",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[exemple.com](https://exemple.com/tarifs)' (plain) (no link length)",
+      "source": "[exemple.com](https://exemple.com/tarifs)"
+    },
+    {
+      "name": "domain around: '[exemple.com](https://exemple.com/tarifs)' (styled)",
+      "source": "[exemple.com](https://exemple.com/tarifs)",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[voir exemple.com](https://exemple.com/tarifs)' (plain)",
+      "source": "[voir exemple.com](https://exemple.com/tarifs)",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[voir exemple.com](https://exemple.com/tarifs)' (plain) (no link length)",
+      "source": "[voir exemple.com](https://exemple.com/tarifs)"
+    },
+    {
+      "name": "domain around: '[voir exemple.com](https://exemple.com/tarifs)' (styled)",
+      "source": "[voir exemple.com](https://exemple.com/tarifs)",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[exemple.com](mailto:bonjour@exemple.com)' (plain)",
+      "source": "[exemple.com](mailto:bonjour@exemple.com)",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[exemple.com](mailto:bonjour@exemple.com)' (plain) (no link length)",
+      "source": "[exemple.com](mailto:bonjour@exemple.com)"
+    },
+    {
+      "name": "domain around: '[exemple.com](mailto:bonjour@exemple.com)' (styled)",
+      "source": "[exemple.com](mailto:bonjour@exemple.com)",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[www.exemple.com](https://autre.fr)' (plain)",
+      "source": "[www.exemple.com](https://autre.fr)",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[www.exemple.com](https://autre.fr)' (plain) (no link length)",
+      "source": "[www.exemple.com](https://autre.fr)"
+    },
+    {
+      "name": "domain around: '[www.exemple.com](https://autre.fr)' (styled)",
+      "source": "[www.exemple.com](https://autre.fr)",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '<exemple.com>' (plain)",
+      "source": "<exemple.com>",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '<exemple.com>' (plain) (no link length)",
+      "source": "<exemple.com>"
+    },
+    {
+      "name": "domain around: '<exemple.com>' (styled)",
+      "source": "<exemple.com>",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '<a href=\"https://a.fr\">exemple.com</a>' (plain)",
+      "source": "<a href=\"https://a.fr\">exemple.com</a>",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '<a href=\"https://a.fr\">exemple.com</a>' (plain) (no link length)",
+      "source": "<a href=\"https://a.fr\">exemple.com</a>"
+    },
+    {
+      "name": "domain around: '<a href=\"https://a.fr\">exemple.com</a>' (styled)",
+      "source": "<a href=\"https://a.fr\">exemple.com</a>",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '**exemple.com**' (plain)",
+      "source": "**exemple.com**",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '**exemple.com**' (plain) (no link length)",
+      "source": "**exemple.com**"
+    },
+    {
+      "name": "domain around: '**exemple.com**' (styled)",
+      "source": "**exemple.com**",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '*exemple.com*' (plain)",
+      "source": "*exemple.com*",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '*exemple.com*' (plain) (no link length)",
+      "source": "*exemple.com*"
+    },
+    {
+      "name": "domain around: '*exemple.com*' (styled)",
+      "source": "*exemple.com*",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '_exemple.com_' (plain)",
+      "source": "_exemple.com_",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '_exemple.com_' (plain) (no link length)",
+      "source": "_exemple.com_"
+    },
+    {
+      "name": "domain around: '_exemple.com_' (styled)",
+      "source": "_exemple.com_",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '~~exemple.com~~' (plain)",
+      "source": "~~exemple.com~~",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '~~exemple.com~~' (plain) (no link length)",
+      "source": "~~exemple.com~~"
+    },
+    {
+      "name": "domain around: '~~exemple.com~~' (styled)",
+      "source": "~~exemple.com~~",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '***exemple.com***' (plain)",
+      "source": "***exemple.com***",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '***exemple.com***' (plain) (no link length)",
+      "source": "***exemple.com***"
+    },
+    {
+      "name": "domain around: '***exemple.com***' (styled)",
+      "source": "***exemple.com***",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '__exemple.com__' (plain)",
+      "source": "__exemple.com__",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '__exemple.com__' (plain) (no link length)",
+      "source": "__exemple.com__"
+    },
+    {
+      "name": "domain around: '__exemple.com__' (styled)",
+      "source": "__exemple.com__",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '**exemple.com/tarifs**' (plain)",
+      "source": "**exemple.com/tarifs**",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '**exemple.com/tarifs**' (plain) (no link length)",
+      "source": "**exemple.com/tarifs**"
+    },
+    {
+      "name": "domain around: '**exemple.com/tarifs**' (styled)",
+      "source": "**exemple.com/tarifs**",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '**voir exemple.com**.' (plain)",
+      "source": "**voir exemple.com**.",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '**voir exemple.com**.' (plain) (no link length)",
+      "source": "**voir exemple.com**."
+    },
+    {
+      "name": "domain around: '**voir exemple.com**.' (styled)",
+      "source": "**voir exemple.com**.",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '**gras**exemple.com' (plain)",
+      "source": "**gras**exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '**gras**exemple.com' (plain) (no link length)",
+      "source": "**gras**exemple.com"
+    },
+    {
+      "name": "domain around: '**gras**exemple.com' (styled)",
+      "source": "**gras**exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '*a*exemple.com*b*' (plain)",
+      "source": "*a*exemple.com*b*",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '*a*exemple.com*b*' (plain) (no link length)",
+      "source": "*a*exemple.com*b*"
+    },
+    {
+      "name": "domain around: '*a*exemple.com*b*' (styled)",
+      "source": "*a*exemple.com*b*",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com**gras**' (plain)",
+      "source": "exemple.com**gras**",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com**gras**' (plain) (no link length)",
+      "source": "exemple.com**gras**"
+    },
+    {
+      "name": "domain around: 'exemple.com**gras**' (styled)",
+      "source": "exemple.com**gras**",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com*x*' (plain)",
+      "source": "exemple.com*x*",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com*x*' (plain) (no link length)",
+      "source": "exemple.com*x*"
+    },
+    {
+      "name": "domain around: 'exemple.com*x*' (styled)",
+      "source": "exemple.com*x*",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '#tag exemple.com #exemple.com' (plain)",
+      "source": "#tag exemple.com #exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '#tag exemple.com #exemple.com' (plain) (no link length)",
+      "source": "#tag exemple.com #exemple.com"
+    },
+    {
+      "name": "domain around: '#tag exemple.com #exemple.com' (styled)",
+      "source": "#tag exemple.com #exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com #tag' (plain)",
+      "source": "exemple.com #tag",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com #tag' (plain) (no link length)",
+      "source": "exemple.com #tag"
+    },
+    {
+      "name": "domain around: 'exemple.com #tag' (styled)",
+      "source": "exemple.com #tag",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[Acme](urn:li:organization:1) exemple.com' (plain)",
+      "source": "[Acme](urn:li:organization:1) exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '[Acme](urn:li:organization:1) exemple.com' (plain) (no link length)",
+      "source": "[Acme](urn:li:organization:1) exemple.com"
+    },
+    {
+      "name": "domain around: '[Acme](urn:li:organization:1) exemple.com' (styled)",
+      "source": "[Acme](urn:li:organization:1) exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '# exemple.com\\n\\n- voir exemple.fr\\n- www.b.org\\n\\n> a.io\\n\\n1. b.dev' (plain)",
+      "source": "# exemple.com\n\n- voir exemple.fr\n- www.b.org\n\n> a.io\n\n1. b.dev",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '# exemple.com\\n\\n- voir exemple.fr\\n- www.b.org\\n\\n> a.io\\n\\n1. b.dev' (plain) (no link length)",
+      "source": "# exemple.com\n\n- voir exemple.fr\n- www.b.org\n\n> a.io\n\n1. b.dev"
+    },
+    {
+      "name": "domain around: '# exemple.com\\n\\n- voir exemple.fr\\n- www.b.org\\n\\n> a.io\\n\\n1. b.dev' (styled)",
+      "source": "# exemple.com\n\n- voir exemple.fr\n- www.b.org\n\n> a.io\n\n1. b.dev",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '| a | b |\\n|---|---|\\n| exemple.com | x.fr |' (plain)",
+      "source": "| a | b |\n|---|---|\n| exemple.com | x.fr |",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '| a | b |\\n|---|---|\\n| exemple.com | x.fr |' (plain) (no link length)",
+      "source": "| a | b |\n|---|---|\n| exemple.com | x.fr |"
+    },
+    {
+      "name": "domain around: '| a | b |\\n|---|---|\\n| exemple.com | x.fr |' (styled)",
+      "source": "| a | b |\n|---|---|\n| exemple.com | x.fr |",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com\\nexemple.fr\\n\\nwww.b.org' (plain)",
+      "source": "exemple.com\nexemple.fr\n\nwww.b.org",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com\\nexemple.fr\\n\\nwww.b.org' (plain) (no link length)",
+      "source": "exemple.com\nexemple.fr\n\nwww.b.org"
+    },
+    {
+      "name": "domain around: 'exemple.com\\nexemple.fr\\n\\nwww.b.org' (styled)",
+      "source": "exemple.com\nexemple.fr\n\nwww.b.org",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com exemple.fr' (plain)",
+      "source": "exemple.com exemple.fr",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com exemple.fr' (plain) (no link length)",
+      "source": "exemple.com exemple.fr"
+    },
+    {
+      "name": "domain around: 'exemple.com exemple.fr' (styled)",
+      "source": "exemple.com exemple.fr",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com,exemple.fr' (plain)",
+      "source": "exemple.com,exemple.fr",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com,exemple.fr' (plain) (no link length)",
+      "source": "exemple.com,exemple.fr"
+    },
+    {
+      "name": "domain around: 'exemple.com,exemple.fr' (styled)",
+      "source": "exemple.com,exemple.fr",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com/exemple.fr' (plain)",
+      "source": "exemple.com/exemple.fr",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com/exemple.fr' (plain) (no link length)",
+      "source": "exemple.com/exemple.fr"
+    },
+    {
+      "name": "domain around: 'exemple.com/exemple.fr' (styled)",
+      "source": "exemple.com/exemple.fr",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'Le fichier readme.md, écrit à a@exemple.com.Puis node.js' (plain)",
+      "source": "Le fichier readme.md, écrit à a@exemple.com.Puis node.js",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'Le fichier readme.md, écrit à a@exemple.com.Puis node.js' (plain) (no link length)",
+      "source": "Le fichier readme.md, écrit à a@exemple.com.Puis node.js"
+    },
+    {
+      "name": "domain around: 'Le fichier readme.md, écrit à a@exemple.com.Puis node.js' (styled)",
+      "source": "Le fichier readme.md, écrit à a@exemple.com.Puis node.js",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '&amp;exemple.com' (plain)",
+      "source": "&amp;exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '&amp;exemple.com' (plain) (no link length)",
+      "source": "&amp;exemple.com"
+    },
+    {
+      "name": "domain around: '&amp;exemple.com' (styled)",
+      "source": "&amp;exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '![alt](logo.png) exemple.com' (plain)",
+      "source": "![alt](logo.png) exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '![alt](logo.png) exemple.com' (plain) (no link length)",
+      "source": "![alt](logo.png) exemple.com"
+    },
+    {
+      "name": "domain around: '![alt](logo.png) exemple.com' (styled)",
+      "source": "![alt](logo.png) exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com  \\nsuite' (plain)",
+      "source": "exemple.com  \nsuite",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com  \\nsuite' (plain) (no link length)",
+      "source": "exemple.com  \nsuite"
+    },
+    {
+      "name": "domain around: 'exemple.com  \\nsuite' (styled)",
+      "source": "exemple.com  \nsuite",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'é exemple.com' (plain)",
+      "source": "é exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'é exemple.com' (plain) (no link length)",
+      "source": "é exemple.com"
+    },
+    {
+      "name": "domain around: 'é exemple.com' (styled)",
+      "source": "é exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'éexemple.com' (plain)",
+      "source": "éexemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'éexemple.com' (plain) (no link length)",
+      "source": "éexemple.com"
+    },
+    {
+      "name": "domain around: 'éexemple.com' (styled)",
+      "source": "éexemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '中exemple.com' (plain)",
+      "source": "中exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '中exemple.com' (plain) (no link length)",
+      "source": "中exemple.com"
+    },
+    {
+      "name": "domain around: '中exemple.com' (styled)",
+      "source": "中exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com中' (plain)",
+      "source": "exemple.com中",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com中' (plain) (no link length)",
+      "source": "exemple.com中"
+    },
+    {
+      "name": "domain around: 'exemple.com中' (styled)",
+      "source": "exemple.com中",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.comé' (plain)",
+      "source": "exemple.comé",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.comé' (plain) (no link length)",
+      "source": "exemple.comé"
+    },
+    {
+      "name": "domain around: 'exemple.comé' (styled)",
+      "source": "exemple.comé",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com.é' (plain)",
+      "source": "exemple.com.é",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com.é' (plain) (no link length)",
+      "source": "exemple.com.é"
+    },
+    {
+      "name": "domain around: 'exemple.com.é' (styled)",
+      "source": "exemple.com.é",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '١exemple.com' (plain)",
+      "source": "١exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: '١exemple.com' (plain) (no link length)",
+      "source": "١exemple.com"
+    },
+    {
+      "name": "domain around: '١exemple.com' (styled)",
+      "source": "١exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com:80a' (plain)",
+      "source": "exemple.com:80a",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com:80a' (plain) (no link length)",
+      "source": "exemple.com:80a"
+    },
+    {
+      "name": "domain around: 'exemple.com:80a' (styled)",
+      "source": "exemple.com:80a",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com:' (plain)",
+      "source": "exemple.com:",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com:' (plain) (no link length)",
+      "source": "exemple.com:"
+    },
+    {
+      "name": "domain around: 'exemple.com:' (styled)",
+      "source": "exemple.com:",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com/?' (plain)",
+      "source": "exemple.com/?",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com/?' (plain) (no link length)",
+      "source": "exemple.com/?"
+    },
+    {
+      "name": "domain around: 'exemple.com/?' (styled)",
+      "source": "exemple.com/?",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com/#' (plain)",
+      "source": "exemple.com/#",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com/#' (plain) (no link length)",
+      "source": "exemple.com/#"
+    },
+    {
+      "name": "domain around: 'exemple.com/#' (styled)",
+      "source": "exemple.com/#",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com?' (plain)",
+      "source": "exemple.com?",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com?' (plain) (no link length)",
+      "source": "exemple.com?"
+    },
+    {
+      "name": "domain around: 'exemple.com?' (styled)",
+      "source": "exemple.com?",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com#' (plain)",
+      "source": "exemple.com#",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com#' (plain) (no link length)",
+      "source": "exemple.com#"
+    },
+    {
+      "name": "domain around: 'exemple.com#' (styled)",
+      "source": "exemple.com#",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com/a\"b' (plain)",
+      "source": "exemple.com/a\"b",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com/a\"b' (plain) (no link length)",
+      "source": "exemple.com/a\"b"
+    },
+    {
+      "name": "domain around: 'exemple.com/a\"b' (styled)",
+      "source": "exemple.com/a\"b",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com/a<b' (plain)",
+      "source": "exemple.com/a<b",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com/a<b' (plain) (no link length)",
+      "source": "exemple.com/a<b"
+    },
+    {
+      "name": "domain around: 'exemple.com/a<b' (styled)",
+      "source": "exemple.com/a<b",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: \"exemple.com/'a'\" (plain)",
+      "source": "exemple.com/'a'",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: \"exemple.com/'a'\" (plain) (no link length)",
+      "source": "exemple.com/'a'"
+    },
+    {
+      "name": "domain around: \"exemple.com/'a'\" (styled)",
+      "source": "exemple.com/'a'",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: \"'exemple.com'\" (plain)",
+      "source": "'exemple.com'",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: \"'exemple.com'\" (plain) (no link length)",
+      "source": "'exemple.com'"
+    },
+    {
+      "name": "domain around: \"'exemple.com'\" (styled)",
+      "source": "'exemple.com'",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com/a]' (plain)",
+      "source": "exemple.com/a]",
+      "link_length": 26
+    },
+    {
+      "name": "domain around: 'exemple.com/a]' (plain) (no link length)",
+      "source": "exemple.com/a]"
+    },
+    {
+      "name": "domain around: 'exemple.com/a]' (styled)",
+      "source": "exemple.com/a]",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .com",
+      "source": "voir exemple.com ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .net",
+      "source": "voir exemple.net ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .org",
+      "source": "voir exemple.org ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .info",
+      "source": "voir exemple.info ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .biz",
+      "source": "voir exemple.biz ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .io",
+      "source": "voir exemple.io ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .co",
+      "source": "voir exemple.co ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .ai",
+      "source": "voir exemple.ai ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .app",
+      "source": "voir exemple.app ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .dev",
+      "source": "voir exemple.dev ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .tech",
+      "source": "voir exemple.tech ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .fr",
+      "source": "voir exemple.fr ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .eu",
+      "source": "voir exemple.eu ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .be",
+      "source": "voir exemple.be ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .ch",
+      "source": "voir exemple.ch ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .lu",
+      "source": "voir exemple.lu ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .ca",
+      "source": "voir exemple.ca ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .uk",
+      "source": "voir exemple.uk ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .de",
+      "source": "voir exemple.de ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .es",
+      "source": "voir exemple.es ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .it",
+      "source": "voir exemple.it ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .nl",
+      "source": "voir exemple.nl ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .pt",
+      "source": "voir exemple.pt ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain extension: .us",
+      "source": "voir exemple.us ici",
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: '#exemple.com' (plain)",
+      "source": "#exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: '#exemple.com' (styled)",
+      "source": "#exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: 'a#exemple.com' (plain)",
+      "source": "a#exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: 'a#exemple.com' (styled)",
+      "source": "a#exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: '#tag#exemple.com' (plain)",
+      "source": "#tag#exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: '#tag#exemple.com' (styled)",
+      "source": "#tag#exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: '\\\\_#tagexemple.com/a_b' (plain)",
+      "source": "\\_#tagexemple.com/a_b",
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: '\\\\_#tagexemple.com/a_b' (styled)",
+      "source": "\\_#tagexemple.com/a_b",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: '-#tag#tagwww.exemple.fr_WWWuk' (plain)",
+      "source": "-#tag#tagwww.exemple.fr_WWWuk",
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: '-#tag#tagwww.exemple.fr_WWWuk' (styled)",
+      "source": "-#tag#tagwww.exemple.fr_WWWuk",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: '\\\\#exemple.com' (plain)",
+      "source": "\\#exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: '\\\\#exemple.com' (styled)",
+      "source": "\\#exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: '# exemple.com' (plain)",
+      "source": "# exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after a hash: '# exemple.com' (styled)",
+      "source": "# exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: ')exemple.com:8080exemple.co.uk/x?y=1#z' (plain)",
+      "source": ")exemple.com:8080exemple.co.uk/x?y=1#z",
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: ')exemple.com:8080exemple.co.uk/x?y=1#z' (styled)",
+      "source": ")exemple.com:8080exemple.co.uk/x?y=1#z",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: 'exemple.fr:8080comexemple.fr' (plain)",
+      "source": "exemple.fr:8080comexemple.fr",
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: 'exemple.fr:8080comexemple.fr' (styled)",
+      "source": "exemple.fr:8080comexemple.fr",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: 'https://a.fr/bexemple.com' (plain)",
+      "source": "https://a.fr/bexemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: 'https://a.fr/bexemple.com' (styled)",
+      "source": "https://a.fr/bexemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: 'https://a.fr exemple.com' (plain)",
+      "source": "https://a.fr exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: 'https://a.fr exemple.com' (styled)",
+      "source": "https://a.fr exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: '**a**exemple.com' (plain)",
+      "source": "**a**exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: '**a**exemple.com' (styled)",
+      "source": "**a**exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: '`a`exemple.com' (plain)",
+      "source": "`a`exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: '`a`exemple.com' (styled)",
+      "source": "`a`exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: '[a](https://a.fr)exemple.com' (plain)",
+      "source": "[a](https://a.fr)exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: '[a](https://a.fr)exemple.com' (styled)",
+      "source": "[a](https://a.fr)exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: '[a](urn:li:organization:1)exemple.com' (plain)",
+      "source": "[a](urn:li:organization:1)exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: '[a](urn:li:organization:1)exemple.com' (styled)",
+      "source": "[a](urn:li:organization:1)exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: '#tag.exemple.com' (plain)",
+      "source": "#tag.exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: '#tag.exemple.com' (styled)",
+      "source": "#tag.exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: '~~a~~exemple.com' (plain)",
+      "source": "~~a~~exemple.com",
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: '~~a~~exemple.com' (styled)",
+      "source": "~~a~~exemple.com",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: 'exemple.com:80exemple.fr:80exemple.io' (plain)",
+      "source": "exemple.com:80exemple.fr:80exemple.io",
+      "link_length": 26
+    },
+    {
+      "name": "domain after another token: 'exemple.com:80exemple.fr:80exemple.io' (styled)",
+      "source": "exemple.com:80exemple.fr:80exemple.io",
+      "unicode_styling": true,
+      "link_length": 26
+    },
+    {
+      "name": "list ends at a line without a marker: bullet",
+      "source": "- Étapes\nAprès"
+    },
+    {
+      "name": "list ends at a line without a marker: numbered",
+      "source": "1. Étapes\nAprès"
+    },
+    {
+      "name": "list ends at a line without a marker: task",
+      "source": "- [ ] Étapes\nAprès"
+    },
+    {
+      "name": "list ends at a line without a marker: bullet, short",
+      "source": "- Un\nDeux"
+    },
+    {
+      "name": "list ends at a line without a marker: numbered, short",
+      "source": "1. Un\nDeux"
+    },
+    {
+      "name": "list ends at a line without a marker: task, short",
+      "source": "- [ ] Un\nDeux"
+    },
+    {
+      "name": "lists of two kinds, line after line: bullet, numbered, bullet",
+      "source": "- Un\n1. Deux\n- Trois"
+    },
+    {
+      "name": "lists of two kinds, line after line: task, numbered, task",
+      "source": "- [ ] Un\n1. Deux\n- [ ] Trois"
+    },
+    {
+      "name": "lists of two kinds, line after line: numbered, bullet, numbered",
+      "source": "1. Un\n- Deux\n1. Trois"
+    },
+    {
+      "name": "lists of two kinds, line after line: numbered, task, numbered",
+      "source": "1. Un\n- [ ] Deux\n1. Trois"
+    },
+    {
+      "name": "list between two lines, none left: bullet",
+      "source": "Voici :\n- Un point\nMerci."
+    },
+    {
+      "name": "list between two lines, none left: numbered",
+      "source": "Voici :\n1. Un point\nMerci."
+    },
+    {
+      "name": "list between two lines, none left: task",
+      "source": "Voici :\n- [ ] Un point\nMerci."
+    },
+    {
+      "name": "list between two lines, one left on each side",
+      "source": "Voici :\n\n- Un point\n\nMerci."
+    },
+    {
+      "name": "two blank lines between a list and a quote",
+      "source": "- a\n\n\n> b"
+    },
+    {
+      "name": "one blank line between a list and a paragraph",
+      "source": "- a\n\nb"
+    },
+    {
+      "name": "one blank line between a numbered list and a quote",
+      "source": "1. un\n2. deux\n\n> Une citation"
+    },
+    {
+      "name": "a quote right after a list",
+      "source": "- a\n> quote"
+    },
+    {
+      "name": "an indented line continues the item",
+      "source": "- Étapes\n  suite"
+    },
+    {
+      "name": "a nested list, then the outer list goes on",
+      "source": "- a\n  - b\n- c"
+    },
+    {
+      "name": "a nested list ends at a line without a marker",
+      "source": "- a\n  - b\nAprès"
+    },
+    {
+      "name": "a loose list: one blank line between items",
+      "source": "- a\n\n- b"
+    },
+    {
+      "name": "refused: a width in percent",
+      "source": "![a](i.png){width=50%}"
+    },
+    {
+      "name": "refused: an attribute the theme decides",
+      "source": "![a](i.png){color=red}"
+    },
+    {
+      "name": "refused: a width set twice",
+      "source": "![a](i.png){width=10 width=20}"
+    },
+    {
+      "name": "refused: an alignment that is not one",
+      "source": "[![a](i.png)](https://exemple.fr){align=top}"
+    }
+  ]
+}

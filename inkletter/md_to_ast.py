@@ -1,19 +1,44 @@
-import html
+from urllib.parse import quote
 
-import mistune
+from markdown_it import MarkdownIt
+from markdown_it.tree import SyntaxTreeNode
 
 from inkletter.ast import *
-from inkletter.bare_domains import bare_domain_plugin
-from inkletter.link_attributes import link_attributes as link_attributes_plugin
-from inkletter.plugins import bare_url_plugin, blank_lines_plugin, hashtag_plugin
+from inkletter.plugins import (
+    bare_links_plugin,
+    hashtag_plugin,
+    link_attributes_plugin,
+    task_lists_plugin,
+    typed_lists_plugin,
+)
 from inkletter.theme import DEFAULT_THEME
 from inkletter.visitors.annotation import Annotation
 from inkletter.visitors.merger import BlockTextMerger
 from inkletter.visitors.trimmer import Trimmer
 from inkletter.visitors.urls import URLRewriter
 
+# What a link's target keeps as it is: the delimiters of a URL (RFC 3986)
+# and the octets already encoded; anything else — a space, an accented
+# letter — is percent-encoded.
+URL_SAFE = ":/?#@!$&()*+,;=%"
 
-class ASTRenderer(mistune.BaseRenderer):
+# What a node of an image's alt reads as, when it is not its own text.
+ALT_SPELLINGS = {"softbreak": " ", "hardbreak": " ", "html_inline": ""}
+
+# The containers whose blocks may have blank lines between them — and whose
+# last block, not the container, says where it ends.
+CONTAINERS = ("root", "blockquote", "bullet_list", "ordered_list", "list_item")
+
+
+class ASTBuilder:
+    """Turns markdown-it's tree into Inkletter's.
+
+    One method per kind of markdown-it node, named after it: each says what
+    the node becomes, and calls `build` on what it holds. What the parser
+    reads is markdown-it's business, and what a node means the passes'
+    after this one: here, only shapes change.
+    """
+
     # The target's scheme says what a link is: the node each one becomes,
     # and a plain Link for the rest — addresses, relative paths, whatever
     # else. The same idea as a visitor dispatching on a class: a scheme
@@ -23,167 +48,254 @@ class ASTRenderer(mistune.BaseRenderer):
     # what a scheme names is a class of its own; anything else is an address
     DEFAULT_LINK = UrlLink
 
-    def render_token(self, token, state):
-        func = self._get_method(token["type"])
-        attrs = token.get("attrs")
+    def __init__(self, line_count):
+        # the document's lines: the blank ones it ends on are counted too
+        self.line_count = line_count
 
-        if "raw" in token:
-            text = token["raw"]
-        elif "children" in token:
-            text = self.render_tokens(token["children"], state)
-        else:
-            text = None
+    def __call__(self, tree):
+        return self.root(tree)
 
-        if attrs:
-            if text is not None:
-                node = func(text, **attrs)
-            else:
-                node = func(**attrs)
-        else:
-            if text is not None:
-                node = func(text)
-            else:
-                node = func()
+    def build(self, node):
+        """What the node becomes: a node, or several where a container of
+        markdown-it's is none of Inkletter's (a table's body, a line of
+        text)."""
+        return getattr(self, node.type)(node)
 
-        return node
+    def built(self, nodes):
+        out = []
+        for node in nodes:
+            result = self.build(node)
+            out.extend(result if isinstance(result, list) else [result])
+        return out
 
-    def render_tokens(self, tokens, state):
-        nodes = []
-        for token in tokens:
-            rv = self.render_token(token, state)
-            if rv is None:
-                continue
-            if isinstance(rv, list):
-                nodes.extend(rv)
-            else:
-                nodes.append(rv)
+    # --- Blank lines ---
+
+    @classmethod
+    def end_of(cls, node):
+        """The line after a block's last: a container ends with what it
+        holds — markdown-it counts in a list the blank lines that follow
+        it, which are the document's."""
+        if node.type in CONTAINERS and node.children:
+            return cls.end_of(node.children[-1])
+        if node.type == "list_item":
+            return node.map[0] + 1
+        return node.map[1]
+
+    def blocks(self, children, start, end=None):
+        """A container's blocks, with the blank lines its author left
+        between them: from the line it starts on to the one it ends on,
+        when that is known."""
+        nodes, line = [], start
+        for child in children:
+            if child.map[0] > line:
+                nodes.append(BlankLine(child.map[0] - line))
+            nodes.extend(self.built([child]))
+            line = self.end_of(child)
+        if end is not None and end > line:
+            nodes.append(BlankLine(end - line))
         return nodes
 
-    def __call__(self, tokens, state):
-        return Document(self.render_tokens(tokens, state))
+    # --- Blocks ---
 
-    # --- Inline renderers ---
+    def root(self, node):
+        return Document(self.blocks(node.children, 0, self.line_count))
 
-    def hashtag(self, name):
-        return Hashtag(name)
+    def paragraph(self, node):
+        children = self.built(node.children)
+        # a tight list's item holds its text, not a paragraph
+        if node.nester_tokens.opening.hidden:
+            return BlockText(children)
+        return Paragraph(children)
 
-    def text(self, value):
-        # CommonMark decodes HTML entities everywhere but in code:
-        # mistune hands the raw text over, unescape it here (the codegen
-        # re-escapes for HTML output, so &amp; round-trips correctly)
-        return LiteralText(html.unescape(value))
+    def heading(self, node):
+        return Heading(int(node.tag[1:]), self.built(node.children))
 
-    def emphasis(self, text):
-        return Emphasis(text)
+    def blockquote(self, node):
+        return BlockQuote(self.blocks(node.children, node.map[0]))
 
-    def strong(self, text):
-        return Strong(text)
+    def fence(self, node):
+        return BlockCode(node.content, node.info.strip() or None)
 
-    def strikethrough(self, text):
-        return StrikeThrough(text)
+    def code_block(self, node):
+        # indented code ends on its last line, its line breaks aside
+        return BlockCode(node.content.rstrip("\n"), None)
 
-    def codespan(self, text):
-        return CodeSpan(text)
+    def html_block(self, node):
+        return BlockHtml(node.content.strip("\n"))
 
-    def inline_html(self, html):
-        return InlineHtml(html)
+    def hr(self, node):
+        return ThematicBreak()
 
-    def link(self, text, url, title=None, ink_attributes=None):
-        # If the text contains an image, we create an ImageLink
-        # We extract the image from the text to create a new ImageLink node
-        # The rest of the text is ignored
-        title = html.unescape(title) if title else title
+    # --- Lists ---
+
+    def bullet_list(self, node):
+        return List(self.built(node.children), ordered=False)
+
+    def ordered_list(self, node):
+        start = node.attrs.get("start")
+        return List(self.built(node.children), ordered=True, start=start)
+
+    def list_item(self, node):
+        children = self.blocks(node.children, node.map[0])
+        checked = node.meta.get("checked")
+        if checked is None:
+            return ListItem(children)
+        return TaskListItem(children, checked)
+
+    # --- Tables ---
+
+    def table(self, node):
+        header, *rows = self.built(node.children)
+        return Table(header=header, rows=rows)
+
+    def thead(self, node):
+        (row,) = node.children
+        return TableHeader(self.built(row.children))
+
+    def tbody(self, node):
+        return self.built(node.children)
+
+    def tr(self, node):
+        return TableRow(self.built(node.children))
+
+    def th(self, node):
+        return TableHeaderCell(self.built(node.children), align=self.align_of(node))
+
+    def td(self, node):
+        return TableCell(self.built(node.children), align=self.align_of(node))
+
+    @staticmethod
+    def align_of(node):
+        style = node.attrs.get("style", "")
+        return style.removeprefix("text-align:") or None
+
+    # --- Inline ---
+
+    def inline(self, node):
+        return self.built(node.children)
+
+    def text(self, node):
+        # markdown-it leaves an empty text where a mark's delimiters were
+        return [LiteralText(node.content)] if node.content else []
+
+    def text_special(self, node):
+        # an escaped character or an entity, read: in an image's alt, which
+        # the parser does not join to the text around it
+        return LiteralText(node.content)
+
+    def hashtag(self, node):
+        return Hashtag(node.meta["name"])
+
+    def em(self, node):
+        return Emphasis(self.built(node.children))
+
+    def strong(self, node):
+        return Strong(self.built(node.children))
+
+    def s(self, node):
+        return StrikeThrough(self.built(node.children))
+
+    def code_inline(self, node):
+        return CodeSpan(node.content)
+
+    def html_inline(self, node):
+        return InlineHtml(node.content)
+
+    def softbreak(self, node):
+        return SoftBreak()
+
+    def hardbreak(self, node):
+        return LineBreak()
+
+    def link(self, node):
+        url, title = node.attrs["href"], node.attrs.get("title")
+        text = self.built(node.children)
         # What the target's scheme names — an entity, for a URN — becomes
         # its own node here, once, rather than being recognised again by
         # every visitor that walks past a link.
-        node = self.LINKS_BY_SCHEME.get(Link.scheme_of(url))
-        if node:
-            return node(text, url, title)
-        if img := next((t for t in text if isinstance(t, Image)), None):
-            # a block written after the link decorates the image it wraps,
-            # so both spellings land in the same place
-            if ink_attributes and not img.attributes:
-                img.attributes = Attributes(**ink_attributes)
-            return ImageLink(img, url, title)
-        else:
-            return self.DEFAULT_LINK(text, url, title)
+        kind = self.LINKS_BY_SCHEME.get(Link.scheme_of(url))
+        if kind:
+            return kind(text, url, title)
+        # A link holding an image is the image, clickable: the rest of
+        # its label is dropped
+        image = next((child for child in text if isinstance(child, Image)), None)
+        if image:
+            return ImageLink(image, url, title)
+        return self.DEFAULT_LINK(text, url, title)
 
-    # --- Block renderers ---
+    def image(self, node):
+        return Image(
+            node.attrs["src"],
+            self.alt_text(node.children),
+            node.attrs.get("title"),
+            attributes=Attributes(**node.meta.get("ink_attributes", {})),
+        )
 
-    def paragraph(self, text):
-        return Paragraph(text)
+    @classmethod
+    def alt_text(cls, nodes):
+        """What an image's alt reads as: its words, its code and its tags as
+        written, a break as a space, its marks gone — an HTML alt holds no
+        markup."""
+        return "".join(cls.alt_part(node) for node in nodes)
 
-    def heading(self, text, level):
-        return Heading(level, text)
+    @classmethod
+    def alt_part(cls, node):
+        if node.type in ALT_SPELLINGS:
+            return ALT_SPELLINGS[node.type]
+        if node.type == "hashtag":
+            return f"#{node.meta['name']}"
+        if node.type in ("text", "text_special", "code_inline"):
+            return node.content
+        return cls.alt_text(node.children)
 
-    def block_code(self, code, info=None):
-        language = info.strip() if info else None
-        return BlockCode(code, language)
 
-    def block_text(self, text):
-        return BlockText(text)
+def create_markdown(link_attributes=True):
+    """The parser: CommonMark, GitHub's tables and strikethrough, and what
+    Inkletter reads beyond them."""
+    markdown = MarkdownIt("commonmark").enable(["table", "strikethrough"])
+    # A target is kept as written, whatever its scheme: what a link to
+    # `javascript:` becomes is each output's to decide, and a URN must
+    # reach the mention it names.
+    markdown.validateLink = accept_any_link
+    markdown.normalizeLink = normalize_link
+    markdown.normalizeLinkText = str
+    markdown.use(hashtag_plugin)
+    # A bare address is text to CommonMark, and a link to every reader:
+    # read as one, so the URL factory shortens it and the counter charges
+    # it like any other.
+    markdown.use(bare_links_plugin)
+    markdown.use(task_lists_plugin)
+    # A list ends where its author stopped writing it: a line written
+    # after an item, without a marker, is its own block.
+    markdown.use(typed_lists_plugin)
+    if link_attributes:
+        markdown.use(link_attributes_plugin)
+    return markdown
 
-    def block_html(self, html):
-        return BlockHtml(html.strip("\n"))
 
-    def thematic_break(self):
-        return ThematicBreak()
+def accept_any_link(url):
+    return True
 
-    def blank_line(self, lines=1):
-        return BlankLine(lines)
 
-    def linebreak(self):
-        return LineBreak()
+def normalize_link(url):
+    """A link's target as the document holds it: written as typed, its
+    entities and escapes already read, the rest percent-encoded."""
+    return quote(url, safe=URL_SAFE)
 
-    def softbreak(self):
-        return SoftBreak()
 
-    def block_quote(self, text):
-        return BlockQuote(text)
+def line_count(text):
+    """How many lines markdown-it reads in a text: a last newline closes the
+    last line rather than opening one."""
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    if not text:
+        return 0
+    return text.count("\n") + (0 if text.endswith("\n") else 1)
 
-    def image(self, alt, url, title=None, ink_attributes=None):
-        # The tokenizer returns a list of inline nodes; the alt may contain
-        # formatting, which BlockTextMerger later merges into a single
-        # LiteralText since the HTML alt attribute cannot hold markup.
-        if alt:
-            assert isinstance(alt, list), alt
-        title = html.unescape(title) if title else title
-        return Image(url, alt, title, attributes=Attributes(**(ink_attributes or {})))
 
-    # --- List renderers ---
-
-    def list(self, elements, ordered, **attrs):
-        return List(elements, ordered=ordered, start=attrs.get("start"))
-
-    def list_item(self, element, **attrs):
-        return ListItem(element)
-
-    # --- Task renderers ---
-
-    def task_list_item(self, text, checked=False):
-        return TaskListItem(text, checked)
-
-    # --- Table renderers ---
-
-    def table(self, children):
-        header = next(filter(lambda c: isinstance(c, TableHeader), children))
-        rows = list(filter(lambda c: isinstance(c, TableRow), children))
-        return Table(header=header, rows=rows)
-
-    def table_body(self, text):
-        return text
-
-    def table_head(self, text):
-        return TableHeader(text)
-
-    def table_row(self, content):
-        return TableRow(content)
-
-    def table_cell(self, text, align=None, head=False):
-        if head:
-            return TableHeaderCell(text, align=align)
-        else:
-            return TableCell(text, align=align)
+def read_markdown(markdown_text, link_attributes=True):
+    """The document as parsed, before any pass has said what it means."""
+    tokens = create_markdown(link_attributes).parse(markdown_text)
+    return ASTBuilder(line_count(markdown_text))(SyntaxTreeNode(tokens))
 
 
 def parse_markdown_to_ast(
@@ -193,28 +305,7 @@ def parse_markdown_to_ast(
     theme=None,
     url_factory=None,
 ):
-    renderer = ASTRenderer()
-    plugins = [
-        # A bare address is text to CommonMark, and a link to every reader:
-        # read as one, so the URL factory shortens it and the counter
-        # charges it like any other.
-        bare_url_plugin,
-        bare_domain_plugin,
-        hashtag_plugin,
-        "mistune.plugins.formatting.strikethrough",
-        "mistune.plugins.table.table",
-        "mistune.plugins.table.table_in_list",
-        "mistune.plugins.table.table_in_quote",
-        "mistune.plugins.task_lists.task_lists",
-        # A run of blank lines, counted: what an output that lays a text
-        # out as it was typed needs, and what CommonMark forgets.
-        blank_lines_plugin,
-    ]
-    if link_attributes:
-        plugins.append(link_attributes_plugin)
-    markdown = mistune.create_markdown(renderer=renderer, plugins=plugins)
-
-    ast = markdown(markdown_text)
+    ast = read_markdown(markdown_text, link_attributes)
     # what is laid out on one line — a label, a name, a cell — is one
     Trimmer().visit(ast)
 

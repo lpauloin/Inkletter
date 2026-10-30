@@ -20,12 +20,14 @@ whatever is laid out on one line — a label, a name, a cell — already is.
 """
 
 import unicodedata
+from dataclasses import dataclass
 from string import ascii_letters
+from urllib.parse import unquote
 
 from inkletter.ast import *
-from inkletter.bare_domains import is_bare_domain
-from inkletter.codeblock import CodeBlockResolver
+from inkletter.codeblock import CodeBlockResolver, Line
 from inkletter.counting import cost_of_link, cost_of_mention, cost_of_text
+from inkletter.plugins.bare_domains import is_bare_domain, is_spelled_by
 from inkletter.visitors.textgen import TextCodegen
 
 BULLET = "• "
@@ -106,6 +108,32 @@ def substitute(text, styles):
     return text
 
 
+@dataclass(frozen=True)
+class LinkedinRender:
+    """A post as the platform will take it, and as a feed shows it."""
+
+    # the text that goes out
+    text: str
+    # what the platform counts for it
+    length: int
+    # its lines, each fragment saying what the feed shows of it — a
+    # mention's name, an address as written — and what it costs
+    lines: tuple[Line, ...]
+    # bold, italic or strikethrough written that the feed will not show —
+    # never when look-alikes stand in
+    unrendered_formatting: bool
+    # a heading written: the feed shows none, look-alikes or not
+    unrendered_headings: bool
+
+    @property
+    def shown_text(self):
+        """The post as the feed shows it, on one string: what a quote of it
+        reads like to a human — never the marker that carries a mention."""
+        return "\n".join(
+            "".join(segment.display for segment in line.segments) for line in self.lines
+        )
+
+
 class LinkedinCodegen(TextCodegen):
     @classmethod
     def plain_text(cls, node):
@@ -122,11 +150,15 @@ class LinkedinCodegen(TextCodegen):
         self.resolver = CodeBlockResolver(measure=cost_of_text)
         self.unicode_styling = unicode_styling
         self.link_length = link_length
+        # what was written that the feed will not show
+        self.styled_words = False
+        self.headings = False
 
-    def write(self, text, cost=None):
+    def write(self, text, cost=None, kind="text", display=None):
         """Text costs what it says, unless it is priced — a marker, an
-        address."""
-        self.current.add_text(text, cost=cost)
+        address — and shows what it says, unless it is a marker or an
+        address the author wrote otherwise."""
+        self.current.add_text(text, cost=cost, kind=kind, display=display)
 
     def write_styled(self, text, annotations):
         """The author's words, in the look-alikes of the styles the
@@ -134,21 +166,34 @@ class LinkedinCodegen(TextCodegen):
         wanted. Only words: a marker or an address is never styled, or it
         would stop resolving."""
         styles = annotations.get("styles")
+        if styles and text.strip():
+            self.styled_words = True
         if self.unicode_styling and styles:
             text = substitute(text, styles)
         self.write(text)
 
-    def write_link(self, url):
+    def write_link(self, url, written=None):
         """The address in full — readable, and the one thing an author can
         check — priced at the short link it will become, when the factory
-        says what width it produces."""
-        self.write(url, cost_of_link(url, self.link_length))
+        says what width it produces. The feed shows it as a reader reads
+        it, its letters decoded: as the author wrote it, when that is the
+        same address (`exemple.com`)."""
+        readable = unquote(url)
+        display = written if written is not None and is_spelled_by(readable, written) else readable
+        self.write(url, cost_of_link(url, self.link_length), "link", display)
 
     def render(self, document):
-        """The text, and what the platform will count for it. Trailing
+        """The post, and what the platform will count for it. Trailing
         whitespace goes, as the platform trims it before it counts."""
         self.visit(document)
-        return self.resolver.resolve(self.root).rstrip(), self.resolver.length
+        text = self.resolver.resolve(self.root).rstrip()
+        return LinkedinRender(
+            text=text,
+            length=self.resolver.length,
+            lines=tuple(self.resolver.written_lines),
+            unrendered_formatting=self.styled_words and not self.unicode_styling,
+            unrendered_headings=self.headings,
+        )
 
     # --- Blocks ---
 
@@ -163,7 +208,7 @@ class LinkedinCodegen(TextCodegen):
         them before counting.
         """
         written = False
-        blank = 1
+        blank = 0
         for node in nodes:
             if isinstance(node, BlankLine):
                 blank = max(blank, node.lines)
@@ -175,11 +220,13 @@ class LinkedinCodegen(TextCodegen):
                 for _ in range(blank):
                     self.line()
             self.current.add_codeblock(block)
-            written, blank = True, 1
+            written, blank = True, 0
 
     def visit_Heading(self, node, scope):
         """The text on its line, and no underline: a row of equals signs is
-        a convention of plain-text mail, not of a feed."""
+        a convention of plain-text mail, not of a feed — which shows no
+        heading at all."""
+        self.headings = True
         self.generic_visit(node, scope)
         self.close_line()
 
@@ -216,19 +263,18 @@ class LinkedinCodegen(TextCodegen):
         name = self.plain_text(node)
         if any(delimiter in name for delimiter in MARKER_DELIMITERS):
             return self.write(f"@{name}")
-        self.write(f"@[{node.urn}|{name}]", cost_of_mention(name))
+        self.write(f"@[{node.urn}|{name}]", cost_of_mention(name), "mention", name)
 
     def visit_UrlLink(self, node, scope):
         """`label : url`, and the url alone when the label is one too — a
         bare address the author typed, which the parser encapsulates and a
-        factory may have shortened since, so the two halves no longer
-        match. No angle brackets either: a feed shows them, it does not
+        factory may have shortened, so that the two halves differ. No angle brackets either: a feed shows them, it does not
         read them."""
         label = self.plain_text(node)
         if label and label != node.href and not self.is_an_address(label):
             self.generic_visit(node, scope)
             self.write(LABEL_SEPARATOR)
-        self.write_link(node.href)
+        self.write_link(node.href, label)
 
     @staticmethod
     def is_an_address(label):
@@ -259,7 +305,7 @@ class LinkedinCodegen(TextCodegen):
     def visit_Hashtag(self, node, scope):
         # As written, whatever style is in force: in look-alikes it would be
         # another tag than the author's.
-        self.write(f"#{node.name}")
+        self.write(f"#{node.name}", kind="hashtag")
 
     def visit_CodeSpan(self, node, scope):
         self.write_styled(node.code, node.annotations)
@@ -267,14 +313,13 @@ class LinkedinCodegen(TextCodegen):
     # --- Images are not supported: written, they stay as written ---
 
     def visit_Image(self, node, scope):
-        alt = node.alt_text.value if node.alt_text else ""
-        self.write(f"![{alt}]({node.url})")
+        self.write(f"![{node.alt_text}]({node.url})")
 
     def visit_ImageLink(self, node, scope):
-        alt = node.img.alt_text.value if node.img.alt_text else ""
-        self.write(f"[![{alt}]({node.img.url})]({node.href})")
+        self.write(f"[![{node.img.alt_text}]({node.img.url})]({node.href})")
         self.close_line()
 
     def visit_MediaObject(self, node, scope):
-        # the image beside its text, as written: a block, then the others
-        self.emit_blocks([node.image, *node.children], scope)
+        # the image beside its text, written as one paragraph: the image,
+        # then its text, one blank line between them as in every output
+        super().emit_blocks([node.image, *node.children], scope)

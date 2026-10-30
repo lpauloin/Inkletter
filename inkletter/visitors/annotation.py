@@ -411,13 +411,15 @@ class Annotation(NodeVisitor):
         scope.pop(node)
 
     def mark_inline_anchors(self, node):
-        """Hand a closing </a> the URL its opening tag carried.
+        """Say which hand-written tags open and close an anchor, and hand
+        the closing one the URL its opening tag carried.
 
         The text output has no tags to show, so a hand-written <a>
         would lose its URL where a Markdown link keeps it — silently,
-        in the half meant to stay readable everywhere. Pairing an
-        opening tag with its closing one is a matter between siblings,
-        so it belongs here rather than in a codegen.
+        in the half meant to stay readable everywhere; the fragment
+        rebuilds the anchor from its URL alone. Pairing an opening tag
+        with its closing one is a matter between siblings, so it belongs
+        here rather than in a codegen.
         """
         pending = []
         for child in node.children:
@@ -426,6 +428,7 @@ class Annotation(NodeVisitor):
             value = child.value.strip()
             opening = ANCHOR_HREF.match(value)
             if opening:
+                child.annotations["anchor_opens"] = opening.group(1)
                 pending.append(opening.group(1))
             elif value.lower() == "</a>" and pending:
                 child.annotations["anchor_href"] = pending.pop()

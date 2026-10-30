@@ -35,3 +35,30 @@ def test_mixed_task_and_normal_list():
     actual = parse_markdown_to_text("- [x] done\n- normal")
     print(actual)
     assert actual == "[x] done\n- normal\n"
+
+
+# --- A list ends where its author stopped writing it ---
+
+
+def test_a_line_typed_after_an_item_is_a_block_of_its_own():
+    actual = parse_markdown_to_text("- Étapes\nAprès")
+    print(actual)
+    assert actual == "- Étapes\n\nAprès\n"
+
+
+def test_a_list_between_two_lines():
+    actual = parse_markdown_to_text("Voici :\n- Un point\nMerci.")
+    print(actual)
+    assert actual == "Voici :\n\n- Un point\n\nMerci.\n"
+
+
+def test_lists_of_two_kinds_typed_line_after_line():
+    actual = parse_markdown_to_text("- Un\n1. Deux\n- Trois")
+    print(actual)
+    assert actual == "- Un\n\n1. Deux\n\n- Trois\n"
+
+
+def test_a_line_indented_under_an_item_is_still_the_item():
+    actual = parse_markdown_to_text("- Étapes\n  suite")
+    print(actual)
+    assert actual == "- Étapes\n  suite\n"

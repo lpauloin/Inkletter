@@ -25,3 +25,7 @@ def test_the_linkedin_output_and_its_refusal_are_public():
     with pytest.raises(inkletter.LengthError):
         inkletter.parse_markdown_to_linkedin("x" * 10, max_length=5)
     assert inkletter.parse_markdown_to_linkedin("**Salut**") == "Salut"
+
+
+def test_the_html_fragment_output_is_public():
+    assert inkletter.parse_markdown_to_html_fragment("**Salut**") == "<p><strong>Salut</strong></p>"

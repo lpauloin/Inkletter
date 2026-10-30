@@ -7,8 +7,12 @@ from a dict (`Theme.from_dict`), from a partial TOML file
 paths produce the same kind of object.
 """
 
+from __future__ import annotations
+
+import os
 from dataclasses import asdict, dataclass, field, fields, replace
 from pathlib import Path
+from typing import Any
 
 try:
     import tomllib
@@ -168,7 +172,7 @@ class Theme:
         object.__setattr__(self, "fonts", _validate_fonts(self.fonts, self.text))
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data: dict[str, Any]) -> Theme:
         if not isinstance(data, dict):
             raise ThemeError("a theme must be a mapping of sections")
         groups = {f.name: f.default_factory for f in fields(cls)}
@@ -186,7 +190,7 @@ class Theme:
         return cls(**kwargs)
 
     @classmethod
-    def from_toml(cls, path):
+    def from_toml(cls, path: str | os.PathLike[str]) -> Theme:
         path = Path(path)
         try:
             with path.open("rb") as f:
@@ -198,7 +202,7 @@ class Theme:
         return cls.from_dict(data)
 
     @classmethod
-    def named(cls, name):
+    def named(cls, name: str) -> Theme:
         try:
             return THEMES[name]
         except KeyError:
@@ -206,14 +210,14 @@ class Theme:
                 f"unknown theme '{name}'; available themes: {', '.join(sorted(THEMES))}"
             ) from None
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
-    def button_background(self):
+    def button_background(self) -> str:
         """The button background, inheriting the links color when unset."""
         return self.buttons.background_color or self.links.color
 
-    def to_css(self):
+    def to_css(self) -> str:
         """CSS rules for the raw HTML living inside mj-text blocks.
 
         Emitted in an <mj-style inline="inline"> so mjml2html inlines
@@ -422,7 +426,7 @@ def _hue_theme(hue, text_font=SANS, heading_font=None):
     )
 
 
-THEMES = {
+THEMES: dict[str, Theme] = {
     "default": Theme(),
     "dark": Theme(
         layout=Layout(

@@ -1,0 +1,58 @@
+{
+  "name": "inkletter",
+  "version": "4.0.0",
+  "description": "Markdown to LinkedIn posts, HTML fragments, MJML and responsive emails \u2014 the JavaScript twin of the Python package, output for output",
+  "license": "MIT",
+  "author": "Laurent Pauloin <laurent.pauloin@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lpauloin/Inkletter.git",
+    "directory": "js"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "prepack": "cp ../LICENSE LICENSE && npm run build"
+  },
+  "dependencies": {
+    "markdown-it": "^14.3.3"
+  },
+  "peerDependencies": {
+    "cheerio": "^1.0.0",
+    "mjml-browser": "^5.4.1"
+  },
+  "peerDependenciesMeta": {
+    "cheerio": {
+      "optional": true
+    },
+    "mjml-browser": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.2.0",
+    "@types/node": "^22.20.5",
+    "cheerio": "^1.0.0",
+    "mjml-browser": "^5.4.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

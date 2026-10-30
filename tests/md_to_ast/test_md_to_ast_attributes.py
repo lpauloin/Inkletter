@@ -10,7 +10,7 @@ import pytest
 
 from inkletter.ast import *
 from inkletter.exceptions import MarkupError
-from inkletter.link_attributes import parse_pairs
+from inkletter.plugins.link_attributes import parse_pairs
 from inkletter.visitors.tree import TreeVisitor, print_tree
 
 

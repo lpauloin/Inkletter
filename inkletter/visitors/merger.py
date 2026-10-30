@@ -3,64 +3,55 @@ from inkletter.visitors.generic import NodeVisitor
 
 
 class BlockTextMerger(NodeVisitor):
+    """Groups each run of inline nodes of a paragraph or a heading into a
+    BlockText, and promotes the paragraphs a layout convention names: an
+    image row, an image beside its text, a button."""
+
     def __init__(self, bold_link_is_button=True):
         super().__init__()
         self.bold_link_is_button = bold_link_is_button
 
-    def merge_inline_sequences(self, children):
-        new_children = []
-        buffer = []
-
-        def clean(_buf):
-            while _buf:
-                if isinstance(_buf[0], TextTerminal):
-                    _buf.pop(0)
-                    continue
-                if isinstance(_buf[-1], TextTerminal):
-                    _buf.pop(-1)
-                    continue
-                break
-
-        def flush(_buf, _children):
-            clean(_buf)
-            if _buf:
-                _children.append(BlockText(_buf.copy()))
-                _buf.clear()
-
+    @classmethod
+    def merge_inline_sequences(cls, children):
+        merged, buffer = [], []
         for child in children:
-            # The blank lines an author left stand between blocks, and say
-            # how many they were: a block of its own, not filler to clean
-            # away with the breaks around a run of text.
-            if isinstance(child, BlankLine):
-                flush(buffer, new_children)
-                new_children.append(child)
-            elif isinstance(child, Text):
+            if isinstance(child, Text):
                 buffer.append(child)
-            elif isinstance(child, BlockText):
-                flush(buffer, new_children)
-                new_children.append(child)
-            else:
-                flush(buffer, new_children)
-                new_children.append(child)
+                continue
+            cls.flush(buffer, merged)
+            merged.append(child)
+        cls.flush(buffer, merged)
+        return merged
 
-        flush(buffer, new_children)
-        return new_children
+    @staticmethod
+    def flush(buffer, merged):
+        """The run gathered so far as a BlockText, the breaks at its edges
+        aside — an image between two lines leaves one on either side."""
+        while buffer and isinstance(buffer[0], TextTerminal):
+            buffer.pop(0)
+        while buffer and isinstance(buffer[-1], TextTerminal):
+            buffer.pop()
+        if buffer:
+            merged.append(BlockText(buffer.copy()))
+            buffer.clear()
 
     def process_blocknode(self, node, scope):
-        assert hasattr(node, "children")
         node.children = self.merge_inline_sequences(node.children)
         for child in node.children:
             self.visit(child, scope)
 
+    def visit_Paragraph(self, node, scope):
+        self.process_blocknode(node, scope)
+
+    def visit_Heading(self, node, scope):
+        self.process_blocknode(node, scope)
+
+    # An image announces itself to the paragraph asking what it holds
+    # (`promote_button`): pushed on the scope, the one place types are
+    # recorded.
+
     def visit_Image(self, node, scope):
         scope.push(node)
-        # The alt may contain formatting nodes; merge them into a single
-        # LiteralText since the HTML alt attribute cannot hold markup.
-        # The collector rides the scope, so nesting takes care of itself.
-        if isinstance(node.alt_text, list):
-            scope.set("alt_parts", [])
-            self.generic_visit(node, scope)
-            node.alt_text = LiteralText("".join(scope.get("alt_parts")))
         scope.pop(node)
 
     def visit_ImageLink(self, node, scope):
@@ -68,20 +59,8 @@ class BlockTextMerger(NodeVisitor):
         self.generic_visit(node, scope)
         scope.pop(node)
 
-    def collect_alt(self, scope, text):
-        parts = scope.get("alt_parts")
-        if parts is not None:
-            parts.append(text)
-
-    def visit_LiteralText(self, node, scope):
-        self.collect_alt(scope, node.value)
-
-    def visit_CodeSpan(self, node, scope):
-        self.collect_alt(scope, node.code)
-
     def visit_Document(self, node, scope):
         scope.push(node)
-        node.children = self.merge_inline_sequences(node.children)
         promoted = []
         for child in node.children:
             # record afresh: each child is promoted on what it holds
@@ -124,9 +103,10 @@ class BlockTextMerger(NodeVisitor):
                 return [MediaObject(images[0], others, side="right")]
         return [node]
 
-    def promote_button(self, node, types):
+    @classmethod
+    def promote_button(cls, node, types):
         """A paragraph made only of a bold link becomes a Button (CTA)."""
-        blocks = [c for c in node.children if not self.is_blank(c)]
+        blocks = [c for c in node.children if not cls.is_blank(c)]
         if len(blocks) != 1 or not isinstance(blocks[0], BlockText):
             return None
         inlines = [c for c in blocks[0].children if not c.is_blank()]
@@ -139,16 +119,16 @@ class BlockTextMerger(NodeVisitor):
         # nested deep inside the label
         if types & {Image, ImageLink}:
             return None
-        # the href may already have been rewritten by the URLRewriter
-        # pass, which runs before this merger (see parse_markdown_to_ast)
         return Button(link.children, link.href, link.title)
 
-    def is_blank(self, node):
+    @staticmethod
+    def is_blank(node):
         if not isinstance(node, BlockText):
             return False
         return all(c.is_blank() for c in node.children)
 
-    def strip_edge(self, blocks, leading):
+    @staticmethod
+    def strip_edge(blocks, leading):
         """Trim the whitespace left over next to the extracted image."""
         if not blocks:
             return
@@ -158,18 +138,3 @@ class BlockTextMerger(NodeVisitor):
         text = block.children[0] if leading else block.children[-1]
         if isinstance(text, LiteralText):
             text.value = text.value.lstrip() if leading else text.value.rstrip()
-
-    def visit_Paragraph(self, node, scope):
-        self.process_blocknode(node, scope)
-
-    def visit_ListItem(self, node, scope):
-        self.process_blocknode(node, scope)
-
-    def visit_TaskListItem(self, node, scope):
-        self.process_blocknode(node, scope)
-
-    def visit_BlockQuote(self, node, scope):
-        self.process_blocknode(node, scope)
-
-    def visit_Heading(self, node, scope):
-        self.process_blocknode(node, scope)

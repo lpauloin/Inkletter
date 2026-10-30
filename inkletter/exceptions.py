@@ -27,7 +27,7 @@ class LengthError(Exception):
     what was allowed, so a caller can say by how much.
     """
 
-    def __init__(self, length, limit, what="post"):
+    def __init__(self, length: int, limit: int, what: str = "post") -> None:
         self.length, self.limit, self.what = length, limit, what
         super().__init__(
             f"the {what} is {length} characters long, {limit} allowed ({length - limit} over)"

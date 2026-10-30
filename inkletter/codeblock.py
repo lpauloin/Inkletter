@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 INDENT_SIZE = 2  # Number of spaces per indent level
 NEWLINE = "\n"  # Newline character
 
@@ -32,18 +34,23 @@ class Newline(CodeElement):
 
 
 class TextElement(CodeElement):
-    """A run of text, and what it costs where cost is counted.
+    """A run of text, what it costs where cost is counted, and what it is to
+    whoever reads the output.
 
     `cost` is None for text that costs its own characters — nearly all of
     it. It is set where the two differ, so that a resolver sums prices
     declared at the moment of writing rather than re-reading the finished
-    string.
+    string. `kind` and `display` say what the run is and what a reader is
+    shown of it — a mention's name rather than its marker — `display`
+    being the text itself unless said otherwise.
     """
 
-    def __init__(self, text, indented=True, cost=None):
+    def __init__(self, text, indented=True, cost=None, kind="text", display=None):
         self.text = text
         self.indented = indented
         self.cost = cost
+        self.kind = kind
+        self.display = text if display is None else display
 
     def accept(self, visitor):
         return visitor.visit_text(self)
@@ -60,8 +67,8 @@ class CodeBlock(CodeElement):
     def add_dedent(self):
         self.elements.append(Dedent())
 
-    def add_text(self, text, indented=True, cost=None):
-        self.elements.append(TextElement(text, indented=indented, cost=cost))
+    def add_text(self, text, indented=True, cost=None, kind="text", display=None):
+        self.elements.append(TextElement(text, indented, cost, kind, display))
 
     def add_newline(self):
         self.elements.append(Newline())
@@ -71,6 +78,25 @@ class CodeBlock(CodeElement):
 
     def accept(self, visitor):
         return visitor.visit_codeblock(self)
+
+
+@dataclass(frozen=True)
+class Segment:
+    """One fragment of a resolved line: what it is, what a reader is shown,
+    what it costs."""
+
+    kind: str
+    display: str
+    cost: int
+
+
+@dataclass(frozen=True)
+class Line:
+    """A resolved line: as it goes out, what it costs, fragment by fragment."""
+
+    text: str
+    cost: int
+    segments: tuple[Segment, ...]
 
 
 # Visitor to resolve the CodeBlock to a string
@@ -92,8 +118,8 @@ class CodeBlockResolver:
 
     def reset(self):
         self.prefixes = [self.indent] * self.starting_indent
-        self.lines = []  # (text, cost), one per line
-        self.parts = None  # the line being built, [(text, cost)], or None
+        self.lines = []  # Line, one per line
+        self.parts = None  # the line being built, [TextElement], or None
 
     def visit_indent(self, node):
         self.prefixes.append(self.indent if node.prefix is None else node.prefix)
@@ -105,13 +131,13 @@ class CodeBlockResolver:
 
     def visit_newline(self, node):
         if self.parts is None:
-            self.parts = [("".join(self.prefixes), None)]
+            self.parts = [TextElement("".join(self.prefixes))]
         self.close_line()
 
     def visit_text(self, node):
         if self.parts is None:
-            self.parts = [("".join(self.prefixes) if node.indented else "", None)]
-        self.parts.append((node.text, node.cost))
+            self.parts = [TextElement("".join(self.prefixes) if node.indented else "")]
+        self.parts.append(node)
 
     def visit_codeblock(self, node):
         for element in node.elements:
@@ -119,30 +145,45 @@ class CodeBlockResolver:
 
     def close_line(self):
         parts = self.parts
-        while parts and parts[-1][1] is None and not parts[-1][0].rstrip():
+        while parts and parts[-1].cost is None and not parts[-1].text.rstrip():
             parts.pop()
-        if parts and parts[-1][1] is None:
-            parts[-1] = (parts[-1][0].rstrip(), None)
-        text = "".join(text for text, _ in parts)
-        cost = sum(self.measure(text) if cost is None else cost for text, cost in parts)
-        self.lines.append((text, cost))
+        if parts and parts[-1].cost is None:
+            last = parts[-1]
+            parts[-1] = TextElement(
+                last.text.rstrip(), kind=last.kind, display=last.display.rstrip()
+            )
+        segments = tuple(
+            Segment(part.kind, part.display, self.cost_of(part)) for part in parts if part.display
+        )
+        text = "".join(part.text for part in parts)
+        self.lines.append(Line(text, sum(self.cost_of(part) for part in parts), segments))
         self.parts = None
+
+    def cost_of(self, part):
+        return self.measure(part.text) if part.cost is None else part.cost
 
     def resolve(self, node):
         self.reset()
         node.accept(self)
         if self.parts is not None:
             self.close_line()
-        return NEWLINE.join(text for text, _ in self.lines)
+        return NEWLINE.join(line.text for line in self.lines)
+
+    @property
+    def written_lines(self):
+        """The resolved lines, the blank ones they end on gone — the lines
+        of `resolve(...).rstrip()`."""
+        lines = self.lines[:]
+        while lines and not lines[-1].text:
+            lines.pop()
+        return lines
 
     @property
     def length(self):
         """What the resolved text weighs once its trailing blank lines are
         gone — the weight of `resolve(...).rstrip()`."""
-        lines = self.lines[:]
-        while lines and not lines[-1][0]:
-            lines.pop()
-        return sum(cost for _, cost in lines) + max(len(lines) - 1, 0)
+        lines = self.written_lines
+        return sum(line.cost for line in lines) + max(len(lines) - 1, 0)
 
 
 def codeblock_from_string(content: str, indent_size: int = 2) -> CodeBlock:

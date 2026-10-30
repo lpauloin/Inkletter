@@ -22,8 +22,6 @@ sentences; `https://` in front always works for those.
 
 import re
 
-from inkletter.plugins import append_address, without_a_sentence_parenthesis
-
 EXTENSIONS = (
     "com", "net", "org", "info", "biz",
     "io", "co", "ai", "app", "dev", "tech",
@@ -57,18 +55,8 @@ LISTED_NAME = rf"{LABELS}(?:{'|'.join(EXTENSIONS)})"
 NAME_ENDS = r"(?![^\W_]|[@\-])(?!\.[^\W_])"
 REST = r"""(?::[0-9]+)?(?:[/?#][^\s<]*[^<.,:;"'\]\s*_~?!]|/)?"""
 
-PATTERN = rf"{NOT_INSIDE}(?:{WWW_NAME}|{LISTED_NAME}){NAME_ENDS}{REST}"
-BARE_DOMAIN = re.compile(PATTERN)
-
-
-def parse_bare_domain(inline, m, state):
-    text = without_a_sentence_parenthesis(m.group(0))
-    append_address(inline, state, text, ASSUMED_SCHEME + text)
-    return m.start() + len(text)
-
-
-def bare_domain_plugin(md):
-    md.inline.register("bare_domain", PATTERN, parse_bare_domain)
+# Read in the text by `inkletter.plugins.bare_links`, with the full address.
+BARE_DOMAIN = re.compile(rf"{NOT_INSIDE}(?:{WWW_NAME}|{LISTED_NAME}){NAME_ENDS}{REST}")
 
 
 # --- What an output asks of a label ---

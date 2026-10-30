@@ -1,11 +1,12 @@
 """Puts on one line what every output lays out on one line.
 
-A link's label, a mention's name, a table cell: the Markdown may spread
-them over several lines and pad them with spaces, and no output keeps
-that — an anchor shows a break as a space, a text cell is stripped, a
-post writes one run. So, right after parsing, a break inside one of them
-becomes a space and the whitespace at either end goes: on the tree, once,
-rather than in every renderer that lays such a run out.
+A link's label, a mention's name: the Markdown may spread them over
+several lines and pad them with spaces (`[ Acme ](…)`), and no output
+keeps that — an anchor shows a break as a space, a post writes one run.
+So, right after parsing, a break inside one of them becomes a space and
+the whitespace at either end goes: on the tree, once, rather than in every
+renderer that lays such a run out. A table cell needs none: the parser
+trims it, and it holds no break.
 """
 
 from inkletter.ast import *
@@ -25,15 +26,8 @@ class Trimmer(NodeVisitor):
     def visit_Mention(self, node, scope):
         self.trim(node, scope)
 
-    def visit_TableCell(self, node, scope):
-        self.trim(node, scope)
-
-    def visit_TableHeaderCell(self, node, scope):
-        self.trim(node, scope)
-
     def trim(self, node, scope):
-        """Flatten this node's run, then go on: a link inside a cell is
-        trimmed on its own."""
+        """Flatten this node's run, then go on."""
         self.flatten(node)
         self.generic_visit(node, scope)
 

@@ -185,8 +185,7 @@ def test_table_with_formated_cells(ast):
 
 
 def test_table_without_trailing_pipes_parses():
-    # GFM allows omitting trailing pipes; mistune >= 3.3 parses this as
-    # a table (with its upstream quirk of a leading empty cell)
+    # GFM allows omitting trailing pipes: the leading pipe opens no cell
     markdown_input = """\
 | Name | Age
 |------|----
@@ -194,12 +193,10 @@ def test_table_without_trailing_pipes_parses():
     expected_content = """\
 <mj-table>
   <tr>
-    <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;"></th>
     <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Name</th>
     <th style="border-bottom: 2px solid #e5e7eb; padding: 8px 12px; text-align: left;">Age</th>
   </tr>
   <tr>
-    <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;"></td>
     <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">Bob</td>
     <td style="border-bottom: 1px solid #e5e7eb; padding: 8px 12px;">25</td>
   </tr>

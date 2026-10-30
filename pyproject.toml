@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "inkletter"
-version = "3.4.0"
+version = "4.0.0"
 description = "Markdown to MJML/HTML converter and previewer"
 authors = [
     { name = "Laurent Pauloin", email = "laurent.pauloin@gmail.com" }
@@ -13,13 +13,14 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "click>=8.1,<9",
-    "mistune>=3.3.4,<4",
+    "markdown-it-py>=4.2,<5",
     "mjml-python>=1.4,<2",
-    "tomli>=2.0; python_version < '3.11'"
+    "tomli>=2.0; python_version < '3.11'",
 ]
 
 [dependency-groups]
 dev = [
+    "mypy>=1.18",
     "pytest>=9",
     "ruff>=0.16",
 ]
@@ -62,4 +63,4 @@ where = ["."]
 include = ["inkletter*"]
 
 [tool.setuptools.package-data]
-inkletter = ["templates/**/*.html"]
+inkletter = ["templates/**/*.html", "py.typed"]

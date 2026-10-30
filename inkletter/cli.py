@@ -28,7 +28,7 @@ def render_preview(markdown_text, mjml_code, html_output):
     engine. The two code panes are HTML-escaped; the email itself goes
     into a JavaScript string, so it is JSON-encoded with < > & escaped
     on top — an email holding </script> would otherwise end the block
-    early. That last part is what the tojson filter used to do here.
+    early, as a template engine's tojson filter does.
     """
     page = (TEMPLATES_DIR / "preview.html").read_text(encoding="utf-8")
     embedded = json.dumps(html_output)

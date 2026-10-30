@@ -210,9 +210,8 @@ class Codegen(NodeVisitor):
         pass
 
     def visit_Image(self, node, scope):
-        attrs = {"src": node.url}
-        if node.alt_text:
-            attrs["alt"] = node.alt_text.value
+        # an alt always, empty for an image that says nothing
+        attrs = {"src": node.url, "alt": node.alt_text}
         if node.title:
             attrs["title"] = node.title
 
@@ -235,9 +234,7 @@ class Codegen(NodeVisitor):
             if node.title:
                 link_attrs["title"] = node.title
             with self.block_tag("a", attrs=link_attrs, inline=True):
-                img_attrs = {"src": node.img.url}
-                if node.img.alt_text:
-                    img_attrs["alt"] = node.img.alt_text.value
+                img_attrs = {"src": node.img.url, "alt": node.img.alt_text}
                 if node.img.title:
                     img_attrs["title"] = node.img.title
                 img_attrs["style"] = node.img.annotations["image_style"]
@@ -245,9 +242,7 @@ class Codegen(NodeVisitor):
                 with self.block_tag("img", attrs=img_attrs, self_closing=True, inline=True):
                     pass
         else:
-            attrs = {"src": node.img.url, "href": node.href}
-            if node.img.alt_text:
-                attrs["alt"] = node.img.alt_text.value
+            attrs = {"src": node.img.url, "href": node.href, "alt": node.img.alt_text}
             if node.img.title:
                 attrs["title"] = node.img.title
             if node.annotations.get("image_padding"):

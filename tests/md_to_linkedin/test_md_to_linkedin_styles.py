@@ -15,8 +15,8 @@ from itertools import permutations
 import pytest
 
 from inkletter import URLFactory
-from inkletter.bare_domains import EXTENSIONS
 from inkletter.md_to_linkedin import parse_markdown_to_linkedin
+from inkletter.plugins.bare_domains import EXTENSIONS
 
 STROKE = "̶"
 

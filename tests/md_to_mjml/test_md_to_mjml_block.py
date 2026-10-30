@@ -1,6 +1,6 @@
 import pytest
 
-from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_body
+from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_body, wrap_mjml_document
 
 # --- Paragraph ---
 
@@ -313,3 +313,9 @@ def test_the_two_halves_agree_on_quoted_paragraphs():
     print(text)
     assert "Un.</p><p>Deux." in html
     assert "> Un.\n>\n> Deux." in text
+
+
+def test_an_empty_document_has_an_empty_body():
+    actual = parse_markdown_to_mjml("")
+    print(actual)
+    assert actual == wrap_mjml_document("")

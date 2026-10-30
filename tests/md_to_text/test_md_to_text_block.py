@@ -96,3 +96,16 @@ def test_block_html_is_ignored():
     actual = parse_markdown_to_text("before\n\n<div>a block</div>\n\nafter")
     print(actual)
     assert actual == "before\n\nafter\n"
+
+
+def test_a_heading_right_under_a_quote_ends_it():
+    # CommonMark: a heading is no lazy line of the quote above it
+    actual = parse_markdown_to_text("> a\n## b")
+    print(actual)
+    assert actual == "> a\n\nb\n-\n"
+
+
+def test_a_list_right_under_a_quote_follows_it():
+    actual = parse_markdown_to_text("> Citée\n- un point")
+    print(actual)
+    assert actual == "> Citée\n\n- un point\n"

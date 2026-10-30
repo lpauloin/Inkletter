@@ -23,12 +23,12 @@ from inkletter.exceptions import MarkupError
 #: once it is sent.
 KEYS = ("width", "height", "align")
 
-#: mj-image knows these three. Pandoc and mistune also accept
+#: mj-image knows these three. Pandoc also accepts
 #: top/middle/bottom, which are vertical-align and have no equivalent.
 ALIGNMENTS = ("left", "center", "right")
 
 #: px only. Pandoc also takes cm/mm/in — physical units mean nothing on
-#: a screen — and mistune takes em/rem/vw/vh, unreliable in Outlook. A
+#: a screen — and em/rem/vw/vh are unreliable in Outlook. A
 #: percentage is refused rather than quietly dropped: mj-image sizes in
 #: pixels, so `width=50%` came out at the full column width, which is
 #: the shape of error this syntax exists to avoid. A bare number means
@@ -37,11 +37,9 @@ DIMENSION = re.compile(r"(\d+(?:\.\d+)?)(px)?$")
 
 #: A brace block on one line. Matched loosely on purpose: what is
 #: inside decides whether it is an attribute block at all.
-BLOCK_PATTERN = r"\{(?P<ink_body>[^{}\n]*)\}"
+BLOCK = re.compile(r"\{([^{}\n]*)\}")
 
-#: One token: key=value, the value optionally quoted. The group names
-#: are free here — only the pattern registered with mistune shares its
-#: namespace with the rule name.
+#: One token: key=value, the value optionally quoted.
 TOKEN = re.compile(r'(?P<key>[A-Za-z][\w-]*)=(?P<value>"[^"]*"|\'[^\']*\'|[^\s"\'{}]+)')
 
 
@@ -96,30 +94,48 @@ def build(pairs):
     return attributes
 
 
-def carries_an_image(token):
-    """An image, or a link holding one — the two shapes that can be sized."""
-    if token is None:
-        return False
-    if token["type"] == "image":
-        return True
-    return token["type"] == "link" and any(
-        child["type"] == "image" for child in token.get("children", [])
-    )
-
-
-def parse_attrs(inline, m, state):
-    previous = state.tokens[-1] if state.tokens else None
-    if not carries_an_image(previous):
-        return None  # give the hand back: the braces stay literal
-    pairs = parse_pairs(m.group("ink_body"))
-    if pairs is None:
+def image_decorated(tokens):
+    """The image the block glued to the last token decorates — that token,
+    or the image inside the link it closes — or None: anything else gives
+    the hand back."""
+    if not tokens:
         return None
-    previous.setdefault("attrs", {})["ink_attributes"] = build(pairs)
-    return m.end()
+    last = tokens[-1]
+    if last.type == "image":
+        return last
+    if last.type != "link_close":
+        return None
+    depth = 0
+    for token in reversed(tokens[:-1]):
+        if token.type == "link_open" and depth == 0:
+            return None
+        depth += {"link_close": 1, "link_open": -1}.get(token.type, 0)
+        if token.type == "image" and depth == 0:
+            return token
+    return None
 
 
-def link_attributes(md):
-    """The plugin, passed to mistune.create_markdown(plugins=[...])."""
-    # before "escape" so the block wins over an escaped brace; a code
-    # span still wins over it, its match starting earlier
-    md.inline.register("ink_attrs", BLOCK_PATTERN, parse_attrs, before="escape")
+def attribute_block(state, silent):
+    if state.src[state.pos] != "{":
+        return False
+    # glued to the token before it: a space in between is the author's
+    # escape hatch, and Pandoc's
+    image = None if state.pending else image_decorated(state.tokens)
+    match = BLOCK.match(state.src, state.pos)
+    if image is None or match is None:
+        return False  # give the hand back: the braces stay literal
+    pairs = parse_pairs(match.group(1))
+    if pairs is None:
+        return False
+    if not silent:
+        attributes = build(pairs)
+        # a block written after a link decorates the image it wraps, so
+        # both spellings land in the same place — the image's own first
+        image.meta.setdefault("ink_attributes", attributes)
+    state.pos = match.end()
+    return True
+
+
+def link_attributes_plugin(md):
+    """The plugin, passed to `MarkdownIt.use`."""
+    md.inline.ruler.before("emphasis", "ink_attrs", attribute_block)

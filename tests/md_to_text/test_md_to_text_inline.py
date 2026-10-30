@@ -134,3 +134,10 @@ def test_a_bare_address_between_brackets_is_written_once():
 
 def test_a_tel_link_keeps_its_scheme_too():
     assert parse_markdown_to_text("[Appelez](tel:+331)") == "Appelez <tel:+331>\n"
+
+
+def test_an_entity_without_its_semicolon_is_text():
+    # CommonMark reads an entity only whole, its `;` included
+    actual = parse_markdown_to_text("&copy 2026 &amp")
+    print(actual)
+    assert actual == "&copy 2026 &amp\n"

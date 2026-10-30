@@ -4,6 +4,89 @@ Newest first. [Semantic versioning](https://semver.org): a major bump
 means a document, a theme file or a call that used to work no longer
 does.
 
+## 4.0.0 — unreleased
+
+### Added
+
+- **A JavaScript package, `inkletter` on npm** (`js/`): the same rules, the
+  same tree, the same visitors, module for module — the post and its count,
+  the HTML fragment and the MJML come out of it character for character as
+  they come out of Python, the responsive HTML compiled by MJML's own browser
+  build. What holds them together: `scripts/parity.py` writes what Python
+  answers for every document its suite renders and for those of
+  `parity/documents.json` — `parity/linkedin.json`,
+  `parity/html_fragment.json`, `parity/mjml.json` — and the JavaScript tests
+  want the same characters; the CI checks both sides.
+- **The post as a feed shows it.** `render_linkedin` (`renderLinkedin` in
+  JavaScript) returns the post, what LinkedIn counts for it, its lines —
+  each fragment saying what it is (text, a mention, a hashtag, a link),
+  what the feed shows of it (a mention's name, an address as written, its
+  letters decoded) and what it costs — and whether bold, italic or a
+  heading were written that the feed will not show. `shown_text` reads it
+  on one string. `parse_markdown_to_linkedin` is that render, refused over
+  its ceiling.
+- **An HTML fragment output.** `parse_markdown_to_html_fragment` renders
+  a document as the inside of a page — paragraphs, headings, quotes,
+  lists, tables, code, bold, italic, struck text and links — for a page
+  that sets it among its own content: a note in a PDF report, a comment
+  on a screen. No theme applies; the page styles it. It is safe to set
+  inside a page that trusts nothing the author typed: every text is
+  escaped, raw HTML (inline or block) is dropped, a link to anything but
+  `http`, `https`, `mailto` or `tel` is written as its label, a mention is
+  the name it shows, and an image is its alternative text — whatever
+  renders the fragment fetches nothing. A line break the author typed
+  stays one (`<br>`), as a post keeps it.
+
+### Changed
+
+- **The parser is markdown-it** (`markdown-it-py`) in place of mistune.
+  It reads CommonMark more closely — 98 % of its examples, against 91 %
+  — and has a twin in JavaScript, line for line the same rules: what
+  Inkletter reads is now read the same way in a browser. What Inkletter
+  reads beyond CommonMark keeps its meaning, written as markdown-it
+  plugins, one module each in `inkletter.plugins`. A few documents read differently, each
+  time as CommonMark says:
+  - a heading or a list right under a quote, without a blank line, ends
+    the quote (`> a` then `## b`): it used to be read inside it, or —
+    for a list — before it;
+  - an entity is read only whole, its `;` included: `&copy 2026` stays
+    text, where it used to become `© 2026`;
+  - a table written without its last pipes no longer opens on an empty
+    column;
+  - marks nested deep (`***~~a **b *c ~~d~~ c* b** a~~***`) are all read;
+  - the blank lines after an indented code block are the author's, like
+    after any other block, and a post writes them;
+  - a NUL character is replaced with `U+FFFD`;
+  - an empty document is an empty mail body, without an empty section.
+
+  `ASTRenderer` is now `ASTBuilder`, which turns markdown-it's tree into
+  Inkletter's (`read_markdown` returns the document as parsed, before any
+  pass), and `create_markdown` returns the parser itself. The plugins live in
+  `inkletter.plugins`, one module each: `inkletter.bare_domains` and
+  `inkletter.link_attributes` are now `inkletter.plugins.bare_domains`
+  and `inkletter.plugins.link_attributes`.
+- **A list ends where its author stopped writing it.** A line written
+  right after an item, without a marker and without indentation, used to
+  join the item (CommonMark's lazy continuation: `- Étapes` then `Après`
+  read as one item); it is now a block of its own, in every output — the
+  mail and the fragment show the list, then a paragraph; the text and the
+  post, the list, then the line. A line indented under an item is still
+  the item. The blank lines after a list's last item are counted with
+  what follows, like any other run (`inkletter.plugins.typed_lists`).
+- **A post keeps blocks typed line after line, line after line.** Two
+  blocks the author wrote without a blank line between them — a sentence
+  then a list, a list then a list of another kind, a list then a quote —
+  were laid out with one blank line between them, which the author never
+  typed; the post now writes the blank lines that were typed, none
+  included. The other outputs, documents, keep separating their blocks.
+
+### Removed
+
+- **mistune**, and with it `blank_lines_plugin`, `bare_url_plugin` and
+  `bare_domain_plugin`: the blank lines are counted from where each block
+  starts and ends, and the bare addresses — written in full or as a
+  domain — are one rule, `bare_links_plugin`.
+
 ## 3.4.0 — 2026-10-11
 
 ### Added

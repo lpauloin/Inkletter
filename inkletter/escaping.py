@@ -8,9 +8,9 @@ the mail you send, and well-formed HTML passes through verbatim.
 Escaping for HTML, which is what a template engine does by default,
 stops neither.
 
-Nothing in the standard library does this, and neither does mistune —
-its `escape` and `safe_entity` are HTML escaping. What *is* standard is
-the rule this implements: CommonMark says any ASCII punctuation
+Nothing in the standard library does this, and neither does markdown-it —
+its `escapeHtml` is HTML escaping. What *is* standard is the rule this
+implements: CommonMark says any ASCII punctuation
 character may be backslash-escaped.
 
 For the other place a value can land, a code block, the standard library
@@ -36,7 +36,7 @@ import re
 PUNCTUATION = re.compile(r"([!-/:-@\[-`{-~])")
 
 
-def escape_markdown(value):
+def escape_markdown(value: object) -> str:
     """Return `value` so that Markdown reads it as plain text.
 
     Use it on everything that is not yours — a name, a filename, a

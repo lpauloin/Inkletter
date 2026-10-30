@@ -5,7 +5,7 @@ Everything else is a Link, which says its scheme for whoever asks."""
 import pytest
 
 from inkletter.ast import *
-from inkletter.md_to_ast import ASTRenderer
+from inkletter.md_to_ast import ASTBuilder
 
 
 def walk(node):
@@ -113,9 +113,9 @@ def test_a_lone_bold_domain_is_the_ask(ast):
 
 def test_the_dispatch_is_one_table(ast):
     # a scheme added later gets its node here, once
-    assert ASTRenderer.LINKS_BY_SCHEME == {"urn": Mention, "mailto": MailLink, "tel": TelLink}
-    assert Link.scheme_of("urn:li:organization:1") in ASTRenderer.LINKS_BY_SCHEME
-    assert Link.scheme_of("https://exemple.fr") not in ASTRenderer.LINKS_BY_SCHEME
+    assert ASTBuilder.LINKS_BY_SCHEME == {"urn": Mention, "mailto": MailLink, "tel": TelLink}
+    assert Link.scheme_of("urn:li:organization:1") in ASTBuilder.LINKS_BY_SCHEME
+    assert Link.scheme_of("https://exemple.fr") not in ASTBuilder.LINKS_BY_SCHEME
 
 
 # --- What each scheme becomes ---

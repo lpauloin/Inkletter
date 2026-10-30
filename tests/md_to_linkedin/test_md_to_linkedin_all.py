@@ -44,7 +44,6 @@ Ce qu'elle dit
 • une puce
 • une autre, avec une sous-liste :
   • imbriquée
-
 1. un premier
 2. un second
 

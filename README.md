@@ -3,6 +3,7 @@
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Inkletter-blue?logo=github)](https://github.com/lpauloin/Inkletter)
 [![CI](https://github.com/lpauloin/Inkletter/actions/workflows/ci.yml/badge.svg)](https://github.com/lpauloin/Inkletter/actions/workflows/ci.yml)
 [![PyPI version](https://badge.fury.io/py/inkletter.svg)](https://badge.fury.io/py/inkletter)
+[![npm version](https://badge.fury.io/js/inkletter.svg)](https://www.npmjs.com/package/inkletter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ![Inkletter — write your newsletter in Markdown, get a responsive themeable HTML email](sample/banner.png)
@@ -10,7 +11,9 @@
 **Write your emails like prose, send them like a pro.**
 
 Inkletter turns plain Markdown files into beautiful, responsive MJML and HTML email
-layouts, ready to be previewed, shared or sent to the world.
+layouts, ready to be previewed, shared or sent to the world — and the same
+Markdown into a LinkedIn post or an HTML fragment. In Python, and in
+JavaScript with the same output to the character.
 
 ## Why Inkletter?
 
@@ -23,14 +26,20 @@ and it becomes a **gorgeous, mobile-friendly HTML email** powered by MJML.
 
 - Markdown to MJML or to final responsive HTML, in one command
 - The same Markdown rendered as a LinkedIn post — mentions, short-link
-  aware counting, and a refusal rather than a truncation
+  aware counting, and a refusal rather than a truncation — with what a
+  preview needs, line by line
+- An HTML fragment, safe to set in a page that trusts nothing typed
+- CommonMark read by markdown-it, with GitHub's tables, strikethrough and
+  task lists
+- A JavaScript twin on npm: post, fragment and MJML identical to the
+  character, held to it by shared scenarios
 - Layout from plain Markdown structure: side-by-side image rows, image-beside-text
   media objects, and call-to-action buttons from a lone bold link
 - Seven built-in themes, or your own theme in a small TOML file
 - Image sizing with Pandoc's `{width=96px}` attributes
 - Drops into a Django app: render the Markdown, then convert it
 - Live preview in your browser, with a device simulator (iPhone, iPad, desktop)
-- Clean Python API if you'd rather script it
+- Clean Python API if you'd rather script it, typed (`py.typed`)
 - Runs entirely on your machine, no account, no vendor lock-in
 
 ## Installation
@@ -39,6 +48,12 @@ Python 3.10+ required.
 
 ```bash
 pip install inkletter
+```
+
+In JavaScript (Node 20+, or any bundler):
+
+```bash
+npm install inkletter
 ```
 
 See the [changelog](CHANGELOG.md) for what each version changed.
@@ -191,6 +206,47 @@ rule rather than quietly deciding what gets published.
 ```python
 comment = parse_markdown_to_linkedin(footnotes, max_length=1250)
 ```
+
+### What a preview reads
+
+A preview needs more than the string. `render_linkedin` gives the post,
+what LinkedIn counts for it, its lines fragment by fragment — what each
+is (text, a mention, a hashtag, a link), what the feed shows of it (a
+mention's name rather than its marker, an address as written, its letters
+decoded) and what it costs — and whether bold, italic or a heading were
+written that the feed will not show. It refuses nothing: the caller
+weighs `length` against its own ceiling.
+
+```python
+from inkletter import render_linkedin
+
+render = render_linkedin(markdown, url_factory=my_shortener)
+render.text  # what goes out
+render.length  # what LinkedIn counts
+render.shown_text  # what the feed shows, on one string
+render.lines[0].segments
+# (Segment(kind="text", display="Merci à ", cost=8),
+#  Segment(kind="mention", display="Acme", cost=4), …)
+render.unrendered_formatting, render.unrendered_headings
+```
+
+## An HTML fragment
+
+The same document as the inside of a page rather than a whole email — a
+note set in a report, a comment shown on a screen:
+
+```python
+from inkletter import parse_markdown_to_html_fragment
+
+parse_markdown_to_html_fragment("A **bold** word\nand a line of its own.")
+# '<p>A <strong>bold</strong> word<br>and a line of its own.</p>'
+```
+
+No theme applies: the page around it styles it. It is safe to set inside
+a page that trusts nothing the author typed — every text is escaped, raw
+HTML is dropped, a link to anything but `http`, `https`, `mailto` or `tel`
+is written as its label, and an image is its alternative text, so that
+whatever renders the fragment never fetches anything for it.
 
 ## Django templates
 
@@ -465,6 +521,38 @@ all is an address like any other, so a local image still goes through.
 - [sample/themes/](sample/themes/) — the same source rendered with every preset
 - [theme gallery](sample/THEMES.md) — all presets at a glance, desktop and mobile
 
+## In JavaScript
+
+The same package, output for output, lives in `js/` and is published on npm
+as `inkletter`: the post, its count and its lines, the HTML fragment and
+the MJML come out of it character for character as they come out of
+Python — the same markdown-it rules, the same tree, the same visitors.
+
+```bash
+npm install inkletter
+```
+
+```js
+import { parseMarkdownToHtmlFragment, parseMarkdownToMjml, renderLinkedin, Theme } from 'inkletter';
+
+const { text, length, lines, shownText } = renderLinkedin('**Merci** à [Acme](urn:li:organization:12345678) !');
+const fragment = parseMarkdownToHtmlFragment('Un *mot*.');
+const mjml = parseMarkdownToMjml('# Bonjour', { theme: Theme.named('dark') });
+```
+
+A theme is built from the same mapping as in Python (`Theme.fromDict`, the
+keys of a theme file). The responsive HTML is compiled by MJML's own browser
+build, loaded only when asked for (`await parseMarkdownToHtml(…)`, with
+`mjml-browser` and `cheerio` installed beside it): its HTML is MJML's, not
+MRML's, which Python compiles with — the MJML going in is the same.
+
+**What holds the two together.** `scripts/parity.py` renders every document
+the Python suite renders, and those of `parity/documents.json`, and writes
+the answers down — `parity/linkedin.json`, `parity/html_fragment.json`,
+`parity/mjml.json`; `js/test/parity.test.ts` wants the same characters.
+Change an output in Python, rerun the script, and the JavaScript has to
+follow before the CI passes.
+
 ## Contributing
 
 French or not, you are welcome to contribute.
@@ -475,11 +563,16 @@ uv sync
 uv run ruff check .
 uv run ruff format --check .
 uv run pytest
+uv run mypy --strict tests/typing
+uv run python scripts/parity.py --check
+cd js && npm ci && npm run typecheck && npm test && npm run build
 ```
 
-Those are the three the CI runs, in that order, on Python 3.10 to 3.13 —
-every push and every pull request. Run them as written rather than an
-equivalent: a command of your own has a different scope.
+Those are what the CI runs, in that order, on Python 3.10 to 3.13 and on
+Node 22 — every push and every pull request. Run them as written rather
+than an equivalent: a command of your own has a different scope. An output
+changed on purpose: `uv run python scripts/parity.py` rewrites the
+scenarios, to be read in the diff like a contract change.
 
 ## License
 

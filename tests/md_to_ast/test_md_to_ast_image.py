@@ -15,8 +15,7 @@ def test_image_in_paragraph(ast):
     assert isinstance(img, Image)
     assert img.url == "https://picsum.photos/600/300"
     assert img.title == "Title"
-    assert isinstance(img.alt_text, LiteralText), img.alt_text
-    assert img.alt_text.value == "alt text"
+    assert img.alt_text == "alt text"
 
 
 def test_image_alt_with_formatting(ast):
@@ -31,8 +30,7 @@ def test_image_alt_with_formatting(ast):
     img = para.children[0]
     assert isinstance(img, Image)
     assert img.url == "https://picsum.photos/600/300"
-    assert isinstance(img.alt_text, LiteralText), img.alt_text
-    assert img.alt_text.value == "bold alt"
+    assert img.alt_text == "bold alt"
 
 
 def test_image_alt_with_nested_formatting(ast):
@@ -41,8 +39,7 @@ def test_image_alt_with_nested_formatting(ast):
 
     img = doc.children[0].children[0]
     assert isinstance(img, Image)
-    assert isinstance(img.alt_text, LiteralText)
-    assert img.alt_text.value == "Very important old text"
+    assert img.alt_text == "Very important old text"
 
 
 def test_image_in_link(ast):
@@ -60,8 +57,7 @@ def test_image_in_link(ast):
     assert isinstance(img_link.img, Image)
     img = img_link.img
     assert img.url == "https://picsum.photos/600/300"
-    assert isinstance(img.alt_text, LiteralText)
-    assert img.alt_text.value == "Alt"
+    assert img.alt_text == "Alt"
 
 
 def test_image_in_link_with_text(ast):
@@ -81,8 +77,7 @@ def test_image_in_link_with_text(ast):
     assert isinstance(img_link.img, Image)
     img = img_link.img
     assert img.url == "https://picsum.photos/600/300"
-    assert isinstance(img.alt_text, LiteralText)
-    assert img.alt_text.value == "Alt"
+    assert img.alt_text == "Alt"
 
 
 def test_image_in_list(ast):
@@ -104,8 +99,7 @@ def test_image_in_list(ast):
     assert isinstance(block.children[0], Image)
     img = block.children[0]
     assert img.url == "https://picsum.photos/600/300"
-    assert isinstance(img.alt_text, LiteralText)
-    assert img.alt_text.value == "Étoile"
+    assert img.alt_text == "Étoile"
 
     assert isinstance(block.children[1], LiteralText)
     assert block.children[1].value == " Élément"
@@ -129,8 +123,7 @@ def test_image_in_blockquote(ast):
 
     img = para.children[0]
     assert img.url == "https://picsum.photos/600/300"
-    assert isinstance(img.alt_text, LiteralText)
-    assert img.alt_text.value == "Quote Icon"
+    assert img.alt_text == "Quote Icon"
 
     assert isinstance(para.children[1], BlockText)
     block = para.children[1]
@@ -182,8 +175,7 @@ def test_image_in_table(ast):
     assert isinstance(cell2.children[0], Image)
     img = cell2.children[0]
     assert img.url == "https://picsum.photos/600/300"
-    assert isinstance(img.alt_text, LiteralText)
-    assert img.alt_text.value == "Stylo"
+    assert img.alt_text == "Stylo"
 
 
 def test_image_in_heading(ast):
@@ -199,5 +191,16 @@ def test_image_in_heading(ast):
     assert isinstance(heading.children[0], Image)
     img = heading.children[0]
     assert img.url == "https://picsum.photos/600/300"
-    assert isinstance(img.alt_text, LiteralText)
-    assert img.alt_text.value == "Icône"
+    assert img.alt_text == "Icône"
+
+
+def test_image_alt_keeps_its_hashtags(ast):
+    doc = ast("![a #tag b](x.png)")
+    (img,) = doc.children[0].children
+    assert img.alt_text == "a #tag b"
+
+
+def test_image_alt_reads_a_break_as_a_space(ast):
+    doc = ast("![a\nb *c* `d`](x.png)")
+    (img,) = doc.children[0].children
+    assert img.alt_text == "a b c d"

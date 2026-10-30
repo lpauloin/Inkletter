@@ -1,7 +1,5 @@
-import mistune
-
 from inkletter.ast import *
-from inkletter.md_to_ast import ASTRenderer
+from inkletter.md_to_ast import read_markdown
 from inkletter.theme import DEFAULT_THEME
 from inkletter.visitors.annotation import Annotation
 from inkletter.visitors.merger import BlockTextMerger
@@ -10,16 +8,7 @@ from inkletter.visitors.tree import print_tree
 
 
 def generate_ast(markdown_input):
-    renderer = ASTRenderer()
-    markdown = mistune.create_markdown(
-        renderer=renderer,
-        plugins=[
-            "table",
-            "strikethrough",
-            "task_lists",
-        ],
-    )
-    ast = markdown(markdown_input)
+    ast = read_markdown(markdown_input)
     Annotation(DEFAULT_THEME).visit(ast)
     print("AST:")
     print_tree(ast)
