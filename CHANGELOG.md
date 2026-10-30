@@ -4,7 +4,19 @@ Newest first. [Semantic versioning](https://semver.org): a major bump
 means a document, a theme file or a call that used to work no longer
 does.
 
-## 4.0.0 — unreleased
+## 4.1.0 — 2026-10-30
+
+### Added
+
+- **The JavaScript package exports its tree and its visitor** — `ast`,
+  `NodeVisitor`, `ScopeStack` — and the grammar of a domain written without
+  its scheme (`BARE_DOMAIN`, `isBareDomain`, `isSpelledBy`), for an
+  application that lays a document out its own way: an editing surface that
+  reads the text exactly as the render reads it. The Python package already
+  had them (`inkletter.ast`, `inkletter.visitors`); it changes only its
+  version, the two being released together.
+
+## 4.0.0 — 2026-10-30
 
 ### Added
 

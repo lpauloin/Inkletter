@@ -1,5 +1,5 @@
 {
- "inkletter": "4.0.0",
+ "inkletter": "4.1.0",
  "cases": [
   {
    "name": "tests/md_to_mjml/test_md_to_mjml_all.py::test_md_generation_full_syntax",
