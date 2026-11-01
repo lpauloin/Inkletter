@@ -23,6 +23,7 @@ interface Case {
   bold_link_is_button?: boolean;
   link_attributes?: boolean;
   theme?: ThemeMapping;
+  lang?: string;
   expected?: string;
   length?: number;
   lines?: [string, number, [string, string, number][]][];
@@ -123,6 +124,7 @@ describe('the MJML: the same characters', () => {
       expected: parseMarkdownToMjml(scenario.source, {
         ...options(scenario),
         theme: scenario.theme ? Theme.fromDict(scenario.theme) : null,
+        lang: scenario.lang ?? null,
       }),
     }));
     expect(found).toEqual(expectedOf(scenario));

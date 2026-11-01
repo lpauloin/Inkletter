@@ -1,5 +1,5 @@
 {
- "inkletter": "4.2.0",
+ "inkletter": "4.3.0",
  "cases": [
   {
    "name": "tests/md_to_linkedin/test_md_to_linkedin_all.py::test_full_document_covers_every_markdown_element",

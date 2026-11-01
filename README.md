@@ -347,8 +347,12 @@ its hyphenation:
 html = parse_markdown_to_html(markdown, lang="en")
 ```
 
-`parse_markdown_to_mjml` takes the same argument. Without it, MJML
-writes `lang="und"` — undetermined.
+`parse_markdown_to_mjml`, `wrap_mjml_document` and `wrap_mjml_body` take
+the same argument, and so does the JavaScript package (`{ lang: 'en' }`).
+It goes on `<mjml>`, escaped like any attribute, and MJML carries it to
+`<html>`. Without it — or with an empty string — the root carries no
+language and the compiler decides: no attribute, or `lang="und"`
+(undetermined), depending on its version.
 
 ## Layout
 

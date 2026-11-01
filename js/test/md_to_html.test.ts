@@ -2,7 +2,7 @@
 // not MRML's, the Python package's, so it is read for what it shows.
 
 import { expect, test } from 'vitest';
-import { parseMarkdownToHtml, Theme, THEMES } from '../src/index.js';
+import { parseMarkdownToHtml, parseMarkdownToMjml, Theme, THEMES, wrapMjmlDocument } from '../src/index.js';
 
 test('the MJML compiles into a mail that shows the document', async () => {
   const html = await parseMarkdownToHtml('# Bonjour\n\nUn **mot** et [un lien](https://exemple.fr).');
@@ -25,4 +25,22 @@ test("only a font's quotes are rewritten for the compiler, never the author's co
   );
   expect(html).toContain('lang=&quot;fr&quot;');
   expect(html).toContain('class=&quot;x&quot;');
+});
+
+test('the language given lands on the MJML root, then on the mail\'s <html>', async () => {
+  expect(parseMarkdownToMjml('Hello', { lang: 'en' })).toMatch(/^<mjml lang="en">/);
+  expect(await parseMarkdownToHtml('Bonjour', { lang: 'fr' })).toMatch(/<html[^>]* lang="fr"/);
+});
+
+test('no language leaves the root bare, an empty one too', () => {
+  expect(parseMarkdownToMjml('Hello')).toMatch(/^<mjml>/);
+  expect(parseMarkdownToMjml('Hello', { lang: '' })).toMatch(/^<mjml>/);
+});
+
+test('the language is escaped as any attribute', () => {
+  expect(parseMarkdownToMjml('Hello', { lang: 'en"><x' })).toMatch(/^<mjml lang="en&quot;&gt;&lt;x">/);
+});
+
+test('a document wrapped around raw content takes its language too', () => {
+  expect(wrapMjmlDocument('<mj-section></mj-section>', null, 'de')).toMatch(/^<mjml lang="de">/);
 });

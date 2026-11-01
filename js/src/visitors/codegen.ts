@@ -55,6 +55,18 @@ export class Codegen extends NodeVisitor {
   resolver = new CodeBlockResolver();
   current = this.root;
 
+  /** `lang`, the language the email is written in. */
+  constructor(readonly lang: string | null = null) {
+    super();
+  }
+
+  /** The root's attributes: the language the email is written in, when
+   *  given — MJML carries it to `<html>`, where a screen reader picks its
+   *  voice. */
+  rootAttrs(): Attrs | null {
+    return this.lang ? { lang: this.lang } : null;
+  }
+
   getCode(): string {
     return this.resolver.resolve(this.root);
   }
@@ -99,7 +111,7 @@ export class Codegen extends NodeVisitor {
   }
 
   visit_Document(node: Document, scope: ScopeStack): void {
-    this.blockTag('mjml', null, {}, () => {
+    this.blockTag('mjml', this.rootAttrs(), {}, () => {
       const head = node.head;
       if (head) this.emitHead(head);
       this.blockTag('mj-body', node.annotations.body_attrs as Attrs, {}, () => this.emitBands(node.children, scope));

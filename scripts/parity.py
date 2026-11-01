@@ -126,6 +126,7 @@ def mjml(case):
         bold_link_is_button=case.get("bold_link_is_button", True),
         link_attributes=case.get("link_attributes", True),
         url_factory=factory_of(case),
+        lang=case.get("lang"),
     )
 
 
@@ -143,7 +144,7 @@ class Recorder:
     OPTIONS = {
         "linkedin": ("unicode_styling",),
         "html_fragment": ("bold_link_is_button", "link_attributes"),
-        "mjml": ("bold_link_is_button", "link_attributes", "theme"),
+        "mjml": ("bold_link_is_button", "link_attributes", "theme", "lang"),
     }
 
     def __init__(self):
