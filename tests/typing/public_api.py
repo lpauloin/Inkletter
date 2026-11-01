@@ -32,11 +32,11 @@ class Tagging(URLFactory):
 def every_output(markdown: str) -> list[str]:
     theme: Theme = Theme.named("dark")
     dark: Theme = THEMES["dark"]
-    mjml: str = parse_markdown_to_mjml(markdown, theme=theme, url_factory=Tagging())
+    mjml: str = parse_markdown_to_mjml(markdown, theme=theme, url_factory=Tagging(), lang="en")
     return [
         mjml,
         parse_mjml_to_html(mjml),
-        parse_markdown_to_html(markdown, theme=dark),
+        parse_markdown_to_html(markdown, theme=dark, lang="fr"),
         parse_markdown_to_html_fragment(markdown, link_attributes=False),
         parse_markdown_to_text(markdown, bold_link_is_button=False),
         parse_markdown_to_linkedin(markdown, unicode_styling=True, max_length=None),

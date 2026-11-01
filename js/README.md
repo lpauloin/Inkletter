@@ -27,7 +27,9 @@ parseMarkdownToMjml('# Bonjour', { theme: Theme.fromDict({ links: { color: '#0a6
   `maxLength` (4000 by default) with a `LengthError`.
 - `parseMarkdownToHtmlFragment(markdown, options)` — the inside of a page,
   safe to set in one that trusts nothing the author typed.
-- `parseMarkdownToMjml(markdown, { theme, … })` — the email as MJML.
+- `parseMarkdownToMjml(markdown, { theme, lang, … })` — the email as MJML;
+  `lang`, the language it is written in, goes on `<mjml>`, then on the
+  mail's `<html>`, where a screen reader picks its voice.
 - `await parseMarkdownToHtml(markdown, options)` — the responsive email,
   compiled by MJML's browser build: install `mjml-browser` and `cheerio`
   beside this package. Loaded only when called.

@@ -15,6 +15,7 @@ def parse_markdown_to_html(
     bold_link_is_button: bool = True,
     link_attributes: bool = True,
     url_factory: URLFactory | None = None,
+    lang: str | None = None,
 ) -> str:
     return parse_mjml_to_html(
         parse_markdown_to_mjml(
@@ -23,5 +24,6 @@ def parse_markdown_to_html(
             bold_link_is_button=bold_link_is_button,
             link_attributes=link_attributes,
             url_factory=url_factory,
+            lang=lang,
         )
     )

@@ -15,8 +15,9 @@ class Codegen(NodeVisitor):
     """Emits MJML from the annotated AST. Every styling decision reaches
     it as annotation-provided instructions: no theme in sight."""
 
-    def __init__(self):
+    def __init__(self, lang=None):
         super().__init__()
+        self.lang = lang
         self.root = CodeBlock()
         self.resolver = CodeBlockResolver()
         self.current = self.root
@@ -73,8 +74,14 @@ class Codegen(NodeVisitor):
         else:
             yield
 
+    def root_attrs(self):
+        """The root's attributes: the language the email is written in, when
+        given — MJML carries it to `<html>`, where a screen reader picks its
+        voice."""
+        return {"lang": self.lang} if self.lang else None
+
     def visit_Document(self, node, scope):
-        with self.block_tag("mjml"):
+        with self.block_tag("mjml", attrs=self.root_attrs()):
             self.emit_head(node.annotations["head"])
             with self.block_tag("mj-body", attrs=node.annotations["body_attrs"]):
                 self.emit_bands(node.children, scope)

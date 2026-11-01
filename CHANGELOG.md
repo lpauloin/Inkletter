@@ -4,6 +4,21 @@ Newest first. [Semantic versioning](https://semver.org): a major bump
 means a document, a theme file or a call that used to work no longer
 does.
 
+## 4.3.0 — 2026-11-01
+
+The language an email is written in, for a screen reader and an
+accessibility checker.
+
+### Added
+
+- **`lang`**: `parse_markdown_to_html(markdown, lang="en")`, and the same
+  argument on `parse_markdown_to_mjml`, `wrap_mjml_document` and
+  `wrap_mjml_body` — in JavaScript, `{ lang: 'en' }` on `parseMarkdownToMjml`
+  and `parseMarkdownToHtml`, and a third argument to `wrapMjmlDocument`. It
+  goes on `<mjml>`, escaped like any attribute, and MJML carries it to the
+  mail's `<html>`. Without it, or empty, nothing changes. Held to the same
+  characters on both sides by the parity scenarios.
+
 ## 4.2.0 — 2026-10-30
 
 Measured in LinkedIn's own composer, on a page: what it reads as a hashtag,
