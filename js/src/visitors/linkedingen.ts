@@ -30,6 +30,7 @@ import {
 } from '../ast.js';
 import { CodeBlockResolver, type Line, type SegmentKind } from '../codeblock.js';
 import { costOfLink, costOfMention, costOfText } from '../counting.js';
+import { substitute } from '../lookalikes.js';
 import { isSpelledBy } from '../plugins/bare_domains.js';
 import { rstrip, unquote } from '../stdlib.js';
 import type { ScopeStack } from './scope.js';
@@ -42,60 +43,6 @@ const LABEL_SEPARATOR = ' : ';
 // The delimiters of the mention marker, for which nothing documents an
 // escape: a name carrying either goes out as plain text.
 const MARKER_DELIMITERS = ['|', ']'];
-
-// Unicode look-alikes for the three styles the platform does not have —
-// text, not formatting, and opt-in.
-//
-// | Styles in force  | Letters become                           |
-// |------------------|------------------------------------------|
-// | bold             | 𝗺𝗼𝘁 sans-serif bold                       |
-// | italic           | 𝘮𝘰𝘵 sans-serif italic                     |
-// | bold and italic  | 𝙢𝙤𝙩 sans-serif bold italic               |
-// | strikethrough    | a combining stroke after each letter,    |
-// |                  | digit, sign or space — never an emoji    |
-//
-// Only unaccented ASCII letters have a look-alike.
-const ASCII_LETTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-function lookalikes(lower: number, upper: number): ReadonlyMap<string, string> {
-  const targets = [...Array.from({ length: 26 }, (_, at) => lower + at), ...Array.from({ length: 26 }, (_, at) => upper + at)];
-  return new Map([...ASCII_LETTERS].map((letter, at) => [letter, String.fromCodePoint(targets[at] ?? 0)]));
-}
-
-const LETTERS: Readonly<Record<string, ReadonlyMap<string, string>>> = {
-  bold: lookalikes(0x1d5ee, 0x1d5d4),
-  italic: lookalikes(0x1d622, 0x1d608),
-  'bold italic': lookalikes(0x1d656, 0x1d63c),
-};
-const STRIKE = '\u0336';
-// What the stroke goes after: letters, digits, punctuation, spaces and the
-// like. Not an emoji, nor what an emoji is built of.
-const STRUCK = /^[\p{L}\p{N}\p{P}\p{Zs}\p{Sc}\p{Sm}]$/u;
-const SPACE_SEPARATOR = /^\p{Zs}$/u;
-
-/** A stroke after each character it goes after — and not on a space that
- *  touches something it skips. */
-function strike(text: string): string {
-  const chars = Array.from(text);
-  return chars
-    .map((char, at) => {
-      let struck = STRUCK.test(char);
-      if (struck && SPACE_SEPARATOR.test(char)) {
-        struck = [chars[at - 1], chars[at + 1]].every((neighbour) => neighbour === undefined || STRUCK.test(neighbour));
-      }
-      return struck ? char + STRIKE : char;
-    })
-    .join('');
-}
-
-/** `text` in the look-alikes of `styles`. */
-function substitute(text: string, styles: ReadonlySet<string>): string {
-  const key = ['bold', 'italic'].filter((style) => styles.has(style)).join(' ');
-  const letters = LETTERS[key];
-  let styled = letters ? Array.from(text, (char) => letters.get(char) ?? char).join('') : text;
-  if (styles.has('strikethrough')) styled = strike(styled);
-  return styled;
-}
 
 /** A post as the platform will take it, and as a feed shows it. */
 export class LinkedinRender {

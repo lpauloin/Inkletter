@@ -257,6 +257,21 @@ class Codegen(NodeVisitor):
         attrs = self.image_attrs(node, padding=node.annotations.get("image_padding"))
         with self.block_tag(tag, attrs=attrs, self_closing=True):
             pass
+        self.caption(node)
+
+    def caption(self, img):
+        """The title of an image standing as a block, said under it — not
+        in a row, where it would break the line of pictures, nor in raw
+        HTML, which an mj-text cannot enter."""
+        attrs = img.annotations.get("caption_attrs")
+        if (
+            not attrs
+            or img.annotations.get("requires_manual_image")
+            or img.annotations.get("image_padding")
+        ):
+            return
+        with self.block_tag("mj-text", attrs=attrs):
+            self.current.add_text(html.escape(img.title, quote=False))
 
     def visit_ImageLink(self, node, scope):
         if node.img.annotations.get("requires_manual_image"):
@@ -275,6 +290,7 @@ class Codegen(NodeVisitor):
         )
         with self.block_tag("mj-image", attrs=attrs, self_closing=True, inline=True):
             pass
+        self.caption(node.img)
 
     def visit_List(self, node, scope):
         with self.ensure_open_text(node):

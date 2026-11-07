@@ -99,10 +99,44 @@ def test_italic_and_strikethrough_have_their_own_substitutes():
     assert actual == "𝘪𝘵𝘢 b̶a̶r̶"
 
 
-def test_a_substitute_only_touches_letters():
-    actual = parse_markdown_to_linkedin("**Étude 2026 !**", unicode_styling=True)
+def test_a_substitute_touches_letters_and_bold_digits_never_signs():
+    actual = parse_markdown_to_linkedin("**Etude 2026 !**", unicode_styling=True)
     print(actual)
-    assert actual == "É𝘁𝘂𝗱𝗲 2026 !"
+    assert actual == "𝗘𝘁𝘂𝗱𝗲 𝟮𝟬𝟮𝟲 !"
+
+
+def test_italic_has_no_digit_and_bold_italic_takes_the_bold_ones():
+    actual = parse_markdown_to_linkedin("*an 2026* ***an 2026***", unicode_styling=True)
+    print(actual)
+    assert actual == "𝘢𝘯 2026 𝙖𝙣 𝟮𝟬𝟮𝟲"
+
+
+def test_an_accented_letter_is_its_letter_then_its_accent():
+    # measured on LinkedIn: the accent sits on the look-alike, one letter read
+    actual = parse_markdown_to_linkedin(
+        "**idée à la pièce, ça** *déjà prête*", unicode_styling=True
+    )
+    print(actual)
+    assert actual == "𝗶𝗱𝗲\u0301𝗲 𝗮\u0300 𝗹𝗮 𝗽𝗶𝗲\u0300𝗰𝗲, 𝗰\u0327𝗮 𝘥𝘦\u0301𝘫𝘢\u0300 𝘱𝘳𝘦\u0302𝘵𝘦"
+
+
+def test_a_capital_keeps_an_accent_under_it_and_stays_plain_with_one_above():
+    # measured on LinkedIn: an accent above a capital's look-alike is lost
+    actual = parse_markdown_to_linkedin("**Ça Été À Ô**", unicode_styling=True)
+    print(actual)
+    assert actual == "𝗖\u0327𝗮 É𝘁𝗲\u0301 À Ô"
+
+
+def test_a_letter_whose_base_is_not_ascii_stays_as_it_is():
+    actual = parse_markdown_to_linkedin("**œuvre straße**", unicode_styling=True)
+    print(actual)
+    assert actual == "œ𝘂𝘃𝗿𝗲 𝘀𝘁𝗿𝗮ß𝗲"
+
+
+def test_a_struck_accented_letter_keeps_its_accent_before_the_stroke():
+    actual = parse_markdown_to_linkedin("~~**été**~~", unicode_styling=True)
+    print(actual)
+    assert actual == "𝗲\u0301\u0336𝘁\u0336𝗲\u0301\u0336"
 
 
 def test_a_mention_inside_bold_is_never_substituted():

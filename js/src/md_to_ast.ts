@@ -308,7 +308,12 @@ export class ASTBuilder {
       src,
       ASTBuilder.altText(node.children),
       node.attr('title'),
-      new Attributes(attributes.width ?? null, attributes.height ?? null, attributes.align ?? null),
+      new Attributes(
+        attributes.width ?? null,
+        attributes.height ?? null,
+        attributes.align ?? null,
+        attributes.size ?? null,
+      ),
     );
   }
 
@@ -396,13 +401,35 @@ export interface AstOptions {
   linkAttributes?: boolean;
   theme?: Theme | null;
   urlFactory?: URLFactory | null;
+  /** Added to every heading's level, held between 1 and 6. */
+  headingOffset?: number;
+}
+
+export const HEADING_OFFSET_REFUSED = 'heading_offset must be an integer';
+
+/** Every heading's level moved by `offset`, held between 1 and 6: a page
+ *  whose own title is the `#` moves the document's `##` to its first level. */
+export function shiftHeadings(node: Node, offset: number): void {
+  if (node instanceof Heading) node.level = Math.min(6, Math.max(1, node.level + offset));
+  for (const child of node.getChildren()) shiftHeadings(child, offset);
 }
 
 export function parseMarkdownToAst(markdownText: string, options: AstOptions = {}): Document {
-  const { boldLinkIsButton = true, linkAttributes = true, theme = null, urlFactory = null } = options;
+  const {
+    boldLinkIsButton = true,
+    linkAttributes = true,
+    theme = null,
+    urlFactory = null,
+    headingOffset = 0,
+  } = options;
+  if (typeof headingOffset !== 'number' || !Number.isInteger(headingOffset)) {
+    throw new TypeError(HEADING_OFFSET_REFUSED);
+  }
   const ast = readMarkdown(markdownText, linkAttributes);
   // what is laid out on one line — a label, a name, a cell — is one
   new Trimmer().visit(ast);
+  // before anything reads a level: the theme sizes the heading it became
+  if (headingOffset) shiftHeadings(ast, headingOffset);
   new BlockTextMerger(boldLinkIsButton).visit(ast);
   new Annotation(theme ?? DEFAULT_THEME, linkAttributes).visit(ast);
   // Last, once every node says what it is: the factory is offered a

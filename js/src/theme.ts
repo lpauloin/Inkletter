@@ -96,6 +96,9 @@ export interface Images {
   border_radius: string;
   text_layout: string; // media object: "columns" or "stacked"
   media_ratio: string; // image column width of a media object
+  small_width: string; // an image laid `{size=small}`
+  caption_font_size: string; // the title shown under a lone image
+  caption_color: string;
 }
 
 export interface TableSection {
@@ -147,7 +150,16 @@ const DEFAULTS: Readonly<ThemeSections> = {
   quote: { color: Gray.BASE, border_color: Gray.LIGHT, font_style: 'italic' },
   divider: { color: Gray.LIGHT, width: '1px' },
   table: { border_color: Gray.LIGHT, cell_padding: '8px 12px', header_color: null, header_background_color: null },
-  images: { align: 'center', row_gap: '8px', border_radius: '0', text_layout: 'columns', media_ratio: '30%' },
+  images: {
+    align: 'center',
+    row_gap: '8px',
+    border_radius: '0',
+    text_layout: 'columns',
+    media_ratio: '30%',
+    small_width: '360px',
+    caption_font_size: '12px',
+    caption_color: Gray.BASE,
+  },
   buttons: {
     background_color: null,
     color: WHITE,
@@ -260,7 +272,10 @@ export class Theme {
         ` background-color: ${this.code.background_color};` +
         ` color: ${this.code.color};` +
         ' margin: 0; padding: 12px; border-radius: 6px;' +
-        ' overflow-x: auto; }',
+        // wrapped, not scrolled: a long line would widen the column past a
+        // phone's screen, and few mail clients scroll a block
+        ' white-space: pre-wrap; word-wrap: break-word;' +
+        ' overflow-wrap: anywhere; }',
       'ul, ol { margin: 0; padding-left: 24px; }',
     ].join('\n');
   }

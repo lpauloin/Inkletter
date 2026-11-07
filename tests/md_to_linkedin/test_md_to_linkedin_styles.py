@@ -38,6 +38,8 @@ def looks(text, *styles):
             char = chr(block[0] + ord(char) - ord("a"))
         elif block and "A" <= char <= "Z":
             char = chr(block[1] + ord(char) - ord("A"))
+        elif "bold" in styles and "0" <= char <= "9":
+            char = chr(0x1D7EC + ord(char) - ord("0"))
         out.append(char + STROKE if "strike" in styles and char != "🎉" else char)
     return "".join(out)
 
@@ -124,6 +126,11 @@ def test_the_three_styles_at_once():
     assert styled("***~~mot~~***") == "𝙢̶𝙤̶𝙩̶"
 
 
+def test_the_stroke_goes_after_a_letter_and_its_accent():
+    # `q` and its tilde have no composed form: the stroke goes after both
+    assert styled("~~q\u0303~~") == "q\u0303\u0336"
+
+
 def test_uppercase_has_its_look_alikes_too():
     assert styled("***ABC xyz***") == looks("ABC xyz", "bold", "italic")
 
@@ -140,7 +147,7 @@ def test_uppercase_has_its_look_alikes_too():
         ("~~mot~~", 6),
         ("**~~mot~~**", 9),
         ("***~~mot~~***", 9),
-        ("**Étude 2026**", 14),
+        ("**Étude 2026**", 18),
     ],
 )
 def test_a_look_alike_costs_what_the_platform_counts(markdown_text, units, measured):
@@ -211,10 +218,10 @@ def test_the_count_and_the_text_agree_on_every_new_behaviour(measured):
 # --- Only letters have look-alikes ---
 
 
-def test_accents_and_digits_stay_as_they_are():
+def test_an_accent_follows_its_letter_and_digits_are_bold():
     assert (
         styled("***Réglé 2026***")
-        == f"{looks('R', 'bold', 'italic')}é{looks('gl', 'bold', 'italic')}é 2026"
+        == f"{looks('Re', 'bold', 'italic')}\u0301{looks('gle', 'bold', 'italic')}\u0301 {looks('2026', 'bold')}"
     )
 
 
@@ -261,7 +268,7 @@ def test_a_hashtag_inside_any_style_is_written_as_is(marks):
 def test_the_words_around_a_hashtag_keep_their_style():
     assert (
         styled("**Parlons #marketing B2B**")
-        == f"{looks('Parlons', 'bold')} #marketing {looks('B', 'bold')}2{looks('B', 'bold')}"
+        == f"{looks('Parlons', 'bold')} #marketing {looks('B2B', 'bold')}"
     )
 
 
@@ -643,12 +650,12 @@ def test_styles_combine_in_a_heading():
 
 
 def test_styles_combine_in_a_list():
-    expected = f"• un {looks('point ', 'bold')}{looks('cl', 'bold', 'italic')}é\n• deux"
+    expected = f"• un {looks('point ', 'bold')}{looks('cle', 'bold', 'italic')}\u0301\n• deux"
     assert styled("- un **point *clé***\n- deux") == expected
 
 
 def test_styles_combine_in_a_quote():
-    assert styled("> ***cité***") == f"> {looks('cit', 'bold', 'italic')}é"
+    assert styled("> ***cité***") == f"> {looks('cite', 'bold', 'italic')}\u0301"
 
 
 def test_a_code_span_in_bold_takes_the_bold():
@@ -662,7 +669,7 @@ def test_a_bold_link_among_words_is_emphasis_and_takes_the_look_alikes():
     render = render_linkedin(
         "Lisez **[notre étude](https://exemple.fr/etude)** ici", unicode_styling=True
     )
-    assert render.text == "Lisez 𝗻𝗼𝘁𝗿𝗲 é𝘁𝘂𝗱𝗲 : https://exemple.fr/etude ici"
+    assert render.text == "Lisez 𝗻𝗼𝘁𝗿𝗲 𝗲\u0301𝘁𝘂𝗱𝗲 : https://exemple.fr/etude ici"
 
 
 def test_a_bold_link_among_words_warns_of_the_bold_it_loses():

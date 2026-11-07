@@ -1,5 +1,5 @@
 {
- "inkletter": "4.3.0",
+ "inkletter": "4.4.0",
  "cases": [
   {
    "name": "tests/md_to_linkedin/test_md_to_linkedin_all.py::test_full_document_covers_every_markdown_element",
@@ -3375,19 +3375,210 @@
    ]
   },
   {
-   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_a_substitute_only_touches_letters",
-   "source": "**Étude 2026 !**",
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_a_substitute_touches_letters_and_bold_digits_never_signs",
+   "source": "**Etude 2026 !**",
    "unicode_styling": true,
-   "expected": "É𝘁𝘂𝗱𝗲 2026 !",
+   "expected": "𝗘𝘁𝘂𝗱𝗲 𝟮𝟬𝟮𝟲 !",
+   "length": 21,
+   "lines": [
+    [
+     "𝗘𝘁𝘂𝗱𝗲 𝟮𝟬𝟮𝟲 !",
+     21,
+     [
+      [
+       "text",
+       "𝗘𝘁𝘂𝗱𝗲 𝟮𝟬𝟮𝟲 !",
+       21
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": false,
+   "unrendered_headings": false,
+   "styles": [
+    "bold"
+   ]
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_a_substitute_touches_letters_and_bold_digits_never_signs",
+   "source": "**Etude 2026 !**",
+   "expected": "Etude 2026 !",
+   "length": 12,
+   "lines": [
+    [
+     "Etude 2026 !",
+     12,
+     [
+      [
+       "text",
+       "Etude 2026 !",
+       12
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": true,
+   "unrendered_headings": false,
+   "styles": [
+    "bold"
+   ]
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_italic_has_no_digit_and_bold_italic_takes_the_bold_ones",
+   "source": "*an 2026* ***an 2026***",
+   "unicode_styling": true,
+   "expected": "𝘢𝘯 2026 𝙖𝙣 𝟮𝟬𝟮𝟲",
+   "length": 23,
+   "lines": [
+    [
+     "𝘢𝘯 2026 𝙖𝙣 𝟮𝟬𝟮𝟲",
+     23,
+     [
+      [
+       "text",
+       "𝘢𝘯 2026",
+       9
+      ],
+      [
+       "text",
+       " ",
+       1
+      ],
+      [
+       "text",
+       "𝙖𝙣 𝟮𝟬𝟮𝟲",
+       13
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": false,
+   "unrendered_headings": false,
+   "styles": [
+    "bold",
+    "italic"
+   ]
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_italic_has_no_digit_and_bold_italic_takes_the_bold_ones",
+   "source": "*an 2026* ***an 2026***",
+   "expected": "an 2026 an 2026",
+   "length": 15,
+   "lines": [
+    [
+     "an 2026 an 2026",
+     15,
+     [
+      [
+       "text",
+       "an 2026",
+       7
+      ],
+      [
+       "text",
+       " ",
+       1
+      ],
+      [
+       "text",
+       "an 2026",
+       7
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": true,
+   "unrendered_headings": false,
+   "styles": [
+    "bold",
+    "italic"
+   ]
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_an_accented_letter_is_its_letter_then_its_accent",
+   "source": "**idée à la pièce, ça** *déjà prête*",
+   "unicode_styling": true,
+   "expected": "𝗶𝗱𝗲́𝗲 𝗮̀ 𝗹𝗮 𝗽𝗶𝗲̀𝗰𝗲, 𝗰̧𝗮 𝘥𝘦́𝘫𝘢̀ 𝘱𝘳𝘦̂𝘵𝘦",
+   "length": 60,
+   "lines": [
+    [
+     "𝗶𝗱𝗲́𝗲 𝗮̀ 𝗹𝗮 𝗽𝗶𝗲̀𝗰𝗲, 𝗰̧𝗮 𝘥𝘦́𝘫𝘢̀ 𝘱𝘳𝘦̂𝘵𝘦",
+     60,
+     [
+      [
+       "text",
+       "𝗶𝗱𝗲́𝗲 𝗮̀ 𝗹𝗮 𝗽𝗶𝗲̀𝗰𝗲, 𝗰̧𝗮",
+       37
+      ],
+      [
+       "text",
+       " ",
+       1
+      ],
+      [
+       "text",
+       "𝘥𝘦́𝘫𝘢̀ 𝘱𝘳𝘦̂𝘵𝘦",
+       22
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": false,
+   "unrendered_headings": false,
+   "styles": [
+    "bold",
+    "italic"
+   ]
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_an_accented_letter_is_its_letter_then_its_accent",
+   "source": "**idée à la pièce, ça** *déjà prête*",
+   "expected": "idée à la pièce, ça déjà prête",
+   "length": 30,
+   "lines": [
+    [
+     "idée à la pièce, ça déjà prête",
+     30,
+     [
+      [
+       "text",
+       "idée à la pièce, ça",
+       19
+      ],
+      [
+       "text",
+       " ",
+       1
+      ],
+      [
+       "text",
+       "déjà prête",
+       10
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": true,
+   "unrendered_headings": false,
+   "styles": [
+    "bold",
+    "italic"
+   ]
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_a_capital_keeps_an_accent_under_it_and_stays_plain_with_one_above",
+   "source": "**Ça Été À Ô**",
+   "unicode_styling": true,
+   "expected": "𝗖̧𝗮 É𝘁𝗲́ À Ô",
    "length": 16,
    "lines": [
     [
-     "É𝘁𝘂𝗱𝗲 2026 !",
+     "𝗖̧𝗮 É𝘁𝗲́ À Ô",
      16,
      [
       [
        "text",
-       "É𝘁𝘂𝗱𝗲 2026 !",
+       "𝗖̧𝗮 É𝘁𝗲́ À Ô",
        16
       ]
      ]
@@ -3400,18 +3591,67 @@
    ]
   },
   {
-   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_a_substitute_only_touches_letters",
-   "source": "**Étude 2026 !**",
-   "expected": "Étude 2026 !",
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_a_capital_keeps_an_accent_under_it_and_stays_plain_with_one_above",
+   "source": "**Ça Été À Ô**",
+   "expected": "Ça Été À Ô",
+   "length": 10,
+   "lines": [
+    [
+     "Ça Été À Ô",
+     10,
+     [
+      [
+       "text",
+       "Ça Été À Ô",
+       10
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": true,
+   "unrendered_headings": false,
+   "styles": [
+    "bold"
+   ]
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_a_letter_whose_base_is_not_ascii_stays_as_it_is",
+   "source": "**œuvre straße**",
+   "unicode_styling": true,
+   "expected": "œ𝘂𝘃𝗿𝗲 𝘀𝘁𝗿𝗮ß𝗲",
+   "length": 21,
+   "lines": [
+    [
+     "œ𝘂𝘃𝗿𝗲 𝘀𝘁𝗿𝗮ß𝗲",
+     21,
+     [
+      [
+       "text",
+       "œ𝘂𝘃𝗿𝗲 𝘀𝘁𝗿𝗮ß𝗲",
+       21
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": false,
+   "unrendered_headings": false,
+   "styles": [
+    "bold"
+   ]
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_a_letter_whose_base_is_not_ascii_stays_as_it_is",
+   "source": "**œuvre straße**",
+   "expected": "œuvre straße",
    "length": 12,
    "lines": [
     [
-     "Étude 2026 !",
+     "œuvre straße",
      12,
      [
       [
        "text",
-       "Étude 2026 !",
+       "œuvre straße",
        12
       ]
      ]
@@ -3421,6 +3661,57 @@
    "unrendered_headings": false,
    "styles": [
     "bold"
+   ]
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_a_struck_accented_letter_keeps_its_accent_before_the_stroke",
+   "source": "~~**été**~~",
+   "unicode_styling": true,
+   "expected": "𝗲̶́𝘁̶𝗲̶́",
+   "length": 11,
+   "lines": [
+    [
+     "𝗲̶́𝘁̶𝗲̶́",
+     11,
+     [
+      [
+       "text",
+       "𝗲̶́𝘁̶𝗲̶́",
+       11
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": false,
+   "unrendered_headings": false,
+   "styles": [
+    "bold",
+    "strikethrough"
+   ]
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_inline.py::test_a_struck_accented_letter_keeps_its_accent_before_the_stroke",
+   "source": "~~**été**~~",
+   "expected": "été",
+   "length": 3,
+   "lines": [
+    [
+     "été",
+     3,
+     [
+      [
+       "text",
+       "été",
+       3
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": true,
+   "unrendered_headings": false,
+   "styles": [
+    "bold",
+    "strikethrough"
    ]
   },
   {
@@ -4696,6 +4987,55 @@
    "unrendered_formatting": false,
    "unrendered_headings": false,
    "styles": []
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_length.py::test_a_styled_accent_costs_its_letter_and_its_accent",
+   "source": "**é**",
+   "unicode_styling": true,
+   "expected": "𝗲́",
+   "length": 3,
+   "lines": [
+    [
+     "𝗲́",
+     3,
+     [
+      [
+       "text",
+       "𝗲́",
+       3
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": false,
+   "unrendered_headings": false,
+   "styles": [
+    "bold"
+   ]
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_length.py::test_a_styled_accent_costs_its_letter_and_its_accent",
+   "source": "**é**",
+   "expected": "é",
+   "length": 1,
+   "lines": [
+    [
+     "é",
+     1,
+     [
+      [
+       "text",
+       "é",
+       1
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": true,
+   "unrendered_headings": false,
+   "styles": [
+    "bold"
+   ]
   },
   {
    "name": "tests/md_to_linkedin/test_md_to_linkedin_length.py::test_a_decomposed_accent_is_composed_and_costs_one",
@@ -8552,6 +8892,55 @@
    ]
   },
   {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_the_stroke_goes_after_a_letter_and_its_accent",
+   "source": "~~q̃~~",
+   "unicode_styling": true,
+   "expected": "q̶̃",
+   "length": 3,
+   "lines": [
+    [
+     "q̶̃",
+     3,
+     [
+      [
+       "text",
+       "q̶̃",
+       3
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": false,
+   "unrendered_headings": false,
+   "styles": [
+    "strikethrough"
+   ]
+  },
+  {
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_the_stroke_goes_after_a_letter_and_its_accent",
+   "source": "~~q̃~~",
+   "expected": "q̃",
+   "length": 2,
+   "lines": [
+    [
+     "q̃",
+     2,
+     [
+      [
+       "text",
+       "q̃",
+       2
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": true,
+   "unrendered_headings": false,
+   "styles": [
+    "strikethrough"
+   ]
+  },
+  {
    "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_uppercase_has_its_look_alikes_too",
    "source": "***ABC xyz***",
    "unicode_styling": true,
@@ -8804,17 +9193,17 @@
    "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_a_look_alike_costs_what_the_platform_counts[**\\xc9tude",
    "source": "**Étude 2026**",
    "unicode_styling": true,
-   "expected": "É𝘁𝘂𝗱𝗲 2026",
-   "length": 14,
+   "expected": "É𝘁𝘂𝗱𝗲 𝟮𝟬𝟮𝟲",
+   "length": 18,
    "lines": [
     [
-     "É𝘁𝘂𝗱𝗲 2026",
-     14,
+     "É𝘁𝘂𝗱𝗲 𝟮𝟬𝟮𝟲",
+     18,
      [
       [
        "text",
-       "É𝘁𝘂𝗱𝗲 2026",
-       14
+       "É𝘁𝘂𝗱𝗲 𝟮𝟬𝟮𝟲",
+       18
       ]
      ]
     ]
@@ -8853,12 +9242,12 @@
    "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_the_count_is_the_length_of_what_goes_out",
    "source": "**un *mot* ~~barré~~** et ***tout***",
    "unicode_styling": true,
-   "expected": "𝘂𝗻 𝙢𝙤𝙩 𝗯̶𝗮̶𝗿̶𝗿̶é̶ et 𝙩𝙤𝙪𝙩",
-   "length": 38,
+   "expected": "𝘂𝗻 𝙢𝙤𝙩 𝗯̶𝗮̶𝗿̶𝗿̶𝗲̶́ et 𝙩𝙤𝙪𝙩",
+   "length": 40,
    "lines": [
     [
-     "𝘂𝗻 𝙢𝙤𝙩 𝗯̶𝗮̶𝗿̶𝗿̶é̶ et 𝙩𝙤𝙪𝙩",
-     38,
+     "𝘂𝗻 𝙢𝙤𝙩 𝗯̶𝗮̶𝗿̶𝗿̶𝗲̶́ et 𝙩𝙤𝙪𝙩",
+     40,
      [
       [
        "text",
@@ -8877,8 +9266,8 @@
       ],
       [
        "text",
-       "𝗯̶𝗮̶𝗿̶𝗿̶é̶",
-       14
+       "𝗯̶𝗮̶𝗿̶𝗿̶𝗲̶́",
+       16
       ],
       [
        "text",
@@ -9281,12 +9670,12 @@
    "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_the_count_and_the_text_agree_on_every_new_behaviour",
    "source": "**Parlons #marketing B2B**",
    "unicode_styling": true,
-   "expected": "𝗣𝗮𝗿𝗹𝗼𝗻𝘀 #marketing 𝗕2𝗕",
-   "length": 31,
+   "expected": "𝗣𝗮𝗿𝗹𝗼𝗻𝘀 #marketing 𝗕𝟮𝗕",
+   "length": 32,
    "lines": [
     [
-     "𝗣𝗮𝗿𝗹𝗼𝗻𝘀 #marketing 𝗕2𝗕",
-     31,
+     "𝗣𝗮𝗿𝗹𝗼𝗻𝘀 #marketing 𝗕𝟮𝗕",
+     32,
      [
       [
        "text",
@@ -9300,8 +9689,8 @@
       ],
       [
        "text",
-       " 𝗕2𝗕",
-       6
+       " 𝗕𝟮𝗕",
+       7
       ]
      ]
     ]
@@ -9576,20 +9965,20 @@
    "styles": []
   },
   {
-   "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_accents_and_digits_stay_as_they_are",
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_an_accent_follows_its_letter_and_digits_are_bold",
    "source": "***Réglé 2026***",
    "unicode_styling": true,
-   "expected": "𝙍é𝙜𝙡é 2026",
-   "length": 13,
+   "expected": "𝙍𝙚́𝙜𝙡𝙚́ 𝟮𝟬𝟮𝟲",
+   "length": 21,
    "lines": [
     [
-     "𝙍é𝙜𝙡é 2026",
-     13,
+     "𝙍𝙚́𝙜𝙡𝙚́ 𝟮𝟬𝟮𝟲",
+     21,
      [
       [
        "text",
-       "𝙍é𝙜𝙡é 2026",
-       13
+       "𝙍𝙚́𝙜𝙡𝙚́ 𝟮𝟬𝟮𝟲",
+       21
       ]
      ]
     ]
@@ -9602,7 +9991,7 @@
    ]
   },
   {
-   "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_accents_and_digits_stay_as_they_are",
+   "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_an_accent_follows_its_letter_and_digits_are_bold",
    "source": "***Réglé 2026***",
    "expected": "Réglé 2026",
    "length": 10,
@@ -20085,12 +20474,12 @@
    "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_styles_combine_in_a_list",
    "source": "- un **point *clé***\n- deux",
    "unicode_styling": true,
-   "expected": "• un 𝗽𝗼𝗶𝗻𝘁 𝙘𝙡é\n• deux",
-   "length": 28,
+   "expected": "• un 𝗽𝗼𝗶𝗻𝘁 𝙘𝙡𝙚́\n• deux",
+   "length": 30,
    "lines": [
     [
-     "• un 𝗽𝗼𝗶𝗻𝘁 𝙘𝙡é",
-     21,
+     "• un 𝗽𝗼𝗶𝗻𝘁 𝙘𝙡𝙚́",
+     23,
      [
       [
        "text",
@@ -20109,8 +20498,8 @@
       ],
       [
        "text",
-       "𝙘𝙡é",
-       5
+       "𝙘𝙡𝙚́",
+       7
       ]
      ]
     ],
@@ -20198,12 +20587,12 @@
    "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_styles_combine_in_a_quote",
    "source": "> ***cité***",
    "unicode_styling": true,
-   "expected": "> 𝙘𝙞𝙩é",
-   "length": 9,
+   "expected": "> 𝙘𝙞𝙩𝙚́",
+   "length": 11,
    "lines": [
     [
-     "> 𝙘𝙞𝙩é",
-     9,
+     "> 𝙘𝙞𝙩𝙚́",
+     11,
      [
       [
        "text",
@@ -20212,8 +20601,8 @@
       ],
       [
        "text",
-       "𝙘𝙞𝙩é",
-       7
+       "𝙘𝙞𝙩𝙚́",
+       9
       ]
      ]
     ]
@@ -20328,12 +20717,12 @@
    "name": "tests/md_to_linkedin/test_md_to_linkedin_styles.py::test_a_bold_link_among_words_is_emphasis_and_takes_the_look_alikes",
    "source": "Lisez **[notre étude](https://exemple.fr/etude)** ici",
    "unicode_styling": true,
-   "expected": "Lisez 𝗻𝗼𝘁𝗿𝗲 é𝘁𝘂𝗱𝗲 : https://exemple.fr/etude ici",
-   "length": 57,
+   "expected": "Lisez 𝗻𝗼𝘁𝗿𝗲 𝗲́𝘁𝘂𝗱𝗲 : https://exemple.fr/etude ici",
+   "length": 59,
    "lines": [
     [
-     "Lisez 𝗻𝗼𝘁𝗿𝗲 é𝘁𝘂𝗱𝗲 : https://exemple.fr/etude ici",
-     57,
+     "Lisez 𝗻𝗼𝘁𝗿𝗲 𝗲́𝘁𝘂𝗱𝗲 : https://exemple.fr/etude ici",
+     59,
      [
       [
        "text",
@@ -20342,8 +20731,8 @@
       ],
       [
        "text",
-       "𝗻𝗼𝘁𝗿𝗲 é𝘁𝘂𝗱𝗲",
-       20
+       "𝗻𝗼𝘁𝗿𝗲 𝗲́𝘁𝘂𝗱𝗲",
+       22
       ],
       [
        "text",
@@ -22098,6 +22487,31 @@
    "unrendered_formatting": false,
    "unrendered_headings": false,
    "styles": []
+  },
+  {
+   "name": "unicode only touches letters",
+   "source": "**Étude 2026 !**",
+   "unicode_styling": true,
+   "expected": "É𝘁𝘂𝗱𝗲 𝟮𝟬𝟮𝟲 !",
+   "length": 20,
+   "lines": [
+    [
+     "É𝘁𝘂𝗱𝗲 𝟮𝟬𝟮𝟲 !",
+     20,
+     [
+      [
+       "text",
+       "É𝘁𝘂𝗱𝗲 𝟮𝟬𝟮𝟲 !",
+       20
+      ]
+     ]
+    ]
+   ],
+   "unrendered_formatting": false,
+   "unrendered_headings": false,
+   "styles": [
+    "bold"
+   ]
   },
   {
    "name": "unicode nested styles",
@@ -24105,12 +24519,12 @@
    "name": "unicode strike inside bold",
    "source": "**un ~~barré~~ dedans**",
    "unicode_styling": true,
-   "expected": "𝘂𝗻 𝗯̶𝗮̶𝗿̶𝗿̶é̶ 𝗱𝗲𝗱𝗮𝗻𝘀",
-   "length": 32,
+   "expected": "𝘂𝗻 𝗯̶𝗮̶𝗿̶𝗿̶𝗲̶́ 𝗱𝗲𝗱𝗮𝗻𝘀",
+   "length": 34,
    "lines": [
     [
-     "𝘂𝗻 𝗯̶𝗮̶𝗿̶𝗿̶é̶ 𝗱𝗲𝗱𝗮𝗻𝘀",
-     32,
+     "𝘂𝗻 𝗯̶𝗮̶𝗿̶𝗿̶𝗲̶́ 𝗱𝗲𝗱𝗮𝗻𝘀",
+     34,
      [
       [
        "text",
@@ -24119,8 +24533,8 @@
       ],
       [
        "text",
-       "𝗯̶𝗮̶𝗿̶𝗿̶é̶",
-       14
+       "𝗯̶𝗮̶𝗿̶𝗿̶𝗲̶́",
+       16
       ],
       [
        "text",
@@ -28068,12 +28482,12 @@
    "name": "stress: emoji, composed accents and Arabic in a bold item (styled)",
    "source": "1. **é🥰 مرحبا é**",
    "unicode_styling": true,
-   "expected": "1. é🥰 مرحبا é",
-   "length": 14,
+   "expected": "1. 𝗲́🥰 مرحبا 𝗲́",
+   "length": 18,
    "lines": [
     [
-     "1. é🥰 مرحبا é",
-     14,
+     "1. 𝗲́🥰 مرحبا 𝗲́",
+     18,
      [
       [
        "text",
@@ -28082,8 +28496,8 @@
       ],
       [
        "text",
-       "é🥰 مرحبا é",
-       11
+       "𝗲́🥰 مرحبا 𝗲́",
+       15
       ]
      ]
     ]
@@ -28902,12 +29316,12 @@
    "name": "stress: bold across items, each its own (styled)",
    "source": "1. la pre**mière**\n2. **la deu**xième\n3. la troisième",
    "unicode_styling": true,
-   "expected": "1. la pre𝗺𝗶è𝗿𝗲\n2. 𝗹𝗮 𝗱𝗲𝘂xième\n3. la troisième",
-   "length": 54,
+   "expected": "1. la pre𝗺𝗶𝗲̀𝗿𝗲\n2. 𝗹𝗮 𝗱𝗲𝘂xième\n3. la troisième",
+   "length": 56,
    "lines": [
     [
-     "1. la pre𝗺𝗶è𝗿𝗲",
-     18,
+     "1. la pre𝗺𝗶𝗲̀𝗿𝗲",
+     20,
      [
       [
        "text",
@@ -28921,8 +29335,8 @@
       ],
       [
        "text",
-       "𝗺𝗶è𝗿𝗲",
-       9
+       "𝗺𝗶𝗲̀𝗿𝗲",
+       11
       ]
      ]
     ],
@@ -41377,7 +41791,7 @@
    "name": "refused: an attribute the theme decides",
    "source": "![a](i.png){color=red}",
    "error": "MarkupError",
-   "message": "unknown image attribute 'color'; the theme decides how images look. Attributes carry facts about the asset: width, height, align."
+   "message": "unknown image attribute 'color'; the theme decides how images look. Attributes carry facts about the asset: width, height, align, size."
   },
   {
    "name": "refused: a width set twice",

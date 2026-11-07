@@ -21,11 +21,17 @@ from inkletter.exceptions import MarkupError
 #: The only keys. Unlike Pandoc, an unknown one raises instead of
 #: becoming a data-* attribute: a typo in an email cannot be taken back
 #: once it is sent.
-KEYS = ("width", "height", "align")
+KEYS = ("width", "height", "align", "size")
 
 #: mj-image knows these three. Pandoc also accepts
 #: top/middle/bottom, which are vertical-align and have no equivalent.
 ALIGNMENTS = ("left", "center", "right")
+
+#: How a picture is laid: inside the text column (`small`), or across
+#: the page (`full`, the default). The fragment writes it as `data-size`;
+#: an email draws a small one at its theme's `small_width`, unless a
+#: `width` of its own says otherwise.
+SIZES = ("small", "full")
 
 #: px only. Pandoc also takes cm/mm/in — physical units mean nothing on
 #: a screen — and em/rem/vw/vh are unreliable in Outlook. A
@@ -78,6 +84,15 @@ def check_align(value):
     return value
 
 
+def check_size(value):
+    if value not in SIZES:
+        raise MarkupError(f"'size={value}' is not a size; use {', '.join(SIZES)}")
+    return value
+
+
+CHECKS = {"align": check_align, "size": check_size}
+
+
 def build(pairs):
     """The validated attributes of a block. Raises on anything else."""
     attributes = {}
@@ -90,7 +105,7 @@ def build(pairs):
             )
         if key in attributes:
             raise MarkupError(f"'{key}' is set twice")
-        attributes[key] = check_align(value) if key == "align" else check_dimension(key, value)
+        attributes[key] = CHECKS[key](value) if key in CHECKS else check_dimension(key, value)
     return attributes
 
 

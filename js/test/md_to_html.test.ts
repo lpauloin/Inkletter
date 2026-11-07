@@ -44,3 +44,9 @@ test('the language is escaped as any attribute', () => {
 test('a document wrapped around raw content takes its language too', () => {
   expect(wrapMjmlDocument('<mj-section></mj-section>', null, 'de')).toMatch(/^<mjml lang="de">/);
 });
+
+test.each([-1, 0, 2])('the title is the first # written, whatever an offset of %i', (offset) => {
+  expect(parseMarkdownToMjml('## Section\n\n# The title', { headingOffset: offset })).toContain(
+    '<mj-title>The title</mj-title>',
+  );
+});

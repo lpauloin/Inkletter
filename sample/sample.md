@@ -27,6 +27,10 @@ Et parfois, comme un navigateur perdu, je me **raccroche à des images** :
 je garde chacun de tes mots sous un globe de verre,
 à l'abri du vent et des moutons.
 
+![Le désert au matin](https://picsum.photos/id/1016/1200/600 "Le désert, au matin de notre rencontre")
+
+![Le puits](https://picsum.photos/id/1039/800/600 "Le puits que nous avons cherché toute la nuit"){size=small}
+
 ---
 
 ## Quand je pense à nous

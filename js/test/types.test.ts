@@ -9,6 +9,7 @@ import {
   type Line,
   type Segment,
   LengthError,
+  type LinkedinOptions,
   type LinkedinRender,
   MAX_LENGTH,
   type MjmlOptions,
@@ -44,6 +45,13 @@ test('a theme is built from the mapping of a theme file', () => {
   expectTypeOf(Theme.fromDict).parameter(0).toEqualTypeOf<ThemeMapping>();
   expectTypeOf(Theme.named).returns.toEqualTypeOf<Theme>();
   expectTypeOf<MjmlOptions['theme']>().toEqualTypeOf<Theme | null | undefined>();
+});
+
+test('a mention function may return attributes, null or undefined; a post takes no heading offset', () => {
+  expectTypeOf<HtmlFragmentOptions['mentions']>().toEqualTypeOf<
+    ((urn: string) => Record<string, string> | null | undefined) | null | undefined
+  >();
+  expectTypeOf<LinkedinOptions>().not.toHaveProperty('headingOffset');
 });
 
 test('a factory says the width of its links and rewrites them', () => {

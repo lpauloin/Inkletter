@@ -7,6 +7,7 @@ export { type AstOptions, createMarkdown, parseMarkdownToAst, readMarkdown } fro
 export { runsSomething } from './ast.js';
 export { parseMarkdownToHtml, parseMjmlToHtml } from './md_to_html.js';
 export { type HtmlFragmentOptions, parseMarkdownToHtmlFragment } from './md_to_html_fragment.js';
+export type { MentionAttributes } from './visitors/htmlgen.js';
 export { type LinkedinOptions, parseMarkdownToLinkedin, renderLinkedin } from './md_to_linkedin.js';
 export { LinkedinRender } from './visitors/linkedingen.js';
 export type { Line, Segment, SegmentKind } from './codeblock.js';

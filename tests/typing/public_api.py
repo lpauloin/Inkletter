@@ -20,6 +20,7 @@ from inkletter import (
     render_linkedin,
     runs_something,
 )
+from inkletter.lookalikes import strike, substitute
 
 
 class Tagging(URLFactory):
@@ -44,6 +45,28 @@ def every_output(markdown: str) -> list[str]:
         Theme.from_dict({"links": {"color": "#0a66c2"}}).to_css(),
         BitlyShortener("token").rewrite_image("https://exemple.fr/a.png"),
         __version__,
+    ]
+
+
+def entity_of(urn: str) -> dict[str, str] | None:
+    return {"data-entity-urn": urn} if urn.startswith("urn:li:organization:") else None
+
+
+def what_an_editor_reads(markdown: str) -> list[str]:
+    return [
+        parse_markdown_to_html_fragment(
+            markdown,
+            images=True,
+            mentions=entity_of,
+            unicode_strike=True,
+            task_paragraphs=True,
+            heading_offset=-1,
+        ),
+        parse_markdown_to_mjml(markdown, heading_offset=1),
+        parse_markdown_to_html(markdown, heading_offset=1),
+        parse_markdown_to_text(markdown, heading_offset=1),
+        strike("mot", before="un ", after=" ici"),
+        substitute("mot", {"bold", "strikethrough"}),
     ]
 
 

@@ -155,7 +155,10 @@ def test_entities_are_decoded_in_alt_and_title():
     actual = parse_markdown_to_mjml('![AT&amp;T](https://x.com/i.png "Tom &amp; Jerry")')
     print(actual)
     expected = wrap_mjml_body(
-        '<mj-image src="https://x.com/i.png" alt="AT&amp;T" title="Tom &amp; Jerry"/>'
+        '<mj-image src="https://x.com/i.png" alt="AT&amp;T" title="Tom &amp; Jerry"/>\n'
+        '<mj-text align="center" font-size="12px" color="#6b7280" padding="0px 25px 10px">\n'
+        "  Tom &amp; Jerry\n"
+        "</mj-text>"
     )
     assert actual == expected
 

@@ -1,6 +1,20 @@
 {
- "inkletter": "4.3.0",
+ "inkletter": "4.4.0",
  "cases": [
+  {
+   "name": "tests/md_to_ast/test_md_to_ast_heading_offset.py::test_the_fragment_refuses_it_as_the_tree_does[1.5]",
+   "source": "## A",
+   "heading_offset": 1.5,
+   "error": "TypeError",
+   "message": "heading_offset must be an integer"
+  },
+  {
+   "name": "tests/md_to_ast/test_md_to_ast_heading_offset.py::test_the_fragment_refuses_it_as_the_tree_does[True]",
+   "source": "## A",
+   "heading_offset": true,
+   "error": "TypeError",
+   "message": "heading_offset must be an integer"
+  },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_all.py::test_full_document_covers_every_markdown_element",
    "source": "# The Inkletter Times\n\nA paragraph with *emphasis*, **strong**, ~~strikethrough~~, `code span`,\na soft break and a hard break\\\nright here.\n\nSpecial: an entity AT&amp;T, a copyright &copy;, an escaped \\*star\\*,\nan <span>inline html tag</span> and an autolink <https://example.com>.\n\nSetext heading\n--------------\n\nVisit [our site](https://example.com), a titled [guide](https://example.com/guide \"The guide\"),\nor the bare link [https://example.com](https://example.com).\n\n### Level three\n\n#### Level four\n\n##### Level five\n\n###### Level six\n\n---\n\n> A quote on two\n> lines.\n>\n> > A nested quote.\n>\n> - a list in a quote\n> - with two items\n\n```python\ndef hello(name):\n    print(\"hi\", name)\n\nhello(\"world\")\n```\n\n    an indented code block\n\n1. first ordered item\n2. second one,\n   soft-wrapped\n7. renumbered anyway\n\n- unordered item\n  - nested item\n- [x] a done task\n- [ ] a pending task\n- a **[bold link in a list](https://example.com/list)** stays a link\n\n| Left | Center | Right |\n|:-----|:------:|------:|\n| ab | cd | ef |\n| a **bold** cell | x | 12345 |\n\n![First view](https://x.com/a.png) ![Second view](https://x.com/b.png) [![Logo](https://x.com/l.png)](https://example.com)\n\n![Portrait](https://x.com/team.png) Jane joined the team this week.\nShe will own the rendering platform.\n\n![](https://x.com/decorative.png)\n\n<div>a raw html block</div>\n\n**[Read the full story](https://example.com/story)**\n",
@@ -182,9 +196,27 @@
    "expected": "<p>a�b\u0007c</p>"
   },
   {
-   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_block.py::test_rtl_and_combining_text_is_untouched",
-   "source": "مرحبا — été — 👩‍👩‍👧",
-   "expected": "<p>مرحبا — été — 👩‍👩‍👧</p>"
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_block.py::test_rtl_text_is_untouched_and_accents_composed",
+   "source": "مرحبا — été — 👩‍👩‍👧",
+   "expected": "<p>مرحبا — été — 👩‍👩‍👧</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_block.py::test_headings_move_by_the_offset_asked",
+   "source": "## Section\n\n### Part",
+   "heading_offset": -1,
+   "expected": "<h1>Section</h1><h2>Part</h2>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_block.py::test_a_moved_heading_stays_between_one_and_six",
+   "source": "# Top\n\n###### Deep",
+   "heading_offset": -1,
+   "expected": "<h1>Top</h1><h5>Deep</h5>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_block.py::test_a_moved_heading_stays_between_one_and_six",
+   "source": "###### Deep",
+   "heading_offset": 2,
+   "expected": "<h6>Deep</h6>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_image_renders_its_alt",
@@ -215,6 +247,104 @@
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_an_image_never_fetches_whatever_its_address",
    "source": "![x](https://evil.test/track.png) ![y](javascript:alert(1)) <img src=\"x\" onerror=\"alert(1)\">",
    "expected": "<p>x</p><p>y </p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_an_image_alone_is_a_figure_its_title_the_caption",
+   "source": "![The stand](https://x.com/s.jpg \"Thursday morning\")",
+   "images": true,
+   "expected": "<figure><img src=\"https://x.com/s.jpg\" alt=\"The stand\"><figcaption>Thursday morning</figcaption></figure>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_an_image_without_title_has_no_caption",
+   "source": "![The stand](https://x.com/s.jpg)",
+   "images": true,
+   "expected": "<figure><img src=\"https://x.com/s.jpg\" alt=\"The stand\"></figure>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_an_image_within_a_line_stays_in_it",
+   "source": "Before ![a](https://x.com/a.png) after",
+   "images": true,
+   "expected": "<p>Before <img src=\"https://x.com/a.png\" alt=\"a\"> after</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_images_side_by_side_share_a_paragraph",
+   "source": "![A](https://x.com/a.png) ![B](https://x.com/b.png)",
+   "images": true,
+   "expected": "<p><img src=\"https://x.com/a.png\" alt=\"A\"> <img src=\"https://x.com/b.png\" alt=\"B\"></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_an_image_that_is_no_web_address_stays_its_text",
+   "source": "![Secret](file:///etc/passwd)",
+   "images": true,
+   "expected": "<p>Secret</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_a_picture_carried_inside_the_page_is_drawn",
+   "source": "![Plan](vis_1 \"Lundi\")",
+   "images": true,
+   "factory": "marking",
+   "expected": "<p>Plan</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_a_data_address_that_is_no_picture_stays_its_text",
+   "source": "![Page](data:text/html;base64,PHA+)",
+   "images": true,
+   "expected": "<p>Page</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_an_image_escapes_its_address_and_its_text",
+   "source": "![a \"b\" & c](https://x.com/i.png?a=1&b=2)",
+   "images": true,
+   "expected": "<figure><img src=\"https://x.com/i.png?a=1&amp;b=2\" alt=\"a &quot;b&quot; &amp; c\"></figure>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_a_row_mixing_a_linked_image_draws_both",
+   "source": "![A](https://x.com/a.png) [![B](https://x.com/b.png)](https://example.com)",
+   "images": true,
+   "expected": "<p><img src=\"https://x.com/a.png\" alt=\"A\"> <a href=\"https://example.com\"><img src=\"https://x.com/b.png\" alt=\"B\"></a></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_a_row_mixing_drawn_and_undrawn_images_keeps_them_apart",
+   "source": "![A](https://x.com/a.png) ![Plan](plan.png) ![](other.png) ![C](https://x.com/c.png)",
+   "images": true,
+   "expected": "<p><img src=\"https://x.com/a.png\" alt=\"A\"> Plan <img src=\"https://x.com/c.png\" alt=\"C\"></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_a_title_of_spaces_alone_writes_no_caption",
+   "source": "![Plan](https://x.com/p.png \"   \")",
+   "images": true,
+   "expected": "<figure><img src=\"https://x.com/p.png\" alt=\"Plan\"></figure>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_a_linked_image_beside_its_text_keeps_its_figure",
+   "source": "[![Plan](https://x.com/p.png \"Lundi\"){size=small}](https://example.com) The plan.",
+   "images": true,
+   "expected": "<figure data-size=\"small\"><a href=\"https://example.com\"><img src=\"https://x.com/p.png\" alt=\"Plan\"></a><figcaption>Lundi</figcaption></figure><p>The plan.</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_a_picture_inside_the_page_is_drawn_only_in_a_format_the_tree_accepts",
+   "source": "![Plan](data:image/svg+xml;base64,PHN2Zz4=)",
+   "images": true,
+   "expected": "<p>Plan</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_asked_for_an_image_laid_small_says_so_on_its_figure",
+   "source": "![The stand](https://x.com/s.jpg \"Thursday\"){size=small}",
+   "images": true,
+   "expected": "<figure data-size=\"small\"><img src=\"https://x.com/s.jpg\" alt=\"The stand\"><figcaption>Thursday</figcaption></figure>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_an_image_laid_full_is_the_plain_figure",
+   "source": "![The stand](https://x.com/s.jpg){size=full}",
+   "images": true,
+   "expected": "<figure><img src=\"https://x.com/s.jpg\" alt=\"The stand\"></figure>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_image.py::test_a_size_that_is_no_size_is_refused",
+   "source": "![a](https://x.com/s.jpg){size=huge}",
+   "images": true,
+   "error": "MarkupError",
+   "message": "'size=huge' is not a size; use small, full"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_inline.py::test_emphasis_strong_and_strikethrough",
@@ -592,6 +722,172 @@
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_list.py::test_a_box_in_a_numbered_list_stands_for_its_number",
    "source": "3. [ ] a\n4. b",
    "expected": "<ol start=\"3\"><li style=\"list-style-type: none\">☐ a</li><li>b</li></ol>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_without_the_option_a_mention_is_its_name",
+   "source": "Bravo [Acme](urn:li:organization:42) !",
+   "expected": "<p>Bravo Acme !</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_a_mention_is_the_entity_the_caller_gives_for_its_urn",
+   "source": "Bravo [Acme](urn:li:organization:42) !",
+   "mentions": "tagging",
+   "expected": "<p>Bravo <a data-entity=\"tag:urn:li:organization:42\">Acme</a> !</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_a_mention_whose_entity_is_not_given_goes_out_as_plain_text",
+   "source": "Merci [Claire](urn:li:person:kJCX3cn5)",
+   "mentions": "tagging",
+   "expected": "<p>Merci <a data-entity=\"tag:urn:li:person:kJCX3cn5\">Claire</a></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_the_name_keeps_its_letters_and_case",
+   "source": "[ACME France](urn:li:organization:42)",
+   "mentions": "tagging",
+   "expected": "<p><a data-entity=\"tag:urn:li:organization:42\">ACME France</a></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_a_mention_naming_nobody_writes_nothing",
+   "source": "Bravo [](urn:li:organization:42) !",
+   "mentions": "tagging",
+   "expected": "<p>Bravo  !</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_the_name_and_the_entity_are_escaped",
+   "source": "[A&B](urn:li:organization:7)",
+   "mentions": "tagging",
+   "expected": "<p><a data-entity=\"tag:urn:li:organization:7\">A&amp;B</a></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_strikethrough_as_its_look_alike_when_asked",
+   "source": "Un ~~mot~~ ici.",
+   "unicode_strike": true,
+   "expected": "<p>Un m̶o̶t̶ ici.</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_otherwise_strikethrough_stays_a_tag",
+   "source": "Un ~~mot~~ ici.",
+   "expected": "<p>Un <s>mot</s> ici.</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_a_list_of_tasks_as_a_paragraph_per_item_when_asked",
+   "source": "- [ ] à faire\n- [x] fait",
+   "task_paragraphs": true,
+   "expected": "<p>☐ à faire</p><p>☑ fait</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_a_plain_item_among_tasks_keeps_its_marker_in_its_text",
+   "source": "1. [ ] à faire\n2. ensuite",
+   "task_paragraphs": true,
+   "expected": "<p>☐ à faire</p><p>2. ensuite</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_a_list_without_tasks_stays_a_list",
+   "source": "- un\n- deux",
+   "task_paragraphs": true,
+   "expected": "<ul><li>un</li><li>deux</li></ul>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_attributes_breaking_a_rule_leave_the_name_as_plain_text[empty]",
+   "source": "Bravo [Acme](urn:li:organization:empty) !",
+   "mentions": "tagging",
+   "expected": "<p>Bravo @Acme !</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_attributes_breaking_a_rule_leave_the_name_as_plain_text[script]",
+   "source": "Bravo [Acme](urn:li:organization:script) !",
+   "mentions": "tagging",
+   "expected": "<p>Bravo @Acme !</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_attributes_breaking_a_rule_leave_the_name_as_plain_text[upper]",
+   "source": "Bravo [Acme](urn:li:organization:upper) !",
+   "mentions": "tagging",
+   "expected": "<p>Bravo @Acme !</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_attributes_breaking_a_rule_leave_the_name_as_plain_text[handler]",
+   "source": "Bravo [Acme](urn:li:organization:handler) !",
+   "mentions": "tagging",
+   "expected": "<p>Bravo @Acme !</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_attributes_breaking_a_rule_leave_the_name_as_plain_text[name]",
+   "source": "Bravo [Acme](urn:li:organization:name) !",
+   "mentions": "tagging",
+   "expected": "<p>Bravo @Acme !</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_attributes_breaking_a_rule_leave_the_name_as_plain_text[colon]",
+   "source": "Bravo [Acme](urn:li:organization:colon) !",
+   "mentions": "tagging",
+   "expected": "<p>Bravo @Acme !</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_attributes_breaking_a_rule_leave_the_name_as_plain_text[source]",
+   "source": "Bravo [Acme](urn:li:organization:source) !",
+   "mentions": "tagging",
+   "expected": "<p>Bravo @Acme !</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_attributes_breaking_a_rule_leave_the_name_as_plain_text[twice]",
+   "source": "Bravo [Acme](urn:li:organization:twice) !",
+   "mentions": "tagging",
+   "expected": "<p>Bravo @Acme !</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_attributes_breaking_a_rule_leave_the_name_as_plain_text[number]",
+   "source": "Bravo [Acme](urn:li:organization:number) !",
+   "mentions": "tagging",
+   "expected": "<p>Bravo @Acme !</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_a_name_is_read_case_insensitively_and_written_lower_cased",
+   "source": "[Acme](urn:li:organization:cased)",
+   "mentions": "tagging",
+   "expected": "<p><a data-entity=\"a&quot;b&lt;c&gt;\">Acme</a></p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_no_attributes_at_all_is_plain_text_too",
+   "source": "[Acme](urn:li:organization:empty)",
+   "mentions": "tagging",
+   "expected": "<p>@Acme</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_the_space_beside_an_emoji_in_another_style_stays_unstruck",
+   "source": "~~salut **👋** toi~~",
+   "unicode_strike": true,
+   "expected": "<p>s̶a̶l̶u̶t̶ <strong>👋</strong> t̶o̶i̶</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_code_inside_a_strikethrough_stays_as_written",
+   "source": "~~un `code` ici~~",
+   "unicode_strike": true,
+   "expected": "<p>u̶n̶ ̶<code>code</code> ̶i̶c̶i̶</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_accents_are_composed_before_they_are_struck",
+   "source": "~~été~~",
+   "unicode_strike": true,
+   "expected": "<p>é̶t̶é̶</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_the_stroke_goes_after_a_letter_and_its_accent",
+   "source": "~~q̃~~",
+   "unicode_strike": true,
+   "expected": "<p>q̶̃</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_a_plain_item_of_a_loose_list_keeps_its_marker",
+   "source": "- [ ] a\n\n- b\n\n- [x] c",
+   "task_paragraphs": true,
+   "expected": "<p>☐ a</p><p>• b</p><p>☑ c</p>"
+  },
+  {
+   "name": "tests/md_to_html_fragment/test_md_to_html_fragment_mention.py::test_a_numbered_list_counts_from_zero_when_it_starts_there",
+   "source": "0. [ ] a\n1. b",
+   "task_paragraphs": true,
+   "expected": "<p>☐ a</p><p>1. b</p>"
   },
   {
    "name": "tests/md_to_html_fragment/test_md_to_html_fragment_styles.py::test_styles_combine_whatever_is_outside[order0-*]",
@@ -2028,13 +2324,13 @@
   {
    "name": "decomposed accent",
    "source": "étude",
-   "expected": "<p>étude</p>"
+   "expected": "<p>étude</p>"
   },
   {
    "name": "decomposed accent (marking)",
    "source": "étude",
    "factory": "marking",
-   "expected": "<p>étude</p>"
+   "expected": "<p>étude</p>"
   },
   {
    "name": "basic plane emoji",
@@ -5747,14 +6043,14 @@
    "name": "refused: an attribute the theme decides",
    "source": "![a](i.png){color=red}",
    "error": "MarkupError",
-   "message": "unknown image attribute 'color'; the theme decides how images look. Attributes carry facts about the asset: width, height, align."
+   "message": "unknown image attribute 'color'; the theme decides how images look. Attributes carry facts about the asset: width, height, align, size."
   },
   {
    "name": "refused: an attribute the theme decides (marking)",
    "source": "![a](i.png){color=red}",
    "factory": "marking",
    "error": "MarkupError",
-   "message": "unknown image attribute 'color'; the theme decides how images look. Attributes carry facts about the asset: width, height, align."
+   "message": "unknown image attribute 'color'; the theme decides how images look. Attributes carry facts about the asset: width, height, align, size."
   },
   {
    "name": "refused: a width set twice",

@@ -19,14 +19,13 @@ The tree arrives trimmed (`Trimmer`, a pass of `parse_markdown_to_ast`):
 whatever is laid out on one line — a label, a name, a cell — already is.
 """
 
-import unicodedata
 from dataclasses import dataclass
-from string import ascii_letters
 from urllib.parse import unquote
 
 from inkletter.ast import *
 from inkletter.codeblock import CodeBlockResolver, Line
 from inkletter.counting import cost_of_link, cost_of_mention, cost_of_text
+from inkletter.lookalikes import substitute
 from inkletter.plugins.bare_domains import is_spelled_by
 from inkletter.visitors.textgen import TextCodegen, shows_text
 
@@ -38,74 +37,6 @@ LABEL_SEPARATOR = " : "
 # escape. A display name carrying either cannot be expressed as a mention
 # at all, and goes out as plain text rather than as a marker cut in half.
 MARKER_DELIMITERS = ("|", "]")
-
-# Unicode look-alikes for the three styles the platform does not have. They
-# are text, not formatting: a screen reader spells them out letter by
-# letter and the platform's search does not match them, which is why they
-# are opt-in rather than a default.
-#
-# | Styles in force  | Letters become                           |
-# |------------------|------------------------------------------|
-# | bold             | 𝗺𝗼𝘁 sans-serif bold                       |
-# | italic           | 𝘮𝘰𝘵 sans-serif italic                     |
-# | bold and italic  | 𝙢𝙤𝙩 sans-serif bold italic — one table,   |
-# |                  | whichever is outside: a second table     |
-# |                  | would find no ASCII letter left to map   |
-# | strikethrough    | a combining stroke after each letter,    |
-# |                  | digit, sign or space — never an emoji —  |
-# |                  | on top of the letters' own look-alike    |
-#
-# Only unaccented ASCII letters have a look-alike; accents and digits stay
-# as they are.
-
-
-def lookalikes(lower, upper):
-    return str.maketrans(
-        ascii_letters, "".join(map(chr, [*range(lower, lower + 26), *range(upper, upper + 26)]))
-    )
-
-
-LETTERS = {
-    frozenset({"bold"}): lookalikes(0x1D5EE, 0x1D5D4),
-    frozenset({"italic"}): lookalikes(0x1D622, 0x1D608),
-    frozenset({"bold", "italic"}): lookalikes(0x1D656, 0x1D63C),
-}
-STRIKE = "\u0336"
-# What the stroke goes after: letters, digits, punctuation, spaces and the
-# like. Not an emoji, nor what an emoji is built of — a joiner, a variation
-# selector, a skin tone — where a stroke breaks the picture instead of
-# crossing it out.
-STRUCK_CATEGORIES = ("L", "N", "P", "Zs", "Sc", "Sm")
-
-
-def is_struck(char):
-    return unicodedata.category(char).startswith(STRUCK_CATEGORIES)
-
-
-def strike(text):
-    """A stroke after each character it goes after — and **not on a space
-    that touches something it skips**: an emoji is left whole, but a stroke
-    on the space beside it runs into the picture all the same, which is the
-    very thing skipping it avoids."""
-    chars = list(text)
-    marked = []
-    for at, char in enumerate(chars):
-        struck = is_struck(char)
-        if struck and unicodedata.category(char) == "Zs":
-            neighbours = [chars[i] for i in (at - 1, at + 1) if 0 <= i < len(chars)]
-            struck = all(map(is_struck, neighbours))
-        marked.append(char + STRIKE if struck else char)
-    return "".join(marked)
-
-
-def substitute(text, styles):
-    """`text` in the look-alikes of `styles`."""
-    letters = LETTERS.get(frozenset(styles) & {"bold", "italic"})
-    if letters:
-        text = text.translate(letters)
-    if "strikethrough" in styles:
-        text = strike(text)
-    return text
 
 
 @dataclass(frozen=True)

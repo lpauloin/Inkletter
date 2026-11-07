@@ -167,12 +167,12 @@ def test_braces_in_a_paragraph_are_left_alone(ast):
         (
             "{border-radius=4px}",
             "unknown image attribute 'border-radius'; the theme decides how images "
-            "look. Attributes carry facts about the asset: width, height, align.",
+            "look. Attributes carry facts about the asset: width, height, align, size.",
         ),
         (
             "{style=color:red}",
             "unknown image attribute 'style'; the theme decides how images "
-            "look. Attributes carry facts about the asset: width, height, align.",
+            "look. Attributes carry facts about the asset: width, height, align, size.",
         ),
         ("{width=96em}", "'width=96em' is not a length; mj-image sizes in px only"),
         ("{width=2in}", "'width=2in' is not a length; mj-image sizes in px only"),

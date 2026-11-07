@@ -30,6 +30,11 @@ def test_an_accent_costs_one(measured):
     assert measured("étude") == 5
 
 
+def test_a_styled_accent_costs_its_letter_and_its_accent(measured):
+    # the look-alike is two units, its accent one more, as the platform counts
+    assert measured("**é**", unicode_styling=True) == 3
+
+
 def test_a_decomposed_accent_is_composed_and_costs_one(measured):
     # measured: the platform counts e + combining acute as two units, and
     # shows one letter — so the letter goes out composed and costs one

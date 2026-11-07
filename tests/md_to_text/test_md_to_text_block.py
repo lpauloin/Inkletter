@@ -113,3 +113,9 @@ def test_a_list_right_under_a_quote_follows_it():
 
 def test_an_empty_quote_between_blocks_adds_no_blank_line():
     assert parse_markdown_to_text("a\n\n>\n\nb") == "a\n\nb\n"
+
+
+def test_heading_offset_moves_the_underline_with_the_level():
+    actual = parse_markdown_to_text("## Section\n\n### Part", heading_offset=-1)
+    print(actual)
+    assert actual == "Section\n=======\n\nPart\n----\n"

@@ -289,6 +289,16 @@ export class Codegen extends NodeVisitor {
   visit_Image(node: Image): void {
     const tag = node.annotations.requires_manual_image ? 'img' : 'mj-image';
     this.blockTag(tag, Codegen.imageAttrs(node, null, node.annotations.image_padding), { selfClosing: true });
+    this.caption(node);
+  }
+
+  /** The title of an image standing as a block, said under it — not in a
+   *  row, where it would break the line of pictures, nor in raw HTML, which
+   *  an mj-text cannot enter. */
+  caption(img: Image): void {
+    const attrs = img.annotations.caption_attrs as Attrs | undefined;
+    if (!attrs || img.annotations.requires_manual_image || img.annotations.image_padding) return;
+    this.blockTag('mj-text', attrs, {}, () => this.current.addText(htmlEscape(img.title ?? '', false)));
   }
 
   visit_ImageLink(node: ImageLink): void {
@@ -303,6 +313,7 @@ export class Codegen extends NodeVisitor {
     }
     const attrs = Codegen.imageAttrs(node.img, node.href, node.annotations.image_padding);
     this.blockTag('mj-image', attrs, { selfClosing: true, inline: true });
+    this.caption(node.img);
   }
 
   visit_List(node: List, scope: ScopeStack): void {

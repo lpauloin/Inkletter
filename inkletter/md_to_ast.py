@@ -316,16 +316,35 @@ def read_markdown(markdown_text, link_attributes=True):
     return ASTBuilder(line_count(markdown_text))(SyntaxTreeNode(tokens))
 
 
+HEADING_OFFSET_REFUSED = "heading_offset must be an integer"
+
+
+def shift_headings(node, offset):
+    """Every heading's level moved by `offset`, held between 1 and 6: a
+    page whose own title is the `#` moves the document's `##` to its
+    first level."""
+    if isinstance(node, Heading):
+        node.level = min(6, max(1, node.level + offset))
+    for child in node.get_children():
+        shift_headings(child, offset)
+
+
 def parse_markdown_to_ast(
     markdown_text,
     bold_link_is_button=True,
     link_attributes=True,
     theme=None,
     url_factory=None,
+    heading_offset=0,
 ):
+    if isinstance(heading_offset, bool) or not isinstance(heading_offset, int):
+        raise TypeError(HEADING_OFFSET_REFUSED)
     ast = read_markdown(markdown_text, link_attributes)
     # what is laid out on one line — a label, a name, a cell — is one
     Trimmer().visit(ast)
+    # before anything reads a level: the theme sizes the heading it became
+    if heading_offset:
+        shift_headings(ast, heading_offset)
 
     if theme is None:
         theme = DEFAULT_THEME

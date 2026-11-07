@@ -23,6 +23,8 @@ A URL factory is replayed by name, each side implementing the same two:
 | `width`   | rewrites nothing, declares its `link_length`                    |
 | `marking` | `<url>#button` / `#bold` / `#link`, an image as `img:<url>`     |
 
+A function for mentions is replayed as `tagging`, each side implementing it.
+
     uv run python scripts/parity.py          # rewrite the three files
     uv run python scripts/parity.py --check  # fail if one is out of date
 """
@@ -65,6 +67,31 @@ class Marking(URLFactory):
         return f"img:{url}"
 
 
+# The attributes a mention is given, by the last part of its URN: what the
+# fragment must refuse, on both sides alike.
+HOSTILE = {
+    "empty": {},
+    "script": {"href": "  JaVa\tScRiPt:alert(1)"},
+    "upper": {"HREF": "javascript:alert(1)"},
+    "handler": {"href": "https://exemple.fr", "onclick": "alert(1)"},
+    "name": {"x onmouseover=alert(1) y": "1"},
+    "colon": {"xlink:href": "https://exemple.fr"},
+    "source": {"src": "data:text/html,<script>alert(1)</script>"},
+    "twice": {"href": "https://exemple.fr", "HREF": "https://exemple.fr"},
+    "number": {"data-n": 3},
+    "cased": {"Data-Entity": 'a"b<c>'},
+}
+
+
+def tagging(urn):
+    """The attributes any mention of a case is written with, on both sides:
+    the URN tagged — none for one ending in `0`, written `@name`, and those
+    of `HOSTILE` for one ending in its key."""
+    if urn.endswith("0"):
+        return None
+    return HOSTILE.get(urn.rsplit(":", 1)[-1], {"data-entity": f"tag:{urn}"})
+
+
 def factory_of(case):
     if case.get("factory") == "marking":
         return Marking()
@@ -80,7 +107,7 @@ def answer(render, source, **options):
     """What a render says: its output, or the refusal it raises."""
     try:
         return {"expected": render(source, **options)}
-    except (LengthError, MarkupError, ThemeError) as refusal:
+    except (LengthError, MarkupError, ThemeError, TypeError) as refusal:
         return {"error": type(refusal).__name__, "message": str(refusal)}
 
 
@@ -114,6 +141,11 @@ def html_fragment(case):
         bold_link_is_button=case.get("bold_link_is_button", True),
         link_attributes=case.get("link_attributes", True),
         url_factory=factory_of(case),
+        images=case.get("images", False),
+        mentions=tagging if case.get("mentions") else None,
+        unicode_strike=case.get("unicode_strike", False),
+        task_paragraphs=case.get("task_paragraphs", False),
+        heading_offset=case.get("heading_offset", 0),
     )
 
 
@@ -127,6 +159,7 @@ def mjml(case):
         link_attributes=case.get("link_attributes", True),
         url_factory=factory_of(case),
         lang=case.get("lang"),
+        heading_offset=case.get("heading_offset", 0),
     )
 
 
@@ -143,8 +176,15 @@ class Recorder:
 
     OPTIONS = {
         "linkedin": ("unicode_styling",),
-        "html_fragment": ("bold_link_is_button", "link_attributes"),
-        "mjml": ("bold_link_is_button", "link_attributes", "theme", "lang"),
+        "html_fragment": (
+            "bold_link_is_button",
+            "link_attributes",
+            "images",
+            "unicode_strike",
+            "task_paragraphs",
+            "heading_offset",
+        ),
+        "mjml": ("bold_link_is_button", "link_attributes", "theme", "lang", "heading_offset"),
     }
 
     def __init__(self):
@@ -176,6 +216,9 @@ class Recorder:
                     case["theme"] = mapping_of(value)
             elif value is not None:
                 case[option] = value
+        if kwargs.get("mentions") is not None:
+            # a test's own function, replayed as `tagging`
+            case["mentions"] = "tagging"
         factory = kwargs.get("url_factory")
         if factory is not None:
             if type(factory).link_length is None and factory.link_length is None:

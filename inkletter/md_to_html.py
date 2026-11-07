@@ -16,6 +16,7 @@ def parse_markdown_to_html(
     link_attributes: bool = True,
     url_factory: URLFactory | None = None,
     lang: str | None = None,
+    heading_offset: int = 0,
 ) -> str:
     return parse_mjml_to_html(
         parse_markdown_to_mjml(
@@ -25,5 +26,6 @@ def parse_markdown_to_html(
             link_attributes=link_attributes,
             url_factory=url_factory,
             lang=lang,
+            heading_offset=heading_offset,
         )
     )

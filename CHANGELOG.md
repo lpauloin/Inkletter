@@ -4,6 +4,93 @@ Newest first. [Semantic versioning](https://semver.org): a major bump
 means a document, a theme file or a call that used to work no longer
 does.
 
+## 4.4.0 — 2026-11-07
+
+The fragment for a page that serves its pictures itself, and for an editor
+whose largest heading is a section's: a document printed to a PDF, a
+document pasted into LinkedIn's long-form editor.
+
+### Added
+
+- **`images`** on the fragment: `parse_markdown_to_html_fragment(markdown,
+  images=True)` — in JavaScript, `{ images: true }`. An image with a web
+  address (`http`, `https`) is drawn: an `<img>` with its alternative
+  text, a `<figure>` when it stands alone on its line, its title as
+  `<figcaption>`; a linked image stays inside its link, images side by
+  side share a paragraph. A picture carried inside the page
+  (`data:image/gif`, `png`, `jpeg` or `webp`, which an `<img>` never
+  runs — the rule the tree already reads) is drawn too — a printed
+  page holds what it shows. Any other address stays its alternative text.
+  Without it, nothing changes: an image is its alternative text, and the
+  fragment never fetches anything.
+- **`mentions`, `unicode_strike`, `task_paragraphs`** on the fragment —
+  `{ mentions, unicodeStrike, taskParagraphs }` in JavaScript — for a page
+  or an editor that wants a document written its way. `mentions` is your
+  function: given a mention's URN, it returns the attributes of its anchor
+  — an address to a public page, an entity an editor reads back — or
+  `None` (`null` or `undefined` in JavaScript) or `{}` for `@name`. The
+  attributes are checked before anything is written: a name is a letter,
+  then letters, digits or `-`, written lower-cased, once; no event handler
+  (`on…`); an address — `href`, `src`, `action`, `formaction` — never runs
+  something, however its scheme is spelled; a value is a string, escaped.
+  A set breaking one rule is refused whole: the mention goes out as
+  `@name`.
+  `unicode_strike` writes strikethrough as its Unicode look-alike — its
+  stroke after a letter and its accents, code left as written, the space
+  beside an emoji unstruck even across bold or a link —,
+  `task_paragraphs` a list holding tasks as a paragraph per item, its box
+  or its marker in its text, a loose list as a tight one, a numbered list
+  from the number it starts at, `0` included. Without them, nothing
+  changes.
+- **The fragment composes accents (NFC)** before reading the document, as
+  the post does: a letter and its accent are one character.
+- **`inkletter.lookalikes`**: the Unicode look-alikes of bold, italic and
+  strikethrough, shared by the post and the fragment; the stroke goes
+  after a character's combining marks, not between a letter and its
+  accent.
+- **`heading_offset`** on the fragment, the MJML, the email and the plain
+  text — `{ headingOffset }` in JavaScript; a post shows no heading, so
+  it takes none: added to every heading's level, held between 1 and 6,
+  once in the tree, so the theme sizes the heading it became. An integer,
+  a boolean refused: anything else raises a `TypeError`. The email's
+  `<mj-title>` stays the first `#` its author wrote, whatever the offset.
+  With `-1`, a document's `##` becomes `<h1>` — LinkedIn's long-form
+  editor reads an `<h1>` as its *Heading* and anything smaller as its
+  *Subheading*.
+- **`size`** among an image's attributes: `![Plan](plan.png){size=small}`
+  lays it inside the text column, `size=full` (the default) across it, as
+  LinkedIn's long-form editor offers. The fragment writes
+  `<figure data-size="small">`; an email draws it at the theme's
+  `small_width`, unless a `width` of its own says otherwise.
+- **A linked image alone on its line** is a `<figure>` in the fragment,
+  its `<img>` inside the link, its title as `<figcaption>` — beside its
+  text (a media object) as well. A title of spaces alone says nothing:
+  no caption, in the fragment as in the email. Images side by side are
+  apart by a space, as in the source, the text of one not drawn too.
+- **The title of an image standing as a block** is said under it in the
+  email, an `mj-text` after the `mj-image` — not in a row of images, not
+  in raw HTML, where it stays a tooltip.
+- **`[images]` theme fields** `small_width` (`360px`),
+  `caption_font_size` (`12px`), `caption_color`.
+
+All held to the same characters on both sides by the parity scenarios.
+
+### Fixed
+
+- **Bold look-alikes now cover digits and accented letters**: in
+  `unicode_styling`, `**3D, l'idée à la pièce**` used to go out with a
+  plain `3`, `é`, `à`, `è` in the middle of bold words. Digits take the
+  sans-serif bold digits (in bold and in bold italic; Unicode has none in
+  italic). An accented letter goes out as its letter's look-alike followed
+  by its accent (`𝗲` + U+0301), which LinkedIn shows as one bold letter —
+  measured on 2026-11-10 in its composer; a capital with an accent above it
+  (`É`, `À`, `Ê`) stays as it is, since LinkedIn loses that accent above the
+  look-alike, while one with an accent under it (`Ç`) is styled. Such a
+  letter costs its look-alike's two characters plus one per accent.
+- **A long line of code no longer widens an email past a phone's screen**:
+  a `pre` wraps (`white-space: pre-wrap`) instead of scrolling, which
+  few mail clients do — the column used to grow to the line's width.
+
 ## 4.3.0 — 2026-11-01
 
 The language an email is written in, for a screen reader and an

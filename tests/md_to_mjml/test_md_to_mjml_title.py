@@ -1,3 +1,5 @@
+import pytest
+
 from inkletter.md_to_html import parse_markdown_to_html
 from inkletter.md_to_mjml import parse_markdown_to_mjml, wrap_mjml_body
 
@@ -107,3 +109,10 @@ def test_output_without_a_title_is_unchanged():
 def test_title_reaches_the_final_html():
     html = parse_markdown_to_html("# My newsletter\n\ntext")
     assert "<title>My newsletter</title>" in html
+
+
+@pytest.mark.parametrize("offset", [-1, 0, 2])
+def test_the_title_is_the_first_hash_written_whatever_the_offset(offset):
+    actual = parse_markdown_to_mjml("## Section\n\n# The title", heading_offset=offset)
+    print(actual)
+    assert "<mj-title>The title</mj-title>" in actual

@@ -22,6 +22,11 @@ interface Case {
   factory?: 'marking';
   bold_link_is_button?: boolean;
   link_attributes?: boolean;
+  images?: boolean;
+  heading_offset?: number;
+  mentions?: string;
+  unicode_strike?: boolean;
+  task_paragraphs?: boolean;
   theme?: ThemeMapping;
   lang?: string;
   expected?: string;
@@ -51,6 +56,30 @@ class Marking extends URLFactory {
   }
 }
 
+/** The attributes a mention is given, by the last part of its URN: what the
+ *  fragment must refuse, on both sides alike — a number among them, as a
+ *  caller's function may return one whatever its type says. */
+const HOSTILE = new Map<string, Record<string, string>>([
+  ['empty', {}],
+  ['script', { href: '  JaVa\tScRiPt:alert(1)' }],
+  ['upper', { HREF: 'javascript:alert(1)' }],
+  ['handler', { href: 'https://exemple.fr', onclick: 'alert(1)' }],
+  ['name', { 'x onmouseover=alert(1) y': '1' }],
+  ['colon', { 'xlink:href': 'https://exemple.fr' }],
+  ['source', { src: 'data:text/html,<script>alert(1)</script>' }],
+  ['twice', { href: 'https://exemple.fr', HREF: 'https://exemple.fr' }],
+  ['number', { 'data-n': 3 } as unknown as Record<string, string>],
+  ['cased', { 'Data-Entity': 'a"b<c>' }],
+]);
+
+/** The attributes any mention of a case is written with, on both sides: the
+ *  URN tagged — none for one ending in `0`, written `@name`, and those of
+ *  `HOSTILE` for one ending in its key. */
+function tagging(urn: string): Record<string, string> | null {
+  if (urn.endsWith('0')) return null;
+  return HOSTILE.get(urn.split(':').pop() ?? '') ?? { 'data-entity': `tag:${urn}` };
+}
+
 function factoryOf(scenario: Case): URLFactory | null {
   if (scenario.factory === 'marking') return new Marking();
   if (scenario.link_length !== undefined) return new Width(scenario.link_length);
@@ -67,7 +96,7 @@ function answered(render: () => Partial<Case>): Partial<Case> {
   try {
     return render();
   } catch (refusal) {
-    if (refusal instanceof Error && ['LengthError', 'MarkupError', 'ThemeError'].includes(refusal.name)) {
+    if (refusal instanceof Error && ['LengthError', 'MarkupError', 'ThemeError', 'TypeError'].includes(refusal.name)) {
       return { error: refusal.name, message: refusal.message };
     }
     throw refusal;
@@ -113,7 +142,16 @@ describe('the post: the same text, the same count, the same lines', () => {
 
 describe('the HTML fragment: the same characters', () => {
   test.each(casesOf('html_fragment').map((scenario) => [scenario.name, scenario] as const))('%s', (_, scenario) => {
-    const found = answered(() => ({ expected: parseMarkdownToHtmlFragment(scenario.source, options(scenario)) }));
+    const found = answered(() => ({
+      expected: parseMarkdownToHtmlFragment(scenario.source, {
+        ...options(scenario),
+        images: scenario.images ?? false,
+        mentions: scenario.mentions ? tagging : null,
+        unicodeStrike: scenario.unicode_strike ?? false,
+        taskParagraphs: scenario.task_paragraphs ?? false,
+        headingOffset: scenario.heading_offset ?? 0,
+      }),
+    }));
     expect(found).toEqual(expectedOf(scenario));
   });
 });
@@ -125,6 +163,7 @@ describe('the MJML: the same characters', () => {
         ...options(scenario),
         theme: scenario.theme ? Theme.fromDict(scenario.theme) : null,
         lang: scenario.lang ?? null,
+        headingOffset: scenario.heading_offset ?? 0,
       }),
     }));
     expect(found).toEqual(expectedOf(scenario));
@@ -132,7 +171,7 @@ describe('the MJML: the same characters', () => {
 });
 
 test('a divergence introduced on purpose fails — the comparison is not vacuous', () => {
-  const [scenario] = casesOf('html_fragment');
+  const scenario = casesOf('html_fragment').find((found) => found.expected !== undefined);
   if (!scenario?.expected) throw new Error('no fragment scenario');
   expect(parseMarkdownToHtmlFragment(scenario.source, options(scenario))).not.toEqual(`${scenario.expected} `);
 });

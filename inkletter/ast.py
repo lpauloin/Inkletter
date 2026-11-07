@@ -173,7 +173,7 @@ class Link(TextBlock):
 
     # Each kind says its scheme; only an address has to read it off its
     # target, which may be `http`, `https` or none at all.
-    scheme = None
+    scheme: str | None = None
 
     def __repr__(self):
         return f"{type(self).__name__}(href='{self.href}', title='{self.title}')"
@@ -259,6 +259,9 @@ class Heading(BlockNode):
     def __init__(self, level, text):
         super().__init__(text)
         self.level = level
+        # the level its author wrote, whatever offset moves `level`: what
+        # names the document's title
+        self.written_level = level
 
     def __repr__(self):
         return f"Heading(level={self.level})"
@@ -304,17 +307,19 @@ class Attributes(Node):
     not part of its content — so no visitor ever walks into it.
     """
 
-    def __init__(self, width=None, height=None, align=None):
+    def __init__(self, width=None, height=None, align=None, size=None):
         super().__init__()
         self.width = width
         self.height = height
         self.align = align
+        # how it is laid: `small` inside the text column, `full` across it
+        self.size = size
 
     def __bool__(self):
-        return bool(self.width or self.height or self.align)
+        return bool(self.width or self.height or self.align or self.size)
 
     def __repr__(self):
-        return f"Attributes(width='{self.width}', height='{self.height}', align='{self.align}')"
+        return f"Attributes(width='{self.width}', height='{self.height}', align='{self.align}', size='{self.size}')"
 
 
 class Image(Node):
@@ -339,6 +344,18 @@ class Image(Node):
         """Whether it has an alternative text to show where it is not seen."""
         return bool(self.alt_text.strip())
 
+    @property
+    def picture(self):
+        """The image drawn: itself."""
+        return self
+
+    @property
+    def drawable(self):
+        """Whether a page that serves its own pictures can draw it rather than
+        saying its text: a web address, or a picture carried inside the
+        page (`data:image/…`), which an `<img>` never runs."""
+        return self.scheme in ("http", "https") or IMAGE_DATA.match(self.url) is not None
+
     def __repr__(self):
         return f"Image(url='{self.url}', title='{self.title}', alt_text='{self.alt_text}')"
 
@@ -357,6 +374,11 @@ class ImageLink(Node):
     @property
     def says_something(self):
         return self.img.says_something
+
+    @property
+    def picture(self):
+        """The image drawn: the one inside the link."""
+        return self.img
 
     def get_children(self):
         return [self.img]

@@ -17,9 +17,14 @@ import { SPACE, WORD, strip } from '../stdlib.js';
 
 /** The only keys: an unknown one raises, a typo in an email cannot be taken
  *  back once it is sent. */
-export const KEYS = ['width', 'height', 'align'] as const;
+export const KEYS = ['width', 'height', 'align', 'size'] as const;
 /** mj-image knows these three. */
 export const ALIGNMENTS = ['left', 'center', 'right'] as const;
+/** How a picture is laid: inside the text column (`small`), or across the
+ *  page (`full`, the default). The fragment writes it as `data-size`; an
+ *  email draws a small one at its theme's `small_width`, unless a `width`
+ *  of its own says otherwise. */
+export const SIZES = ['small', 'full'] as const;
 /** px only, a bare number meaning px. */
 const DIMENSION = /^(\p{Nd}+(?:\.\p{Nd}+)?)(px)?$/u;
 /** A brace block on one line, matched loosely: what is inside decides
@@ -57,6 +62,15 @@ function checkAlign(value: string): string {
   return value;
 }
 
+function checkSize(value: string): string {
+  if (!(SIZES as readonly string[]).includes(value)) {
+    throw new MarkupError(`'size=${value}' is not a size; use ${SIZES.join(', ')}`);
+  }
+  return value;
+}
+
+const CHECKS: Record<string, (value: string) => string> = { align: checkAlign, size: checkSize };
+
 function isKey(key: string): key is (typeof KEYS)[number] {
   return (KEYS as readonly string[]).includes(key);
 }
@@ -72,7 +86,8 @@ export function build(pairs: [string, string][]): ImageAttributes {
       );
     }
     if (key in attributes) throw new MarkupError(`'${key}' is set twice`);
-    attributes[key] = key === 'align' ? checkAlign(value) : checkDimension(key, value);
+    const check = CHECKS[key];
+    attributes[key] = check ? check(value) : checkDimension(key, value);
   }
   return attributes;
 }

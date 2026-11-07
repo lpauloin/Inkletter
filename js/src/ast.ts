@@ -281,12 +281,16 @@ export class Paragraph extends BlockNode {
 
 export class Heading extends BlockNode {
   readonly kind = 'Heading';
+  // the level its author wrote, whatever offset moves `level`: what names
+  // the document's title
+  readonly writtenLevel: number;
 
   constructor(
     public level: number,
     text: Node[] | Node | null,
   ) {
     super(text);
+    this.writtenLevel = level;
   }
 }
 
@@ -327,10 +331,12 @@ export class Attributes {
     public width: string | null = null,
     public height: string | null = null,
     public align: string | null = null,
+    /** How it is laid: `small` inside the text column, `full` across it. */
+    public size: string | null = null,
   ) {}
 
   get isSet(): boolean {
-    return Boolean(this.width || this.height || this.align);
+    return Boolean(this.width || this.height || this.align || this.size);
   }
 }
 
@@ -362,6 +368,18 @@ export class Image extends Node {
   get saysSomething(): boolean {
     return Boolean(strip(this.altText));
   }
+
+  /** The image drawn: itself. */
+  get picture(): Image {
+    return this;
+  }
+
+  /** Whether a page that serves its own pictures can draw it rather than
+   *  saying its text: a web address, or a picture carried inside the page
+   *  (`data:image/…`), which an `<img>` never runs. */
+  get drawable(): boolean {
+    return this.scheme === 'http' || this.scheme === 'https' || IMAGE_DATA.test(this.url);
+  }
 }
 
 export class ImageLink extends Node {
@@ -381,6 +399,11 @@ export class ImageLink extends Node {
 
   get saysSomething(): boolean {
     return this.img.saysSomething;
+  }
+
+  /** The image drawn: the one inside the link. */
+  get picture(): Image {
+    return this.img;
   }
 
   override getChildren(): Node[] {

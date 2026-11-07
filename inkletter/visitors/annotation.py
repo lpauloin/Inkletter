@@ -139,10 +139,15 @@ class Annotation(NodeVisitor):
         attributes = node.attributes
         if not attributes:
             return
+        # laid small by its author: the theme's narrower width, unless a
+        # width of its own says otherwise
+        width = attributes.width or (
+            self.theme.images.small_width if attributes.size == "small" else None
+        )
         if node.annotations.get("requires_manual_image"):
             sizes = [
                 f"{name}: {value};"
-                for name, value in (("width", attributes.width), ("height", attributes.height))
+                for name, value in (("width", width), ("height", attributes.height))
                 if value
             ]
             if sizes:
@@ -151,7 +156,7 @@ class Annotation(NodeVisitor):
         node.annotations["image_size"] = {
             name: value
             for name, value in (
-                ("width", attributes.width),
+                ("width", width),
                 ("height", attributes.height),
                 ("align", attributes.align),
             )
@@ -318,6 +323,16 @@ class Annotation(NodeVisitor):
         scope.push(node)
         self.mark_manual_image_if_needed(node, scope)
         self.apply_author_attributes(node)
+        if node.title and node.title.strip():
+            # its title, said under it when it stands as a block — an
+            # image in a row or in raw HTML keeps it as a tooltip
+            images = self.theme.images
+            node.annotations["caption_attrs"] = {
+                "align": "center",
+                "font-size": images.caption_font_size,
+                "color": images.caption_color,
+                "padding": "0px 25px 10px",
+            }
         self.generic_visit(node, scope)
         scope.pop(node)
 
@@ -334,9 +349,11 @@ class Annotation(NodeVisitor):
         # Only the first h1 of the document body is its title, and only
         # if it holds nothing but text — anything else disqualifies it
         # rather than being flattened away. in_text already tells us the
-        # heading sits in a quote, a list or a cell.
+        # heading sits in a quote, a list or a cell. Read on the level its
+        # author wrote: a heading offset moves how a heading is drawn,
+        # never which one names the document.
         slot = scope.get("document_title")
-        claims_title = node.level == 1 and not scope.get("in_text") and not slot
+        claims_title = node.written_level == 1 and not scope.get("in_text") and not slot
         if claims_title:
             scope.record_types()
             scope.set("title_parts", [])

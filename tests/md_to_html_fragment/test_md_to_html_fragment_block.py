@@ -160,7 +160,25 @@ def test_a_null_and_control_characters():
     assert actual == "<p>a\ufffdb\x07c</p>"
 
 
-def test_rtl_and_combining_text_is_untouched():
-    actual = parse_markdown_to_html_fragment("مرحبا — été — 👩‍👩‍👧")
+def test_rtl_text_is_untouched_and_accents_composed():
+    actual = parse_markdown_to_html_fragment("مرحبا — e\u0301te\u0301 — 👩‍👩‍👧")
     print(actual)
-    assert actual == "<p>مرحبا — été — 👩‍👩‍👧</p>"
+    assert actual == "<p>مرحبا — \u00e9t\u00e9 — 👩‍👩‍👧</p>"
+
+
+# Moved by an offset: a page whose own title is the `#` — a document pasted
+# into an editor whose largest heading is the section's.
+
+
+def test_headings_move_by_the_offset_asked():
+    actual = parse_markdown_to_html_fragment("## Section\n\n### Part", heading_offset=-1)
+    print(actual)
+    assert actual == "<h1>Section</h1><h2>Part</h2>"
+
+
+def test_a_moved_heading_stays_between_one_and_six():
+    actual = parse_markdown_to_html_fragment("# Top\n\n###### Deep", heading_offset=-1)
+    print(actual)
+    assert actual == "<h1>Top</h1><h5>Deep</h5>"
+    actual = parse_markdown_to_html_fragment("###### Deep", heading_offset=2)
+    assert actual == "<h6>Deep</h6>"

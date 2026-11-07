@@ -16,6 +16,7 @@ def parse_markdown_to_mjml(
     link_attributes: bool = True,
     url_factory: URLFactory | None = None,
     lang: str | None = None,
+    heading_offset: int = 0,
 ) -> str:
     ast = parse_markdown_to_ast(
         markdown_text,
@@ -23,6 +24,7 @@ def parse_markdown_to_mjml(
         link_attributes=link_attributes,
         theme=theme,
         url_factory=url_factory,
+        heading_offset=heading_offset,
     )
     if print_ast:
         print_tree(ast)

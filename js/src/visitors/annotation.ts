@@ -173,10 +173,13 @@ export class Annotation extends NodeVisitor {
   applyAuthorAttributes(node: Image): void {
     const attributes = node.attributes;
     if (!attributes.isSet) return;
+    // laid small by its author: the theme's narrower width, unless a width
+    // of its own says otherwise
+    const width = attributes.width ?? (attributes.size === 'small' ? this.theme.images.small_width : null);
     if (node.annotations.requires_manual_image) {
       const sizes = (
         [
-          ['width', attributes.width],
+          ['width', width],
           ['height', attributes.height],
         ] as const
       )
@@ -187,7 +190,7 @@ export class Annotation extends NodeVisitor {
     }
     const size: Record<string, string> = {};
     for (const [name, value] of [
-      ['width', attributes.width],
+      ['width', width],
       ['height', attributes.height],
       ['align', attributes.align],
     ] as const) {
@@ -356,6 +359,17 @@ export class Annotation extends NodeVisitor {
     scope.push(node);
     this.markManualImageIfNeeded(node, scope);
     this.applyAuthorAttributes(node);
+    if (node.title && strip(node.title)) {
+      // its title, said under it when it stands as a block — an image in a
+      // row or in raw HTML keeps it as a tooltip
+      const images = this.theme.images;
+      node.annotations.caption_attrs = {
+        align: 'center',
+        'font-size': images.caption_font_size,
+        color: images.caption_color,
+        padding: '0px 25px 10px',
+      };
+    }
     this.genericVisit(node, scope);
     scope.pop(node);
   }
@@ -372,9 +386,11 @@ export class Annotation extends NodeVisitor {
     Annotation.openAnchorRun(scope);
     scope.get<Document>('document')!.annotations.has_headings = true;
     // Only the first h1 of the document body is its title, and only if it
-    // holds nothing but text.
+    // holds nothing but text. Read on the level its author wrote: a heading
+    // offset moves how a heading is drawn, never which one names the
+    // document.
     const slot = scope.get<(string | null)[]>('document_title') ?? [];
-    const claimsTitle = node.level === 1 && !scope.get('in_text') && !slot.length;
+    const claimsTitle = node.writtenLevel === 1 && !scope.get('in_text') && !slot.length;
     const parts: string[] = [];
     if (claimsTitle) {
       scope.recordTypes();

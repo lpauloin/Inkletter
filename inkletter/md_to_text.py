@@ -10,6 +10,7 @@ def parse_markdown_to_text(
     bold_link_is_button: bool = True,
     link_attributes: bool = True,
     url_factory: URLFactory | None = None,
+    heading_offset: int = 0,
 ) -> str:
     """The plain-text alternative of the email (multipart/alternative)."""
     ast = parse_markdown_to_ast(
@@ -17,6 +18,7 @@ def parse_markdown_to_text(
         bold_link_is_button=bold_link_is_button,
         link_attributes=link_attributes,
         url_factory=url_factory,
+        heading_offset=heading_offset,
     )
     if print_ast:
         print_tree(ast)

@@ -171,7 +171,12 @@ are text, not formatting: a screen reader spells them out letter by
 letter, the platform's search does not match them, and each letter costs
 two characters rather than one. Hence opt-in. Bold and italic together
 take the bold italic look-alikes (`***mot***` is 𝙢𝙤𝙩, whichever style is
-outside), and strikethrough adds its stroke on top. A mention or an
+outside), and strikethrough adds its stroke on top. Digits take the bold
+look-alikes too (`**2026**` is 𝟮𝟬𝟮𝟲; Unicode has no italic digit). An
+accented letter goes out as its letter's look-alike followed by its accent
+(`**idée**` is 𝗶𝗱𝗲́𝗲, the accent one more character), which reads as one
+letter on LinkedIn — measured; a capital with an accent above it (`É`)
+stays as it is, the look-alike's height losing that accent. A mention or an
 address inside a styled run is never substituted, or it would stop
 resolving; neither is a hashtag, which in look-alikes would be another
 tag, nor the label of a bold link on its own — a call to action is a
@@ -262,6 +267,66 @@ HTML is dropped, a link that runs something (`javascript:`, `vbscript:`,
 left out) is written as its label, and an image is its alternative text,
 so that whatever renders the fragment never fetches anything for it.
 
+A page that serves its pictures itself — a document printed to a PDF, a
+preview on a screen — asks for them with `images=True`: an image with a
+web address (`http`, `https`) or carried inside the page (`data:image/` `gif`, `png`, `jpeg` or `webp`) becomes an `<img>`, and one alone on its
+line a `<figure>`, inside its link when it has one, its title as
+`<figcaption>`, `data-size="small"` when its author wrote `{size=small}`.
+The fragment still carries no style: the page sizes the pictures, and
+four rules make it hold on a phone:
+
+```css
+img { max-width: 100%; height: auto; }
+figure[data-size="small"] { max-width: 60%; margin-inline: auto; }
+figcaption { text-align: center; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+```
+
+Three more options, for a page or an editor that wants a document written
+its way — each asked for, none by default:
+
+| Option | What the fragment writes |
+|---|---|
+| `mentions` | each mention as an anchor with the attributes your function returns for its URN — `{"href": …}` for a link to a public page, `{"data-type": "mention", "data-entity-urn": …}` for an editor that reads mentions back —, or `@name` when it returns `None` or `{}` (`null` or `undefined` in JavaScript) |
+| `unicode_strike` | strikethrough as its Unicode look-alike (a stroke after each letter) rather than `<s>`, for an editor that keeps no strike |
+| `task_paragraphs` | a list holding tasks as a paragraph per item, its box (`☐`, `☑`) or its marker in its text, for an editor that keeps no box |
+
+The attributes `mentions` returns are checked before anything is written;
+a set that breaks one rule is refused whole, and the mention goes out as
+`@name` rather than raising:
+
+| Rule | Refused, for example |
+|---|---|
+| a name is a letter, then letters, digits or `-` — read case-insensitively, written lower-cased, once | `x onmouseover=y`, `xlink:href`, `href` beside `HREF` |
+| no event handler: no name starting with `on` | `onclick` |
+| an address — `href`, `src`, `action`, `formaction` — never runs something (`runs_something`) | `href="javascript:…"`, ` JaVaScRiPt:…`, `data:text/html,…` |
+| a value is a string | `3`, `None` |
+
+Values are escaped. The fragment composes accents first (NFC), as the
+post does: `unicode_strike` puts its stroke after a letter and its
+accents, leaves code as written, and keeps the space beside an emoji
+unstruck, even across bold, italic or a link.
+
+## Heading levels
+
+`heading_offset` moves every heading's level, held between 1 and 6 — on
+the fragment, the MJML, the email and the plain text (`{ headingOffset }`
+in JavaScript); a post shows no heading, so it takes none. It is applied
+once in the tree, so the theme sizes the heading it became. It is an
+integer — anything else, a boolean included, raises a `TypeError`
+(`heading_offset must be an integer`). The email's `<mj-title>` stays the
+document's first `#`, whatever the offset: it moves how a heading is
+drawn, not which one names the document.
+
+```python
+parse_markdown_to_html_fragment("## Section\n\n### Part", heading_offset=-1)
+# '<h1>Section</h1><h2>Part</h2>'
+```
+
+With `-1`, a document whose `#` is the page's own title gives its `##` to
+an editor whose largest heading is a section's — LinkedIn's long-form editor
+reads an `<h1>` as its *Heading* and anything smaller as its *Subheading*.
+
 ## Django templates
 
 Building emails for a Django app? Let Django resolve the template while
@@ -316,10 +381,13 @@ not know which image you inserted. Put the facts in braces, Pandoc's
 [![Acme](logo@2x.png)](https://acme.example){width=96px}
 ```
 
-`width`, `height` and `align` — and nothing else. A dimension is a fact
+`width`, `height`, `align` and `size` — and nothing else. A dimension is a fact
 about the asset; an appearance is a choice of theme, so no CSS property
 is ever accepted here. Lengths are in `px`, a bare number means pixels,
-and alignment is `left`, `center` or `right`.
+and alignment is `left`, `center` or `right`. `size=small` lays a picture
+inside the text column, as LinkedIn's long-form editor does — the theme's
+`small_width` in an email, `<figure data-size="small">` in the fragment —
+and `size=full`, the default, across it.
 
 A width holds on a phone too — an image without one follows its column
 either way, so nothing is made responsive by ignoring it.
@@ -385,6 +453,13 @@ file stays clean in any Markdown editor (and reusable for other channels):
 
   Pass `--no-bold-link-button` to keep bold links as links.
 
+- An image **standing alone** with a title has it said under it, as a
+  caption — in a row or in raw HTML, the title stays a tooltip:
+
+  ```markdown
+  ![The plan](plan.png "The plan, as of Monday")
+  ```
+
 On mobile everything stacks gracefully, image on top. Ratios, spacing and
 colors are tuned in the `[images]` and `[buttons]` theme sections below —
 including `text_layout = "stacked"` to disable media-object columns entirely.
@@ -442,7 +517,7 @@ underline = false
 | `[quote]`    | `color`, `border_color`, `font_style`                                                                    |
 | `[divider]`  | `color`, `width`                                                                                         |
 | `[table]`    | `border_color`, `cell_padding`, `header_color`, `header_background_color`                                |
-| `[images]`   | `align`, `row_gap`, `border_radius`, `text_layout`, `media_ratio`                                        |
+| `[images]`   | `align`, `row_gap`, `border_radius`, `text_layout`, `media_ratio`, `small_width`, `caption_font_size`, `caption_color` |
 | `[buttons]`  | `background_color` (inherits `links.color`), `color`, `border_radius`, `font_weight`, `padding`, `align` |
 
 Each heading level is its own subsection, so a centred headline over

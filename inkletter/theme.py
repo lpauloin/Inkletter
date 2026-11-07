@@ -10,13 +10,14 @@ paths produce the same kind of object.
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import asdict, dataclass, field, fields, replace
 from pathlib import Path
 from typing import Any
 
-try:
+if sys.version_info >= (3, 11):
     import tomllib
-except ModuleNotFoundError:  # Python 3.10
+else:
     import tomli as tomllib
 
 from inkletter.colors import WHITE, Blue, Gray, Green, Red, Slate, Yellow
@@ -138,6 +139,9 @@ class Images:
     border_radius: str = "0"
     text_layout: str = "columns"  # media object: "columns" or "stacked"
     media_ratio: str = "30%"  # image column width of a media object
+    small_width: str = "360px"  # an image laid `{size=small}`
+    caption_font_size: str = "12px"  # the title shown under a lone image
+    caption_color: str = Gray.BASE
 
     def __post_init__(self):
         _validate_alignment("images", self.align)
@@ -256,7 +260,10 @@ class Theme:
                 f" background-color: {self.code.background_color};"
                 f" color: {self.code.color};"
                 f" margin: 0; padding: 12px; border-radius: 6px;"
-                f" overflow-x: auto; }}",
+                # wrapped, not scrolled: a long line would widen the column
+                # past a phone's screen, and few mail clients scroll a block
+                f" white-space: pre-wrap; word-wrap: break-word;"
+                f" overflow-wrap: anywhere; }}",
                 "ul, ol { margin: 0; padding-left: 24px; }",
                 # note: no bare `table`/`td` selectors here — they would leak
                 # onto the layout tables MJML generates for the email itself;
